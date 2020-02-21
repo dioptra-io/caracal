@@ -1,0 +1,52 @@
+//
+// Created by System Administrator on 29/05/2018.
+//
+
+#ifndef HEARTBEAT_HEARTBEAT_HPP
+#define HEARTBEAT_HEARTBEAT_HPP
+
+#include <string>
+#include <thread>
+#include <atomic>
+
+#include <tins/tins.h>
+#include "probing_options_t.hpp"
+#include <patricia.hpp>
+
+class heartbeat_t {
+public:
+
+    heartbeat_t(const std::string & interface_s, const std::string & hw_gateway, const probing_options_t & options);
+
+    void send_exhaustive(uint8_t max_ttl);
+
+    void send_from_probes_file();
+
+    void send_from_targets_file(uint8_t max_ttl);
+
+    /**
+     * Starts the heartbeat (sniffer and sender)
+     */
+    void start();
+
+    // Alias type
+//    using ip_integers_set = std::unordered_set<uint32_t>;
+//    using intramonitor_redundancy_t = std::unordered_map<uint8_t, ip_integers_set >;
+//    using redundant_destinations_t = std::unordered_map<uint8_t, ip_integers_set >;
+
+private:
+    // Build the targets (< 100000) from a targets file.
+    std::vector<uint32_t> targets_from_file();
+
+    // Attributes
+    Patricia m_patricia_trie;
+
+    Tins::NetworkInterface m_interface;
+    Tins::HWAddress<6> m_hw_gateway;
+
+    probing_options_t m_options;
+
+};
+
+
+#endif //HEARTBEAT_HEARTBEAT_HPP
