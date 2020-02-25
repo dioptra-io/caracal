@@ -39,7 +39,7 @@ message(HOME: ${HOME})
 
 include_directories(.)
 include_directories(utils)
-include_directories(bits-operations)
+#include_directories(bits-operations)
 include_directories(database)
 include_directories(maths)
 

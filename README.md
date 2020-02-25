@@ -1,2 +1,3 @@
-# diamond-miner
-Diamond-Miner is a Internet measurement software that allows discovering load balanced paths at Internet Scale.
+See https://github.com/dioptra-io/diamond-miner-wrapper instructions.
+
+
