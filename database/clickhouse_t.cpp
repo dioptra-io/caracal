@@ -56,6 +56,83 @@ void clickhouse_t::write_skip_prefixes(const std::string & skip_prefixes_file) {
     }
 }
 
+void clickhouse_t::next_max_ttl_traceroutes(const std::string &table, uint32_t vantage_point_src_ip,
+                                            const process_options_t &options, std::ostream &ostream) {
+    int snapshot = options.snapshot;
+    int round = options.round;
+    uint32_t vp_inf_born = options.inf_born;
+    uint32_t vp_sup_born = options.sup_born;
+
+    std::string request = build_subspace_request_per_prefix_max_ttl(table, vantage_point_src_ip, snapshot, round, vp_inf_born, vp_sup_born);
+    std::cout << request << std::endl;
+}   
+
+std::string
+clickhouse_t::build_subspace_request_per_prefix_max_ttl(const std::string &table, uint32_t vantage_point_src_ip,
+                                                        int snapshot, int round, uint32_t inf_born, uint32_t sup_born) {
+    std::string subspace_request {
+    "WITH \n"
+    " SELECT dst_prefix\n"
+    "    FROM \n"
+    "    (\n"
+    "        SELECT \n"
+    "            src_ip, \n"
+    "            dst_prefix, \n"
+    "            MAX(round) AS max_round\n"
+    "        FROM " + table + "\n"
+    "        WHERE dst_prefix > " + std::to_string(inf_born) + " AND dst_prefix <= " + std::to_string(sup_born) + "\n"
+    "        AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
+    "        AND snapshot = " + std::to_string(snapshot) + " \n"
+    "        GROUP BY (src_ip, dst_prefix)\n"
+    "        HAVING max_round < " + std::to_string(round - 1) + "\n"
+    "    ) \n"
+    ") AND dst_prefix NOT IN (\n"
+    "    SELECT dst_prefix\n"
+    "    FROM \n"
+    "    (\n"
+    "        SELECT \n"
+    "            src_ip, \n"
+    "            dst_prefix, \n"
+    "            ttl, \n"
+    "            COUNTDistinct(reply_ip) AS n_ips_per_ttl_flow, \n"
+    "            COUNT((src_ip, dst_ip, ttl, src_port, dst_port)) AS cnt \n"
+    "        FROM " + table + "\n"
+    "        WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + "\n"
+    "        AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
+    "        AND snapshot = " + std::to_string(snapshot) + " \n"
+    "        GROUP BY (src_ip, dst_prefix, dst_ip, ttl, src_port, dst_port, snapshot)\n"
+    "        HAVING (cnt > 2) OR (n_ips_per_ttl_flow > 1)\n"
+    //                                  "        ORDER BY (src_ip, dst_ip, ttl) ASC\n"
+    "    ) \n"
+    "    GROUP BY (src_ip, dst_prefix)\n AS boguous_prefixes"
+//    "WITH groupUniqArray(dst_prefix, dst_ip, reply_ip, ttl) as links_per_dst_ip,\n"
+//    "arrayFilter((x->(x.2 != x.4 AND x.3 != x.4)), links_per_dst_ip) as core_links_per_dst_ip,\n"
+//    "arrayMap((x->(x.3, x.4)), core_links_per_dst_ip) as core_links_per_prefix,\n"
+//    "arrayDistinct(core_links_per_prefix) as unique_core_links_per_prefix,\n"
+//    "length(unique_core_links_per_prefix) as n_links\n"
+    "SELECT \n"
+    "    src_ip, \n"
+    "    dst_prefix, \n"
+    "    max(ttl) as max_ttl \n"
+    "FROM \n"
+    "(\n"
+    "    SELECT *\n"
+    "    FROM " + table + "\n"
+    "    WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + " AND round <= " + std::to_string(round) + "\n"
+    "    AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
+    "    AND snapshot = " + std::to_string(snapshot) + " \n"
+    ") \n"
+    "WHERE dst_prefix NOT IN (\n"
+    " boguous_prefixes \n"
+    ")\n"
+    " AND dst_ip == reply_ip"
+    "GROUP BY (src_ip, dst_prefix)\n"
+    //                                  "LIMIT 200\n"
+                                                                                                                                                                      ""};
+
+    return subspace_request;
+}
+
 void
 clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_src_ip, const process_options_t & options,
                                               std::ostream &ostream
@@ -80,7 +157,9 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
 //        auto inf_born = static_cast<uint32_t> (i * ((std::pow(2, 32) - 1) / interval_split));
 //        auto sup_born = static_cast<uint32_t >((i + 1) * ((std::pow(2, 32) - 1) / interval_split));
 
-        std::string link_query = build_subspace_request_per_prefix(table, vantage_point_src_ip, snapshot, round, inf_born, sup_born);
+        std::string link_query = build_subspace_request_per_prefix_load_balanced_paths(table, vantage_point_src_ip,
+                                                                                       snapshot, round, inf_born,
+                                                                                       sup_born);
 #ifndef NDEBUG
         std::cout << link_query << "\n";
 #endif
@@ -193,8 +272,11 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
 }
 
 
-std::string clickhouse_t::build_subspace_request_per_prefix(const std::string & table, uint32_t vantage_point_src_ip, int snapshot, int round, uint32_t inf_born,
-                                                          uint32_t sup_born) {
+std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(const std::string &table,
+                                                                                uint32_t vantage_point_src_ip,
+                                                                                int snapshot, int round,
+                                                                                uint32_t inf_born,
+                                                                                uint32_t sup_born) {
 
     std::string subspace_request {"WITH groupUniqArray((dst_prefix, dst_ip, p1.reply_ip, p2.reply_ip)) as links_per_dst_ip,\n"
                                   "arrayFilter((x->(x.2 != x.4 AND x.3 != x.4)), links_per_dst_ip) as core_links_per_dst_ip,\n"
@@ -767,6 +849,8 @@ bool clickhouse_t::can_skip_ipv4_block(uint32_t inf_born, uint32_t sup_born) {
     }
     return can_skip;
 }
+
+
 
 
 

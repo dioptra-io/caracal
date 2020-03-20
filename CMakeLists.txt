@@ -52,6 +52,7 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 
 
 include_directories(/usr/local/include/)
+
 if ("${LOCAL_DEBUG}" STREQUAL 1)
     add_subdirectory(libtins)
     include_directories(libtins/include)
@@ -119,6 +120,13 @@ if(Boost_FOUND)
                 database/clickhouse_t.cpp process_options_t.cpp utils/parameters_utils_t.cpp maths/stopping_points_t.cpp tracelink_t.cpp tracenode_t.cpp dynamics_t.cpp)
         target_link_libraries(Reader PUBLIC pthread tins ${CLICKHOUSE_LIB} ${LZ4_LIB} ${CITYHASH_LIB} ${Boost_LIBRARIES})
 
+        if ("${TEST}" STREQUAL 1)
+            message("Building unit tests")
+            add_executable(Test unit_tests_t.cpp
+                    probe_dto_t.cpp utils/network_utils_t.cpp
+                    database/clickhouse_t.cpp process_options_t.cpp utils/parameters_utils_t.cpp maths/stopping_points_t.cpp)
+            target_link_libraries(Test PUBLIC pthread tins ${CLICKHOUSE_LIB} ${LZ4_LIB} ${CITYHASH_LIB} ${Boost_LIBRARIES})
+        endif()
 
 #        add_executable(DynamicSnapshot main_dynamics.cpp
 #                database/clickhouse_t.cpp database/clickhouse_redundancy_t.cpp database/clickhouse_dynamics_t.cpp utils/parameters_utils_t.cpp utils/network_utils_t.cpp maths/stopping_points_t.cpp dump_t.cpp tracelink_t.cpp tracenode_t.cpp dynamics_t.cpp)

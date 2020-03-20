@@ -17,6 +17,8 @@ struct probing_options_t {
     uint32_t pps;
     uint16_t sport = 24000;
     uint16_t dport = 33434;
+    uint8_t  min_ttl = 3;
+    uint8_t  max_ttl = 30;
     uint32_t inf_born;
     uint32_t sup_born;
     uint32_t n_destinations_per_24;

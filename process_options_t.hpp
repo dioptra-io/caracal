@@ -15,8 +15,8 @@ struct process_options_t {
     bool is_generate = false;
     bool is_generate_snapshot = false;
     bool is_read = false;
-    uint32_t inf_born;
-    uint32_t sup_born;
+    uint32_t inf_born = std::numeric_limits<uint32_t>::min();
+    uint32_t sup_born = std::numeric_limits<uint32_t>::max();
     uint16_t sport = 24000;
     uint16_t dport = 33434;
 

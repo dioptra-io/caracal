@@ -136,14 +136,11 @@ int main(int argc, char ** argv){
 
     if(vm.count("inf-born")){
         options.inf_born = vm["inf-born"].as<uint32_t>();
-    } else {
-        options.inf_born = std::numeric_limits<uint32_t>::min();
-    }
+    } 
+    
     if(vm.count("sup-born")){
         options.sup_born = vm["sup-born"].as<uint32_t>();
-    } else {
-        options.sup_born = std::numeric_limits<uint32_t>::max();
-    }
+    } 
 
 
     if(vm.count("skip-prefixes")){

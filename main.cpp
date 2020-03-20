@@ -33,6 +33,8 @@ int main(int argc, char **argv) {
             ("interface", po::value<std::string>(), "Interface from which to send the packets")
             ("proto,p", po::value<std::string>(), "Protocol to use for probing (udp (default), tcp, icmp)")
             ("dport", po::value<uint16_t>(), "destination port for probing (default 33434)")
+            ("min-ttl", po::value<uint8_t>(), "minimum ttl to probe (default 3, min 1)")
+            ("max-ttl", po::value<uint8_t>(), "maximum ttl to probe (default 30, max 32)")
             ("probes-files,f", po::value<std::string>(), "Format is SRC_IP, DST_IP, SRC_PORT, DST_PORT, TTL, ROUND")
             ("send-from-file,F", "Send from a file rather than an exhaustive IPv4 probing.")
             ("output-file,o", po::value<std::string>(), "pcap output file of replies")
@@ -77,6 +79,14 @@ int main(int argc, char **argv) {
 
     if (vm.count("dport")){
         options.dport = vm["dport"].as<uint16_t >();
+    }
+
+    if (vm.count("min-ttl")){
+        options.min_ttl = vm["min-ttl"].as<uint8_t >();
+    }
+
+    if (vm.count("max-ttl")){
+        options.max_ttl = vm["max-ttl"].as<uint8_t >();
     }
 
     if (vm.count("output-file")){

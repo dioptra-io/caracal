@@ -160,7 +160,7 @@ void heartbeat_t::send_from_probes_file() {
 }
 
 
-void heartbeat_t::send_exhaustive(uint8_t max_ttl) {
+void heartbeat_t::send_exhaustive() {
 
 //    std::ofstream ofstream;
 //    ofstream.open("resources/destinations");
@@ -227,7 +227,7 @@ void heartbeat_t::send_exhaustive(uint8_t max_ttl) {
 
         uint32_t host_offset = val >> 29; // pick the 3 remaining bits for the offset.
 
-        if (ttl < 3){
+        if (ttl <= m_options.min_ttl){
             // Do not overload the gateway
             continue;
         }
@@ -266,7 +266,7 @@ void heartbeat_t::send_exhaustive(uint8_t max_ttl) {
             continue;
         }
         // Flow starting at 0
-        if (ttl > max_ttl or ttl == 0 or host_offset >= m_options.n_destinations_per_24){
+        if (ttl > m_options.max_ttl or ttl == 0 or host_offset >= m_options.n_destinations_per_24){
             //                std::cout  << "TTL too high\n";
             continue;
         }
@@ -413,7 +413,7 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
             continue;
         }
         // Flow starting at 0
-        if (ttl > max_ttl or ttl == 0){
+        if (ttl > m_options.max_ttl or ttl == 0){
             //                std::cout  << "TTL too high\n";
             continue;
         }
@@ -462,7 +462,7 @@ void heartbeat_t::start() {
 //        send(30, 6, m_options.n_destinations_per_24);
         send_from_targets_file(30);
     } else {
-        send_exhaustive(30);
+        send_exhaustive();
     }
 
     // Allows sniffer to get the last flying responses. 60 seconds maximum waiting time.

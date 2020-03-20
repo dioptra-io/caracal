@@ -28,6 +28,16 @@ public:
     using edges_t = std::unordered_set<std::pair<uint32_t , uint32_t >, boost::hash<std::pair<uint32_t , uint32_t >>>;
 
     /**
+     * Compute the next probes to get at least 10 stars after the last IP seen if this IP is not the destination
+     * @param table
+     * @param vantage_point_src_ip
+     * @param options
+     * @param ostream
+     */
+    void next_max_ttl_traceroutes(const std::string & table, uint32_t vantage_point_src_ip, const process_options_t & options,
+                                     std::ostream &ostream);
+
+    /**
      * Compute the next round, traceroutes by traceroute
      * @param round
      */
@@ -52,11 +62,19 @@ public:
 
 private:
 
+
+    std::string build_subspace_request_per_prefix_max_ttl(const std::string &table,
+                                                          uint32_t vantage_point_src_ip, int snapshot,
+                                                          int round, uint32_t inf_born,
+                                                          uint32_t sup_born);
+
     /**
-     * Next round requests
+     * Next round requests for finding load balanced paths
      */
-    std::string build_subspace_request_per_prefix(const std::string & table, uint32_t vantage_point_src_ip, int snapshot, int round, uint32_t inf_born,
-                                                uint32_t sup_born);
+    std::string build_subspace_request_per_prefix_load_balanced_paths(const std::string &table,
+                                                                      uint32_t vantage_point_src_ip, int snapshot,
+                                                                      int round, uint32_t inf_born,
+                                                                      uint32_t sup_born);
 
     bool can_skip_ipv4_block(uint32_t inf_born, uint32_t  sup_born);
 
