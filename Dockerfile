@@ -2,8 +2,7 @@ FROM ubuntu:bionic
 WORKDIR /root/
 
 RUN apt-get update
-RUN apt-get -y install net-tools vim python3 python3-pip gnupg gcc g++ cmake libboost-all-dev git autoconf automake build-essential
-
+RUN apt-get -y install vim python3 python3-pip gnupg gcc g++ cmake libboost-all-dev git autoconf automake build-essential
 RUN apt-get clean
 RUN apt-get update
 RUN apt-get -y install nginx
@@ -37,7 +36,7 @@ RUN cd clickhouse-cpp && \
 #RUN git clone git@gitlab.planet-lab.eu:kevin/Heartbeat.git
 
 # Libtins
-RUN apt-get install -y libpcap-dev libssl-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libpcap-dev libssl-dev
 
 RUN git clone https://github.com/mfontanini/libtins.git
 RUN cd libtins && \
@@ -82,7 +81,7 @@ RUN git clone https://github.com/alexandres/terashuf.git
 
 RUN cd terashuf && make -j8 && cd ..
 
-#RUN export TMPDIR=/heartbeat/cartography/resources/ && export MEMORY=24
+RUN export TMPDIR=/heartbeat/cartography/resources/ && export MEMORY=24
 
 
 RUN mkdir .ssh/ && mkdir Heartbeat/
@@ -94,7 +93,7 @@ WORKDIR /root/Heartbeat
 
 RUN mkdir build && \
     cd build && \
-    cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPROBER=1 -DCENTRAL=1 -DPF_RING=1 && \
+    cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPROBER=1 -DCENTRAL=1  && \
     make -j8
 
 WORKDIR /root/
@@ -104,10 +103,7 @@ ADD Heartbeat-py/ Heartbeat-py/
 RUN rm -f /var/www/html/*
 ADD index.html /var/www/html/index.html
 
+WORKDIR /root/Heartbeat-py
 
-
-# Do not let the container finish
-CMD ["tail", "-f", "/dev/null"]
-
-
-
+ENTRYPOINT ["python3", "-u", "StochasticHeartbeat.py"]
+CMD ["--help"]

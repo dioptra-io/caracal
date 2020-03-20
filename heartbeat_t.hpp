@@ -18,7 +18,7 @@ public:
 
     heartbeat_t(const std::string & interface_s, const std::string & hw_gateway, const probing_options_t & options);
 
-    void send_exhaustive(uint8_t max_ttl);
+    void send_exhaustive();
 
     void send_from_probes_file();
 
