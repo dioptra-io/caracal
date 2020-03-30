@@ -189,6 +189,12 @@ int main(int argc, char ** argv){
 //        clickhouse.next_round_csv(db_table, vantage_point_src_ip, options.snapshot, options.round, options.inf_born, options.sup_born,
 //                                           ofstream);
 
+
+        if (options.round == 2){
+            clickhouse.next_max_ttl_traceroutes(db_table, vantage_point_src_ip, options, ofstream);
+        }
+
+
         clickhouse.next_round_csv(db_table, vantage_point_src_ip, options,
                                   ofstream);
         ofstream.close();
