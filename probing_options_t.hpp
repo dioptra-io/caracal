@@ -15,6 +15,7 @@ struct probing_options_t {
     std::string probes_file;
     bool is_send_from_probes_file;
     uint32_t pps;
+    uint32_t buffer_sniffer_size = 2000000;
     uint16_t sport = 24000;
     uint16_t dport = 33434;
     uint8_t  min_ttl = 3;

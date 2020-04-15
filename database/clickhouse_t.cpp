@@ -70,7 +70,7 @@ void clickhouse_t::next_max_ttl_traceroutes(const std::string &table, uint32_t v
     std::string request = build_subspace_request_per_prefix_max_ttl(table, vantage_point_src_ip, snapshot, round, vp_inf_born, vp_sup_born);
 
 
-    std::cout << request << std::endl;
+//    std::cout << request << std::endl;
 
     m_client.Select(request, [&ostream,&options, first_round_max_ttl, absolute_max_ttl](const Block &block) {
         for (size_t k = 0; k < block.GetRowCount(); ++k) {
@@ -199,7 +199,7 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
                                                                                        snapshot, round, inf_born,
                                                                                        sup_born);
 #ifndef NDEBUG
-        std::cout << link_query << "\n";
+        std::cout << link_query << std::endl;
 #endif
 
 //        std::cout << link_query << "\n";
@@ -256,7 +256,7 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
 
 
                 if (dst_prefix != current_prefix){
-
+                    // Flush the current structure and reset it.
                     if (current_max_round == round){
                         // We did not get any answers from the previous round, so stop probing this prefix.
                         flush_traceroute(round, current_source, current_prefix, current_max_dst_ip,

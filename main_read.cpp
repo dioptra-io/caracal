@@ -190,7 +190,7 @@ int main(int argc, char ** argv){
 //                                           ofstream);
 
 
-        if (options.round == 2){
+        if (options.round == 1){
             clickhouse.next_max_ttl_traceroutes(db_table, vantage_point_src_ip, options, ofstream);
         }
 
