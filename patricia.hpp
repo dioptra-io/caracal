@@ -142,9 +142,13 @@ do { \
 
 class Patricia {
 public:
-    Patricia(uint8_t size) {
-        tree = New_Patricia(size);
+    explicit Patricia(uint8_t size) :
+    tree(New_Patricia(size))
+    {
+
     };
+
+
     template <typename Type> patricia_node_t *add_ref(const char *string, Type *val) {
         prefix_t *prefix = ascii2prefix(AF_INET, string);
         patricia_node_t *node = patricia_lookup(tree, prefix);
@@ -189,12 +193,20 @@ public:
     void *get(int family, const char *string) {
         return (get(family, string, false));
     }
+
+
+    /**
+     * Populate from BGP
+     * @param family
+     * @param filename
+     */
     void populate(int family, const char *filename);
     void populate(int family, const char *filename, bool block);
     void populateBlock(int family, const char *filename);
     void populate(const char *filename) {
         populate(AF_INET, filename);
     };
+
     void populate6(const char *filename) {
         populate(AF_INET6, filename);
     };
@@ -205,6 +217,7 @@ public:
 private:
     int parseBGPLine(char *, std::string *, uint32_t *);
     int parsePrefix(char *, std::string *);
+
     void *get(prefix_t *prefix, bool exact);
     int matchingPrefix(prefix_t *prefix);
     patricia_tree_t *tree;

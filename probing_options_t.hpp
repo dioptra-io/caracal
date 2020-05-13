@@ -23,8 +23,14 @@ struct probing_options_t {
     uint32_t inf_born;
     uint32_t sup_born;
     uint32_t n_destinations_per_24;
-    bool is_only_routable;
+
+    bool is_from_prefix_file;
+    std::string prefix_file;
+
+    bool is_from_bgp;
     std::string bgp_file;
+
+    std::string exclusion_file;
     bool is_record_timestamp;
     std::string start_time_log_file;
     bool is_send_from_targets_file;

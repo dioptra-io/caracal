@@ -16,7 +16,9 @@
 class heartbeat_t {
 public:
 
-    heartbeat_t(const std::string & interface_s, const std::string & hw_gateway, const probing_options_t & options);
+    heartbeat_t(const std::string & interface_s,
+            const std::string & hw_gateway,
+            const probing_options_t & options);
 
     void send_exhaustive();
 
@@ -35,11 +37,14 @@ public:
 //    using redundant_destinations_t = std::unordered_map<uint8_t, ip_integers_set >;
 
 private:
+
+    bool check_destination_ttl(uint32_t, uint8_t, uint32_t);
     // Build the targets (< 100000) from a targets file.
     std::vector<uint32_t> targets_from_file();
 
     // Attributes
     Patricia m_patricia_trie;
+    Patricia m_patricia_trie_excluded;
 
     Tins::NetworkInterface m_interface;
     Tins::HWAddress<6> m_hw_gateway;
