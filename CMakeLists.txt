@@ -58,6 +58,15 @@ if ("${LOCAL_DEBUG}" STREQUAL 1)
     include_directories(libtins/include)
 endif()
 
+if ("${PROFILE}" STREQUAL 1)
+    message("Profiling enabled")
+    SET(PROFILE_CXX_FLAGS  " -pg ")
+    message("PROFILE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
+    set("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG} ${PROFILE_CXX_FLAGS}")
+    set("CMAKE_CXX_FLAGS_RELWITHDEBINFO is ${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${PROFILE_CXX_FLAGS}")
+    set("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE} ${PROFILE_CXX_FLAGS}")
+endif()
+
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 
@@ -122,10 +131,12 @@ if(Boost_FOUND)
 
         if ("${TEST}" STREQUAL 1)
             message("Building unit tests")
+
             add_executable(Test unit_tests_t.cpp
                     probe_dto_t.cpp utils/network_utils_t.cpp
-                    database/clickhouse_t.cpp process_options_t.cpp utils/parameters_utils_t.cpp maths/stopping_points_t.cpp)
-            target_link_libraries(Test PUBLIC pthread tins ${CLICKHOUSE_LIB} ${LZ4_LIB} ${CITYHASH_LIB} ${Boost_LIBRARIES})
+                    database/clickhouse_t.cpp process_options_t.cpp utils/parameters_utils_t.cpp maths/stopping_points_t.cpp patricia.cpp)
+            target_compile_definitions(Test PUBLIC PATRICIA_DEBUG)
+            target_link_libraries(Test PUBLIC pthread tins z ${CLICKHOUSE_LIB} ${LZ4_LIB} ${CITYHASH_LIB} ${Boost_LIBRARIES})
         endif()
 
 #        add_executable(DynamicSnapshot main_dynamics.cpp

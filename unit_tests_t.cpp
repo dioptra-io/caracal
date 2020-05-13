@@ -3,13 +3,14 @@
 //
 #include <iostream>
 
-
+#include <patricia.hpp>
 #include <database/clickhouse_t.hpp>
 
 #include <clickhouse/client.h>
+#include <tins/tins.h>
 
 using namespace clickhouse;
-
+using namespace Tins;
 void test_write_file(){
     std::string host = "132.227.123.200";
     std::string table = "heartbeat.replies_ministry_ple42_planet_lab_eu_1582833808";
@@ -130,9 +131,32 @@ void test_request(){
 
 }
 
+
+void test_patricia_trie(){
+    Patricia patricia_excluded(32);
+    patricia_excluded.populateBlock(AF_INET, "resources/excluded_prefixes");
+    auto node = patricia_excluded.get(AF_INET, "8.8.8.8", false);
+    assert(node == nullptr);
+    node =  patricia_excluded.get(AF_INET, "127.0.0.0", false);
+    assert(node != nullptr);
+    Patricia patricia(32);
+    patricia.populate(AF_INET, "resources/test/test_prefixes", true);
+    node = patricia.get(AF_INET, "192.168.1.0", false);
+    assert(node != nullptr);
+    node = patricia.get(AF_INET, "8.8.8.8", false);
+    assert(node != nullptr);
+    node = patricia.get(uint32_t(IPv4Address("192.168.1.0")), false);
+    assert(node != nullptr);
+    node = patricia.get(ntohl(uint32_t(IPv4Address("192.168.1.0"))), false);
+    assert(node != nullptr);
+
+}
+
 int main(){
 //    test_request(); // Just ensure no exception
-    test_write_file();
+//    test_write_file();
+    test_patricia_trie();
+
 
 }
 

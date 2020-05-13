@@ -21,6 +21,8 @@
 #include <sys/socket.h> /* BSD, Linux: for inet_addr */
 #include <netinet/in.h> /* BSD, Linux: for inet_addr */
 #include <arpa/inet.h> /* BSD, Linux, Solaris: for inet_addr */
+#include <fstream>
+#include <vector>
 
 #include "patricia.hpp"
 
@@ -972,7 +974,7 @@ try_search_best (patricia_tree_t *tree, char *string)
 }
 
 void *Patricia::get(prefix_t *prefix, bool exact) {
-    void *retval = NULL;
+    void *retval = nullptr;
     patricia_node_t *node;
     if (exact)
         node = patricia_search_exact(tree, prefix);
@@ -1083,7 +1085,7 @@ void Patricia::populate(int family, const char *filename, bool block) {
             if (parseBGPLine(line, &network, &asn)) {
                 //std::cout << "Prefix: " << network << " ASN: " << asn << std::endl;
                 // lookup first, ensure prefix isn't contained in a blacklistd prefix
-                if ( matchingPrefix(network.c_str()) != 0 )
+                if (matchingPrefix(network.c_str()) != 0 )
                     add(family, network.c_str(), asn);
             }
         }

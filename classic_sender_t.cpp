@@ -133,8 +133,11 @@ m_n_packets_sent(0)
 
 
     auto td = static_cast<double> (hz) / pps;
+    std::cout << "1 packet every "<< td <<  " ticks."<< "\n";
     m_tick_delta = static_cast<ticks> (td);
     std::cout << "Rate set to "<<  pps <<  " pps."<< "\n";
+    std::cout << "1 packet every "<< m_tick_delta <<  " ticks."<< "\n";
+    std::cout << "1 packet every "<< 1.0/m_tick_delta <<  " s."<< "\n";
 
 
 #endif

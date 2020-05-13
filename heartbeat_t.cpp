@@ -22,7 +22,6 @@
 #include <pfring_sender_t.hpp>
 #endif
 
-
 #include <classic_sender_t.hpp>
 #include <utils/network_utils_t.hpp>
 #include <utils/parameters_utils_t.hpp>
@@ -31,6 +30,8 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_set>
+
+
 
 using namespace Tins;
 
@@ -53,14 +54,44 @@ namespace{
 
 heartbeat_t::heartbeat_t(const std::string & interface, const std::string & hw_gateway, const probing_options_t & options):
         m_patricia_trie{32}, // Only IPv4
+        m_patricia_trie_excluded{32},
         m_interface{interface},
         m_hw_gateway{hw_gateway},
         m_options{options}{
 
 }
 
+bool heartbeat_t::check_destination_ttl(uint32_t little_endian_addr, uint8_t ttl, uint32_t host_offset) {
+    if (ttl <= m_options.min_ttl){
+        // Do not overload the gateway
+        return false;
+    }
+
+    if (m_patricia_trie_excluded.get(htonl(little_endian_addr)) != nullptr){
+        // Address is excluded
+        return false;
+    }
+
+    if (m_options.is_from_bgp){
+        auto asn = m_patricia_trie.get(htonl(little_endian_addr));
+        if (asn == nullptr){
+            // Destination not in routable space.
+            return false;
+        }
+    }
+
+    if (!(m_options.inf_born < little_endian_addr && little_endian_addr <= m_options.sup_born )){
+        return false;
+    }
+    // Flow starting at 0
+    if (ttl > m_options.max_ttl or ttl == 0 or host_offset >= m_options.n_destinations_per_24){
+        return false;
+    }
+
+    return true;
+}
+
 void heartbeat_t::send_from_probes_file() {
-    init_exclude();
     std::cout << "Sending a round of heartbeat from " << m_options.probes_file << "\n";
 
     IPv4Address source = m_interface.ipv4_address();
@@ -133,8 +164,8 @@ void heartbeat_t::send_from_probes_file() {
             continue;
         }
 
-        // Avoid CEF drops on prefixes, addresses are big endian, so convert it to little endian
-        if (is_excluded(ntohl(dst_ip))){
+        // Avoid CEF drops on prefixes, patricia trie takes addresses in big endian
+        if (m_patricia_trie_excluded.get(dst_ip) != nullptr){
 //            std::cout << "Not sending to excluded: " << IPv4Address(addr) << "\n";
             continue;
         }
@@ -164,8 +195,6 @@ void heartbeat_t::send_exhaustive() {
 
 //    std::ofstream ofstream;
 //    ofstream.open("resources/destinations");
-
-    init_exclude();
 
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -227,61 +256,19 @@ void heartbeat_t::send_exhaustive() {
 
         uint32_t host_offset = val >> 29; // pick the 3 remaining bits for the offset.
 
-        if (ttl <= m_options.min_ttl){
-            // Do not overload the gateway
-            continue;
-        }
-
-        //debug
-        //        if (addr > 1000000){
-        //            continue;
-        //        }
-
         // Avoid CEF drops on prefixes, addresses are big endian, so convert it to little endian
         auto little_endian_addr = ntohl(addr);
 
-        // Take the .1 of the /24 prefix.
-        little_endian_addr += 1;
-
-        if (is_excluded(little_endian_addr)){
-            //            std::cout << "Not sending to excluded: " << IPv4Address(addr) << "\n";
+        if (!check_destination_ttl(little_endian_addr, ttl, host_offset)){
+#ifndef NDEBUG
+            in_addr ip_addr;
+            ip_addr.s_addr = addr;
+            std::cerr << "Filtered IP address ttl host_offset: "
+            <<  inet_ntoa(ip_addr) << " " << uint(ttl) << " "
+            << host_offset << std::endl;
+#endif
             continue;
         }
-
-//        target_prefixes.insert(little_endian_addr);
-
-        if (m_options.is_only_routable){
-            auto asn = (int *) m_patricia_trie.get(addr);
-            if (asn == nullptr){
-                // Destination not in routable space.
-                n_skipped += 1;
-                if (n_skipped % 100000 == 0){
-                    std::cout << "Skipped: " << n_skipped << "\n";
-                }
-                continue;
-            }
-        }
-
-        if (!(m_options.inf_born < little_endian_addr && little_endian_addr <= m_options.sup_born )){
-            continue;
-        }
-        // Flow starting at 0
-        if (ttl > m_options.max_ttl or ttl == 0 or host_offset >= m_options.n_destinations_per_24){
-            //                std::cout  << "TTL too high\n";
-            continue;
-        }
-
-//        for (uint32_t k = 0; k < 6 ; ++k){
-//            auto ip = little_endian_addr + k;
-//            unsigned char bytes[4];
-//            bytes[0] = ip& 0xFF;
-//            bytes[1] = (ip >> 8) & 0xFF;
-//            bytes[2] = (ip >> 16) & 0xFF;
-//            bytes[3] = (ip >> 24) & 0xFF;
-//            ofstream << static_cast<uint32_t >(bytes[3])<< "." << static_cast<uint32_t >(bytes[2]) << "." <<  static_cast<uint32_t >(bytes[1] )<< "." << static_cast<uint32_t >(bytes[0]) << "\n";
-////            std::cout << static_cast<uint32_t >(bytes[3])<< "." << static_cast<uint32_t >(bytes[2]) << "." <<  static_cast<uint32_t >(bytes[1] )<< "." << static_cast<uint32_t >(bytes[0]) << "\n";
-//
-//        }
 
         auto last_byte = little_endian_addr >> 24;
         if (last_byte + host_offset <= 255){
@@ -319,7 +306,6 @@ void heartbeat_t::send_exhaustive() {
 
 void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
 
-    init_exclude();
     // Read the targets file
     auto targets = targets_from_file();
 
@@ -396,25 +382,7 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
         // Avoid CEF drops on prefixes, addresses are big endian, so convert it to little endian
         auto little_endian_addr = targets[addr_index];
 
-        if (is_excluded(little_endian_addr)){
-            //            std::cout << "Not sending to excluded: " << IPv4Address(addr) << "\n";
-            continue;
-        }
-
-        if (m_options.is_only_routable){
-            auto asn = (int *) m_patricia_trie.get(htonl(addr));
-            if (asn == nullptr){
-                // Destination not in routable space.
-                continue;
-            }
-        }
-
-        if (!(m_options.inf_born < little_endian_addr && little_endian_addr <= m_options.sup_born )){
-            continue;
-        }
-        // Flow starting at 0
-        if (ttl > m_options.max_ttl or ttl == 0){
-            //                std::cout  << "TTL too high\n";
+        if (!check_destination_ttl(little_endian_addr, ttl, 0)){
             continue;
         }
 
@@ -422,7 +390,7 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
 
         sender.send(n_packets_per_flow, addr, ttl, starting_sport, starting_dport);
         ++i;
-        if (i % 10000000 == 0){
+        if (i % 1000000 == 0){
             std::cout << i << "\n";
         }
 //#ifndef NDEBUG
@@ -447,10 +415,19 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
 
 
 void heartbeat_t::start() {
+
+    // Init the exclusion patricia trie
+    // Only v4 at the moment
+    std::cout << "Populating exclusion prefix...\n";
+    m_patricia_trie_excluded.populateBlock(AF_INET, m_options.exclusion_file.c_str());
     // Init patricia trie if only routable destinations is specified
-    if (m_options.is_only_routable){
+    if (m_options.is_from_bgp){
         std::cout << "Populating routing space...\n";
         m_patricia_trie.populate(m_options.bgp_file.c_str());
+    } else if(m_options.is_from_prefix_file){
+        // Only IPv4
+        std::cout << "Populating prefixes...\n";
+        m_patricia_trie.populateBlock(AF_INET, m_options.prefix_file.c_str());
     }
     // Init sniffer
     // Sniffer must be started here because it starts a thread.

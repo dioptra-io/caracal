@@ -43,8 +43,11 @@ int main(int argc, char **argv) {
             ("inf-born,i", po::value<uint32_t>(), "inf born of the dst_ip")
             ("sup-born,s", po::value<uint32_t>(), "sup born of the dst_ip")
             ("destinations,d", po::value<uint32_t>(), "Number of destinations per /24")
+            ("send-from-prefix-file,P", "Send from a prefix files rather than an exhaustive IPv4 probing")
+            ("prefix-file", po::value<std::string>(), "File with prefixes to send (format A.B.C.D/M ")
             ("only-routable", "Send only to routable destinations, need the bgp file argument")
             ("bgp-file", po::value<std::string>(), "BGP file to send only to routable destinations")
+            ("exclusion-file,E", po::value<std::string>(), "File with prefix to exclude (same format as prefix-file")
             ("record-timestamp", "record the sending time of the packets. Needs to set the start-time-log-file option")
             ("start-time-log-file", po::value<std::string>(), "Logging file to record the starting time of the tool. Needed if record-timestamp is set.")
             ("send-from-targets-file,T", "Send from a target file rather than an exhaustive IPv4 probing.")
@@ -138,7 +141,7 @@ int main(int argc, char **argv) {
         options.n_destinations_per_24 = 1;
     }
     if(vm.count("only-routable")){
-        options.is_only_routable = true;
+        options.is_from_bgp = true;
         if (vm.count("bgp-file")){
             options.bgp_file = vm["bgp-file"].as<std::string>();
         } else {
@@ -146,7 +149,26 @@ int main(int argc, char **argv) {
             exit(1);
         }
     } else {
-        options.is_only_routable = false;
+        options.is_from_bgp = false;
+    }
+
+    if(vm.count("send-from-prefix-file")){
+        options.is_from_prefix_file = true;
+        if (vm.count("prefix-file")){
+            options.prefix_file = vm["prefix-file"].as<std::string>();
+        } else {
+            std::cerr << "Missing a prefix file. Exiting...\n";
+            exit(1);
+        }
+    } else {
+        options.is_from_prefix_file = false;
+    }
+
+    if (vm.count("exclusion-file")){
+        options.exclusion_file = vm["exclusion-file"].as<std::string>();
+    } else{
+        std::cerr << "No exclusion file given. Taking resources/excluded_prefixes by default \n";
+        options.exclusion_file = "resources/excluded_prefixes";
     }
 
     if (vm.count("record-timestamp")){
