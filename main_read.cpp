@@ -131,15 +131,19 @@ int main(int argc, char ** argv){
     if(vm.count("db-host")){
         options.db_host = vm["db-host"].as<std::string>();
     } else {
-        std::cerr << "Please provide a database host.\n";
-        exit(1);
+        if (vm.count("generate")) {
+            std::cerr << "Please provide a database host.\n";
+            exit(1);
+        }
     }
 
     if(vm.count("db-table")){
         options.db_table = vm["db-table"].as<std::string>();
     } else {
-        std::cerr << "Please provide a table name.\n";
-        exit(1);
+        if (vm.count("generate")) {
+            std::cerr << "Please provide a table name.\n";
+            exit(1);
+        }
     }
 
     if(vm.count("dport")){

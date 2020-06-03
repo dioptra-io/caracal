@@ -22,6 +22,7 @@ using namespace clickhouse;
 using namespace utils;
 clickhouse_t::clickhouse_t(const process_options_t & options):
 m_client{ClientOptions().SetHost(options.db_host)},
+m_options(options),
 m_patricia_trie_excluded((32))
 {
     // Initialize client connection.
