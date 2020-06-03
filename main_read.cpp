@@ -37,8 +37,6 @@ int main(int argc, char ** argv){
     process_options_t options;
 
     std::string output_file;
-    std::string db_host {"localhost"};
-    std::string db_table{"heartbeat.probes"};
     // Declare the supported options.
     po::options_description desc("Options");
     desc.add_options()
@@ -48,6 +46,7 @@ int main(int argc, char ** argv){
             ("generate-snapshot,G", "Generate the next snapshot based on a snapshot reference")
             ("input-file,i", po::value<std::string>(), "Pcap input file (only for read mode)")
             ("output-file,o", po::value<std::string>(), "CSV output file")
+            ("exclusion-file,E", po::value<std::string>(), "File with prefix to exclude (same format as prefix-file")
             ("vantage-point,v", po::value<uint32_t >(), "IP address in little endian of the vantage point")
             ("round,R", po::value<uint32_t >(), "Index of the round")
             ("snapshot,s", po::value<uint32_t >(), "ID number of the snapshot")
@@ -81,6 +80,13 @@ int main(int argc, char ** argv){
     } else {
         std::cerr << "Missing an output file. Exiting...\n";
         exit(1);
+    }
+
+    if (vm.count("exclusion-file")){
+        options.exclusion_file = vm["exclusion-file"].as<std::string>();
+    } else{
+        std::cerr << "No exclusion file given. Taking resources/excluded_prefixes by default \n";
+        options.exclusion_file = "resources/excluded_prefixes";
     }
 
     if (!vm.count("read") and !vm.count("generate") and !vm.count("generate-snapshot")) {
@@ -123,11 +129,17 @@ int main(int argc, char ** argv){
     }
 
     if(vm.count("db-host")){
-        db_host = vm["db-host"].as<std::string>();
+        options.db_host = vm["db-host"].as<std::string>();
+    } else {
+        std::cerr << "Please provide a database host.\n";
+        exit(1);
     }
 
     if(vm.count("db-table")){
-        db_table = vm["db-table"].as<std::string>();
+        options.db_table = vm["db-table"].as<std::string>();
+    } else {
+        std::cerr << "Please provide a table name.\n";
+        exit(1);
     }
 
     if(vm.count("dport")){
@@ -176,7 +188,7 @@ int main(int argc, char ** argv){
 
     else if (options.is_generate){
 
-        clickhouse_t clickhouse(db_host);
+        clickhouse_t clickhouse(options);
         if (!options.skip_prefixes_file.empty()){
             clickhouse.set_skip_prefixes(options.skip_prefixes_file);
         }
@@ -191,11 +203,11 @@ int main(int argc, char ** argv){
 
 
         if (options.round == 1){
-            clickhouse.next_max_ttl_traceroutes(db_table, vantage_point_src_ip, options, ofstream);
+            clickhouse.next_max_ttl_traceroutes(options.db_table, vantage_point_src_ip, options, ofstream);
         }
 
 
-        clickhouse.next_round_csv(db_table, vantage_point_src_ip, options,
+        clickhouse.next_round_csv(options.db_table, vantage_point_src_ip, options,
                                   ofstream);
         ofstream.close();
 
@@ -204,10 +216,10 @@ int main(int argc, char ** argv){
         }
 
     } else if (options.is_generate_snapshot){
-        clickhouse_t clickhouse(db_host);
+        clickhouse_t clickhouse(options);
         std::ofstream ofstream;
         ofstream.open(options.output_file);
-        clickhouse.next_stochastic_snapshot(options.snapshot_reference, db_table, vantage_point_src_ip,
+        clickhouse.next_stochastic_snapshot(options.snapshot_reference, options.db_table, vantage_point_src_ip,
                 options.inf_born, options.sup_born, options,
                 ofstream);
 

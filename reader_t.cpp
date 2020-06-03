@@ -28,7 +28,6 @@ reader_t::reader_t(const process_options_t & options):
 m_options{options},
 reference_times{}
 {
-
 }
 
 probe_dto_t reader_t::read_packet(const Packet & packet) const {

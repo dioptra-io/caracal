@@ -18,10 +18,12 @@
 #include <dynamics_t.hpp>
 
 #include <process_options_t.hpp>
+#include <patricia.hpp>
+
 
 class clickhouse_t {
 public:
-    clickhouse_t(const std::string & host);
+    explicit clickhouse_t(const process_options_t & options);
     void set_skip_prefixes(const std::string &skip_prefixes_file);
     void write_skip_prefixes(const std::string &skip_prefixes_file);
 
@@ -111,6 +113,10 @@ protected:
     clickhouse::Client m_client;
 
     std::unordered_map<uint32_t, bool> m_prefixes_done;
+
+    process_options_t m_options;
+    Patricia m_patricia_trie_excluded;
+
 };
 
 

@@ -53,7 +53,7 @@ private:
 class reader_t {
 public:
 
-    reader_t(const process_options_t & options);
+    explicit reader_t(const process_options_t & options);
 
 
     template<typename OutputF>
@@ -107,7 +107,6 @@ private:
     double compute_rtt_from_tcp(uint32_t seq_number, double receive_time) const;
     double compute_rtt_from_udp(uint16_t checksum, double receive_time) const;
 //    void insert_batch (const std::vector<probe_dto_t> &);
-
     process_options_t m_options;
 //    database_t* m_db;
     std::vector<double> reference_times;

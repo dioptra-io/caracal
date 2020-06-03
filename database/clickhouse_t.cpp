@@ -20,10 +20,13 @@
 
 using namespace clickhouse;
 using namespace utils;
-clickhouse_t::clickhouse_t(const std::string & host):
-m_client{ClientOptions().SetHost(host)}
+clickhouse_t::clickhouse_t(const process_options_t & options):
+m_client{ClientOptions().SetHost(options.db_host)},
+m_patricia_trie_excluded((32))
 {
     // Initialize client connection.
+    // Initialize patricia trie for private and excluded prefixes
+    m_patricia_trie_excluded.populateBlock(AF_INET, m_options.exclusion_file.c_str());
 }
 
 void clickhouse_t::set_skip_prefixes(const std::string &skip_prefixes_file)
@@ -515,7 +518,7 @@ clickhouse_t::next_stochastic_snapshot(int snapshot_reference, const std::string
                                        std::ostream &ostream) {
 
 
-    init_exclude();
+
     auto interval_split = 256; // Power of 2 because we want to keep track of all /24 prefixes
 
     for (auto i = 0; i < interval_split; ++i) {
@@ -545,7 +548,7 @@ clickhouse_t::next_stochastic_snapshot(int snapshot_reference, const std::string
         uint32_t current_prefix = 0;
         uint32_t current_last_reply_ip  = 0;
         bool is_traceprefix_done = false;
-        m_client.Select(query, [vantage_point_src_ip, &current_last_reply_ip, &current_prefix, &is_traceprefix_done, &ostream, &options](const Block &block) {
+        m_client.Select(query, [this, vantage_point_src_ip, &current_last_reply_ip, &current_prefix, &is_traceprefix_done, &ostream, &options](const Block &block) {
             for (size_t k = 0; k < block.GetRowCount(); ++k) {
                 uint32_t dst_prefix   = block[0]->As<ColumnUInt32>()->At(k);
                 uint32_t ttl          = static_cast<uint32_t>(block[1]->As<ColumnUInt8>()->At(k));
@@ -554,7 +557,8 @@ clickhouse_t::next_stochastic_snapshot(int snapshot_reference, const std::string
                 uint16_t min_src_port = block[4]->As<ColumnUInt16>()->At(k);
                 uint16_t max_src_port = block[5]->As<ColumnUInt16>()->At(k);
                 auto col = block[6]->As<ColumnArray>()->GetAsColumn(k);
-                if (is_excluded(dst_prefix)){
+                if (m_patricia_trie_excluded.get(htonl(dst_prefix)) != nullptr){
+//                if (m_patricia_trie_excluded.get(dst_prefix)){
                     continue;
                 }
                 if (current_prefix != dst_prefix){

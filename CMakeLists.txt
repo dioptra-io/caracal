@@ -126,8 +126,8 @@ if(Boost_FOUND)
 
         add_executable(Reader main_read.cpp reader_t.cpp
                 probe_dto_t.cpp utils/network_utils_t.cpp
-                database/clickhouse_t.cpp process_options_t.cpp utils/parameters_utils_t.cpp maths/stopping_points_t.cpp tracelink_t.cpp tracenode_t.cpp dynamics_t.cpp)
-        target_link_libraries(Reader PUBLIC pthread tins ${CLICKHOUSE_LIB} ${LZ4_LIB} ${CITYHASH_LIB} ${Boost_LIBRARIES})
+                database/clickhouse_t.cpp process_options_t.cpp patricia.cpp utils/parameters_utils_t.cpp maths/stopping_points_t.cpp tracelink_t.cpp tracenode_t.cpp dynamics_t.cpp)
+        target_link_libraries(Reader PUBLIC pthread tins z ${CLICKHOUSE_LIB} ${LZ4_LIB} ${CITYHASH_LIB} ${Boost_LIBRARIES})
 
         if ("${TEST}" STREQUAL 1)
             message("Building unit tests")
@@ -143,9 +143,9 @@ if(Boost_FOUND)
 #                database/clickhouse_t.cpp database/clickhouse_redundancy_t.cpp database/clickhouse_dynamics_t.cpp utils/parameters_utils_t.cpp utils/network_utils_t.cpp maths/stopping_points_t.cpp dump_t.cpp tracelink_t.cpp tracenode_t.cpp dynamics_t.cpp)
 #        target_link_libraries(DynamicSnapshot PUBLIC  tins pthread ${CLICKHOUSE_LIB} ${LZ4_LIB} ${CITYHASH_LIB} ${Boost_LIBRARIES} )
 
-        add_executable(Grapher main_graph.cpp
-                database/clickhouse_t.cpp utils/network_utils_t.cpp utils/parameters_utils_t.cpp database/clickhouse_graph_t.cpp maths/stopping_points_t.cpp dump_t.cpp tracelink_t.cpp tracenode_t.cpp dynamics_t.cpp )
-        target_link_libraries(Grapher PUBLIC tins pthread ${CLICKHOUSE_LIB} ${LZ4_LIB} ${CITYHASH_LIB} ${Boost_LIBRARIES} )
+#        add_executable(Grapher main_graph.cpp
+#                database/clickhouse_t.cpp utils/network_utils_t.cpp  utils/parameters_utils_t.cpp database/clickhouse_graph_t.cpp maths/stopping_points_t.cpp dump_t.cpp tracelink_t.cpp tracenode_t.cpp dynamics_t.cpp )
+#        target_link_libraries(Grapher PUBLIC tins pthread ${CLICKHOUSE_LIB} ${LZ4_LIB} ${CITYHASH_LIB} ${Boost_LIBRARIES} )
 
 #        add_executable(Diamonds main_diamonds.cpp
 #                diamond_t.cpp database/clickhouse_t.cpp utils/network_utils_t.cpp utils/parameters_utils_t.cpp database/clickhouse_diamonds_t.cpp maths/stopping_points_t.cpp dump_t.cpp tracelink_t.cpp tracenode_t.cpp dynamics_t.cpp )

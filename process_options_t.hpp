@@ -25,6 +25,10 @@ struct process_options_t {
 
     bool is_compute_rtt;
     std::string start_time_file;
+
+    std::string exclusion_file;
+    std::string db_host;
+    std::string db_table;
 };
 
 
