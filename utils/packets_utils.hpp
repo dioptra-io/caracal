@@ -31,13 +31,14 @@ public:
      * UDP functions
      */
     static void init_udp_header(uint8_t *transport_buffer, uint16_t payload_len);
+    static void add_udp_length(uint8_t *transport_buffer, uint16_t payload_length);
     static void add_udp_ports(uint8_t *transport_buffer, uint16_t sport, uint16_t dport);
 
     static void add_transport_checksum(uint8_t *transport_buffer, uint8_t *ip_buffer, uint8_t  proto,
             char * payload,
             uint16_t payload_len);
 
-    static void add_udp_timestamp(uint8_t * transport_buffer, uint8_t *ip_buffer, timeval & start, timeval & now);
+    static void add_udp_timestamp(uint8_t * transport_buffer, uint8_t *ip_buffer, std::size_t payload_len, timeval & start, timeval & now);
 
     /*
      * TCP functions

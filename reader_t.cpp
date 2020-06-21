@@ -106,6 +106,10 @@ probe_dto_t reader_t::read_packet(const Packet & packet) const {
                 double receive_time = static_cast<double>(std::chrono::microseconds(packet.timestamp()).count());
 
                 double rtt = compute_rtt_from_udp(checksum, receive_time);
+                // 8: udp header size
+                // 2: minimum payload length
+                uint8_t ttl_from_udp_length = inner_udp->length() - 10;
+
 //                //DEBUG STUFF
 //                if (indirect_ip == 41735346){
 //                    std::cout << "Packet found for ttl: " << inner_ip.id() << "," << ip_dst
@@ -113,7 +117,7 @@ probe_dto_t reader_t::read_packet(const Packet & packet) const {
 //                    "," << ip_reply << "," << icmp->type() << "," <<sport << "," << dport << "\n";
 //
 //                }
-                return probe_dto_t{ip_dst, indirect_ip, ip_reply, probe_size, probe_ttl, IPPROTO_ICMP,
+                return probe_dto_t{ip_dst, indirect_ip, ip_reply, probe_size, probe_ttl, ttl_from_udp_length,  IPPROTO_UDP,
                                    sport, dport, icmp_type, icmp_code, rtt,
                                    reply_ttl, reply_size};
     //                std::cout << sport << ", "  << dport << "\n";
@@ -132,7 +136,7 @@ probe_dto_t reader_t::read_packet(const Packet & packet) const {
                 }
 
                 return probe_dto_t{ip_dst, indirect_ip,
-                                   ip_reply, probe_size, probe_ttl, IPPROTO_ICMP,
+                                   ip_reply, probe_size, probe_ttl, 0, IPPROTO_TCP,
                                    sport, dport,
                                    icmp_type, icmp_code,
                                    rtt, reply_ttl, reply_size};
@@ -169,7 +173,7 @@ probe_dto_t reader_t::read_packet(const Packet & packet) const {
             // This field is useless
             const uint16_t probe_size = 0;
             return probe_dto_t{ip_dst, indirect_ip,
-                               ip_reply, probe_size, probe_ttl, IPPROTO_TCP,
+                               ip_reply, probe_size, probe_ttl, 0, IPPROTO_TCP,
                                dport, sport,
                                0, 0,
                                rtt, reply_ttl, reply_size};

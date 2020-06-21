@@ -237,8 +237,13 @@ void packets_utils::add_tcp_timestamp(uint8_t *transport_buffer, timeval &start,
     tcp_header->th_seq = htonl(seq_no);
 }
 
-void packets_utils::add_udp_timestamp(uint8_t *transport_buffer, uint8_t *ip_buffer, timeval &start, timeval &now) {
-    std::size_t payload_len = 2;
+void packets_utils::add_udp_length(uint8_t *transport_buffer, uint16_t payload_length) {
+    udphdr * udp_header = reinterpret_cast<udphdr *> (transport_buffer);
+    udp_header->len = htons(sizeof(udphdr) + payload_length);
+    // +2 because 2 bytes are minimum to be able to fully tweak the checksum
+}
+
+void packets_utils::add_udp_timestamp(uint8_t *transport_buffer, uint8_t *ip_buffer, std::size_t payload_len, timeval &start, timeval &now) {
 
     udphdr *udp_header = reinterpret_cast<udphdr *> (transport_buffer);
 
@@ -261,11 +266,14 @@ void packets_utils::add_udp_timestamp(uint8_t *transport_buffer, uint8_t *ip_buf
 
     uint32_t pseudo_header_sum_16 = in_cksum(reinterpret_cast<uint8_t *>(&psh), sizeof(pseudo_header_udp), 0);
 
+    uint8_t * data = reinterpret_cast<uint8_t *>(transport_buffer + sizeof(udphdr));
+    for (std::size_t i = 0; i < payload_len; ++i){
+        data[i] = 0;
+    }
+
     uint16_t target_checksum = static_cast<uint16_t>(time_diff);
     if (target_checksum == 0){
         udp_header->uh_sum = 0;
-        uint16_t * data = reinterpret_cast<uint16_t *>(transport_buffer + sizeof(udphdr));
-        *data = 0;
         return;
     }
 
@@ -274,7 +282,7 @@ void packets_utils::add_udp_timestamp(uint8_t *transport_buffer, uint8_t *ip_buf
     // Little endian checksum
     uint32_t wrong_checksum = pseudo_header_sum_16;
 
-    uint16_t payload = 0;
+    uint32_t payload = 0;
     uint32_t c = target_checksum_little_endian;
     if (c < wrong_checksum){
         c += 0xFFFF;
@@ -282,9 +290,16 @@ void packets_utils::add_udp_timestamp(uint8_t *transport_buffer, uint8_t *ip_buf
 
     payload = c - wrong_checksum;
 
-    uint16_t * data = reinterpret_cast<uint16_t *>(transport_buffer + sizeof(udphdr));
-    *data = htons(payload);
+    // First 2 bytes of payload make the checksum vary. Other bytes are just padding.
+    uint16_t * checksum_tweak_data = reinterpret_cast<uint16_t *>(transport_buffer + sizeof(udphdr));
+    *checksum_tweak_data = htons(payload);
 
+
+////// DEBUG
+//    for (std::size_t i = 0; i < payload_len; ++i){
+//        std::cout << std::hex << unsigned(data[i]) << '\n';
+//    }
+///////
 //    psh.payload = htons(payload);
 //
     uint32_t new_checksum = in_cksum(reinterpret_cast<uint8_t *>(&psh), sizeof(pseudo_header_udp), 0);
@@ -293,8 +308,10 @@ void packets_utils::add_udp_timestamp(uint8_t *transport_buffer, uint8_t *ip_buf
         new_checksum -= 0xFFFF;
     }
     new_checksum = ~new_checksum & 0xFFFF;
+    new_checksum = htons(new_checksum);
 
-    assert(target_checksum == htons(new_checksum));
+
+    assert(target_checksum == new_checksum);
     udp_header->uh_sum = target_checksum;
 
 }
