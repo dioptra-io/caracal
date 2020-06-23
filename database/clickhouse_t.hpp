@@ -91,7 +91,9 @@ private:
 
     void flush_traceroute(int round, uint32_t src_ip, uint32_t dst_prefix, uint32_t dst_ip,
                                          uint16_t min_dst_port, uint16_t max_dst_port, uint16_t max_src_port,
-                                         const std::vector<int> & links_per_ttl, const std::vector<int> & previous_max_flow_per_ttl,
+                                         const std::vector<int> & nodes_per_ttl,
+                                         const std::vector<int> & links_per_ttl,
+                                         const std::vector<int> & previous_max_flow_per_ttl,
                                          const process_options_t & options,
                                          std::ostream & ostream);
 

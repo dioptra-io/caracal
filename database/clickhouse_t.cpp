@@ -209,6 +209,8 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
 
 //        std::cout << link_query << "\n";
 
+        // Represents nodes at ttl i
+        std::vector<int> nodes_per_ttl(max_ttl + 1, 0);
         // Represents links between ttl i and i + 1
         std::vector<int> links_per_ttl(max_ttl + 1, 0);
         std::vector<int> previous_max_flow_per_ttl(max_ttl + 1, 0);
@@ -225,7 +227,7 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
                         [this, inf_born, sup_born, round,
                          &current_source, &current_prefix, &current_max_dst_ip,
                          &current_min_dst_port, &current_max_dst_port, &current_max_src_port, &current_max_round,
-                         &links_per_ttl, &previous_max_flow_per_ttl,
+                         &nodes_per_ttl, &links_per_ttl, &previous_max_flow_per_ttl,
                          &options, &ostream](
                                 const Block &block) {
 //            if (block.GetRowCount() == 0){
@@ -266,7 +268,8 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
                         // We did not get any answers from the previous round, so stop probing this prefix.
                         flush_traceroute(round, current_source, current_prefix, current_max_dst_ip,
                                          current_min_dst_port, current_max_dst_port, current_max_src_port,
-                                         links_per_ttl, previous_max_flow_per_ttl, options,
+                                         nodes_per_ttl, links_per_ttl, previous_max_flow_per_ttl,
+                                         options,
                                          ostream);
                     }
 
@@ -277,16 +280,21 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
                     current_min_dst_port = min_dst_port;
                     current_max_dst_port = max_dst_port;
                     current_max_src_port = max_src_port;
+                    nodes_per_ttl.assign(max_ttl + 1, 0);
                     links_per_ttl.assign(max_ttl + 1, 0);
                     previous_max_flow_per_ttl.assign(max_ttl + 1, 0);
                 }
 
-
-                // Get number of flows
+                // Get TTL
                 int ttl = static_cast<int>(block[3]->As<ColumnUInt8>()->At(k));
+                // Get number of nodes
+                int n_nodes = static_cast<int>(block[9]->As<ColumnUInt64>()->At(k));
+                nodes_per_ttl[ttl] = n_nodes;
+
 //                std::cout << block[4]->Type()->GetName() << "\n";
                 int n_links = static_cast<int>(block[4]->As<ColumnUInt64>()->At(k));
                 links_per_ttl[ttl] = n_links;
+
 
 
 
@@ -304,8 +312,9 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
         flush_traceroute(round,
                 current_source, current_prefix, current_max_dst_ip,
                 current_min_dst_port, current_max_dst_port, current_max_src_port,
-                links_per_ttl, previous_max_flow_per_ttl, options,
-                         ostream);
+                nodes_per_ttl, links_per_ttl, previous_max_flow_per_ttl,
+                options,
+                ostream);
 
 
         std::cout << i << " on " << interval_split << " IPv4 space done\n";
@@ -322,83 +331,86 @@ std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(
                                                                                 uint32_t sup_born,
                                                                                 const process_options_t & options) {
 
-    std::string subspace_request {"WITH groupUniqArray((dst_prefix, dst_ip, p1.reply_ip, p2.reply_ip)) as links_per_dst_ip,\n"
-                                  "arrayFilter((x->(x.2 != x.4 AND x.3 != x.4)), links_per_dst_ip) as core_links_per_dst_ip,\n"
-                                  "arrayMap((x->(x.3, x.4)), core_links_per_dst_ip) as core_links_per_prefix,\n"
-                                  "arrayDistinct(core_links_per_prefix) as unique_core_links_per_prefix,\n"
-                                  "length(unique_core_links_per_prefix) as n_links\n"
-                                  "SELECT \n"
-                                  "    src_ip, \n"
-                                  "    dst_prefix, \n"
-                                  "    max(p1.dst_ip), \n"
+    std::string subspace_request {
+        "WITH groupUniqArray((dst_prefix, dst_ip, p1.reply_ip, p2.reply_ip)) as links_per_dst_ip,\n"
+        "arrayFilter((x->(x.2 != x.4 AND x.3 != x.4)), links_per_dst_ip) as core_links_per_dst_ip,\n"
+        "arrayMap((x->(x.3, x.4)), core_links_per_dst_ip) as core_links_per_prefix,\n"
+        "arrayDistinct(core_links_per_prefix) as unique_core_links_per_prefix,\n"
+        "length(unique_core_links_per_prefix) as n_links,\n"
+        "length(groupUniqArray((p1.reply_ip))) as n_nodes_per_dst_prefix_per_ttl \n"
+        "SELECT \n"
+        "    src_ip, \n"
+        "    dst_prefix, \n"
+        "    max(p1.dst_ip), \n"
 
-                                  "    " + options.encoded_ttl_from + ", \n"
-                                  "    n_links, \n"
-                                  "    max(src_port), \n"
-                                  "    min(dst_port), \n"
-                                  "    max(dst_port), \n"
-                                  "    max(round) \n"
-                                  "FROM \n"
-                                  "(\n"
-                                  "    SELECT *\n"
-                                  "    FROM " + table + "\n"
-                                  "    WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + " AND round <= " + std::to_string(round) + "\n"
-                                  "    AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
-                                  "    AND snapshot = " + std::to_string(snapshot) + " \n"
-                                  ") AS p1 \n"
-                                  "INNER JOIN \n"
-                                  "(\n"
-                                  "    SELECT *\n"
-                                  "    FROM " + table + "\n"
-                                  "    WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + " AND round <= " + std::to_string(round) + "\n"
-                                  "    AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
-                                  "    AND snapshot = " + std::to_string(snapshot) + " \n"
-                                                                                     ") AS p2 ON (p1.src_ip = p2.src_ip) AND (p1.dst_ip = p2.dst_ip) "
-                                                                                     " AND (p1.src_port = p2.src_port) AND (p1.dst_port = p2.dst_port) "
-                                                                                     " AND (p1.round = p2.round) AND (p1.snapshot = p2.snapshot) "
-                                                                                     " AND (toUInt8(p1." + options.encoded_ttl_from + " + toUInt8(1)) = p2."+ options.encoded_ttl_from + ")\n"
-                                  "WHERE dst_prefix NOT IN (\n"
-                                  " SELECT dst_prefix\n"
-                                  "    FROM \n"
-                                  "    (\n"
-                                  "        SELECT \n"
-                                  "            src_ip, \n"
-                                  "            dst_prefix, \n"
-                                  "            MAX(round) AS max_round\n"
-                                  "        FROM " + table + "\n"
-                                  "        WHERE dst_prefix > " + std::to_string(inf_born) + " AND dst_prefix <= " + std::to_string(sup_born) + "\n"
-                                  "        AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
-                                  "        AND snapshot = " + std::to_string(snapshot) + " \n"
-                                  "        GROUP BY (src_ip, dst_prefix)\n"
-                                  "        HAVING max_round < " + std::to_string(round - 1) + "\n"
-                                  "    ) \n"
-                                  ") AND dst_prefix NOT IN (\n"
-                                  "    SELECT dst_prefix\n"
-                                  "    FROM \n"
-                                  "    (\n"
-                                  "        SELECT \n"
-                                  "            src_ip, \n"
-                                  "            dst_prefix, \n"
-                                  "            " + options.encoded_ttl_from +  ", \n"
-                                  "            COUNTDistinct(reply_ip) AS n_ips_per_ttl_flow, \n"
-                                  "            COUNT((src_ip, dst_ip, " + options.encoded_ttl_from +", src_port, dst_port)) AS cnt \n"
-                                  "        FROM " + table + "\n"
-                                  "        WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + "\n"
-                                  "        AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
-                                  "        AND snapshot = " + std::to_string(snapshot) + " \n"
-                                  "        GROUP BY (src_ip, dst_prefix, dst_ip, " + options.encoded_ttl_from +", src_port, dst_port, snapshot)\n"
-                                  "        HAVING (cnt > 2) OR (n_ips_per_ttl_flow > 1)\n"
-//                                  "        ORDER BY (src_ip, dst_ip, ttl) ASC\n"
-                                  "    ) \n"
-                                  "    GROUP BY (src_ip, dst_prefix)\n"
-                                  ")\n"
-                                  "GROUP BY (src_ip, dst_prefix, "+ options.encoded_ttl_from +")\n"
-                                  "HAVING n_links > 1\n"
-                                  "ORDER BY \n"
-                                  "    dst_prefix ASC, \n"
-                                  "    " +options.encoded_ttl_from + " ASC\n"
-//                                  "LIMIT 200\n"
-                                  ""};
+        "    " + options.encoded_ttl_from + ", \n"
+        "    n_links, \n"
+        "    max(src_port), \n"
+        "    min(dst_port), \n"
+        "    max(dst_port), \n"
+        "    max(round), \n"
+        "    n_nodes_per_dst_prefix_per_ttl \n"
+        "FROM \n"
+        "(\n"
+        "    SELECT *\n"
+        "    FROM " + table + "\n"
+        "    WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + " AND round <= " + std::to_string(round) + "\n"
+        "    AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
+        "    AND snapshot = " + std::to_string(snapshot) + " \n"
+        ") AS p1 \n"
+        "INNER JOIN \n"
+        "(\n"
+        "    SELECT *\n"
+        "    FROM " + table + "\n"
+        "    WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + " AND round <= " + std::to_string(round) + "\n"
+        "    AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
+        "    AND snapshot = " + std::to_string(snapshot) + " \n"
+        ") AS p2 ON (p1.src_ip = p2.src_ip) AND (p1.dst_ip = p2.dst_ip) "
+        " AND (p1.src_port = p2.src_port) AND (p1.dst_port = p2.dst_port) "
+        " AND (p1.round = p2.round) AND (p1.snapshot = p2.snapshot) "
+        " AND (toUInt8(p1." + options.encoded_ttl_from + " + toUInt8(1)) = p2."+ options.encoded_ttl_from + ")\n"
+        "WHERE dst_prefix NOT IN (\n"
+        " SELECT dst_prefix\n"
+        "    FROM \n"
+        "    (\n"
+        "        SELECT \n"
+        "            src_ip, \n"
+        "            dst_prefix, \n"
+        "            MAX(round) AS max_round\n"
+        "        FROM " + table + "\n"
+        "        WHERE dst_prefix > " + std::to_string(inf_born) + " AND dst_prefix <= " + std::to_string(sup_born) + "\n"
+        "        AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
+        "        AND snapshot = " + std::to_string(snapshot) + " \n"
+        "        GROUP BY (src_ip, dst_prefix)\n"
+        "        HAVING max_round < " + std::to_string(round - 1) + "\n"
+        "    ) \n"
+        ") AND dst_prefix NOT IN (\n"
+        "    SELECT dst_prefix\n"
+        "    FROM \n"
+        "    (\n"
+        "        SELECT \n"
+        "            src_ip, \n"
+        "            dst_prefix, \n"
+        "            " + options.encoded_ttl_from +  ", \n"
+        "            COUNTDistinct(reply_ip) AS n_ips_per_ttl_flow, \n"
+        "            COUNT((src_ip, dst_ip, " + options.encoded_ttl_from +", src_port, dst_port)) AS cnt \n"
+        "        FROM " + table + "\n"
+        "        WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + "\n"
+        "        AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
+        "        AND snapshot = " + std::to_string(snapshot) + " \n"
+        "        GROUP BY (src_ip, dst_prefix, dst_ip, " + options.encoded_ttl_from +", src_port, dst_port, snapshot)\n"
+        "        HAVING (cnt > 2) OR (n_ips_per_ttl_flow > 1)\n"
+//        "        ORDER BY (src_ip, dst_ip, ttl) ASC\n"
+        "    ) \n"
+        "    GROUP BY (src_ip, dst_prefix)\n"
+        ")\n"
+        "GROUP BY (src_ip, dst_prefix, "+ options.encoded_ttl_from +")\n"
+        "HAVING n_links > 1\n"
+        "ORDER BY \n"
+        "    dst_prefix ASC, \n"
+        "    " +options.encoded_ttl_from + " ASC\n"
+//        "LIMIT 200\n"
+        ""};
 
     return subspace_request;
 }
@@ -407,8 +419,11 @@ std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(
 
 void clickhouse_t::flush_traceroute(int round, uint32_t src_ip, uint32_t dst_prefix, uint32_t dst_ip,
         uint16_t min_dst_port, uint16_t max_dst_port, uint16_t max_src_port,
-        const std::vector<int> & links_per_ttl, const std::vector<int> & previous_max_flow_per_ttl, const process_options_t & options,
-                                    std::ostream & ostream) {
+        const std::vector<int> & nodes_per_ttl,
+        const std::vector<int> & links_per_ttl,
+        const std::vector<int> & previous_max_flow_per_ttl,
+        const process_options_t & options,
+        std::ostream & ostream) {
 
 
 
@@ -416,7 +431,7 @@ void clickhouse_t::flush_traceroute(int round, uint32_t src_ip, uint32_t dst_pre
     std::vector<int> real_previous_max_flow_per_ttl(max_ttl + 1, 0);
 
     for (int ttl = 1; ttl < links_per_ttl.size(); ++ttl){
-        if (links_per_ttl[ttl] == 0){
+        if (links_per_ttl[ttl] == 0 && nodes_per_ttl[ttl] == 0){
             continue;
         }
 
@@ -430,7 +445,14 @@ void clickhouse_t::flush_traceroute(int round, uint32_t src_ip, uint32_t dst_pre
                 max_flow = default_1_round_flows;
             }
         }
-        n_to_send = mda_maths::nks95[links_per_ttl[ttl]] - max_flow;
+
+        if (links_per_ttl[ttl] == 0){
+            n_to_send = mda_maths::nks95[nodes_per_ttl[ttl]] - max_flow;
+        }
+        else {
+            n_to_send = mda_maths::nks95[links_per_ttl[ttl]] - max_flow;
+        }
+
 //        if (dst_ip == 8671 && (ttl == 14 || ttl == 13)){
 //            std::cout << ttl << ", " << links_per_ttl[ttl] << "," << mda_maths::nks95[links_per_ttl[ttl]]<< ", " << max_flow << ", " << n_to_send << "\n";
 //        }
@@ -462,6 +484,8 @@ void clickhouse_t::flush_traceroute(int round, uint32_t src_ip, uint32_t dst_pre
 //        if (dst_ip == 8671 && (ttl == 14 || ttl == 13)){
 //            std::cout << ttl << ", " << real_previous_max_flow_per_ttl[dominant_ttl] << ", " << n_to_send << "\n";
 //        }
+
+
 
 
         bool is_per_flow_needed = false;
