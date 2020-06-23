@@ -464,29 +464,35 @@ void clickhouse_t::flush_traceroute(int round, uint32_t src_ip, uint32_t dst_pre
     bool is_done = true;
 
     for (auto ttl = 1; ttl < flows_per_ttl.size(); ++ttl){
-        if (links_per_ttl[ttl] == 0 && links_per_ttl[ttl-1] == 0){
+        if (nodes_per_ttl[ttl] == 0){
             continue;
         }
-
         auto n_to_send = 0;
         auto dominant_ttl = 0;
-        if (ttl == max_ttl){
-            auto max_it = std::max_element(flows_per_ttl.begin() + ttl - 1, flows_per_ttl.begin() + ttl);
-            dominant_ttl = max_it - flows_per_ttl.begin();
-            n_to_send = *max_it;
+        if (!(links_per_ttl[ttl] == 0 && links_per_ttl[ttl-1] == 0)){
+            // There is at least one link
+            if (ttl == max_ttl){
+                auto max_it = std::max_element(flows_per_ttl.begin() + ttl - 1, flows_per_ttl.begin() + ttl);
+                dominant_ttl = max_it - flows_per_ttl.begin();
+                n_to_send = *max_it;
 
-        } else {
-            auto max_it = std::max_element(flows_per_ttl.begin() + ttl - 1, flows_per_ttl.begin() + ttl + 1);
-            dominant_ttl = max_it - flows_per_ttl.begin();
-            n_to_send = *max_it;
+            } else {
+                auto max_it = std::max_element(flows_per_ttl.begin() + ttl - 1, flows_per_ttl.begin() + ttl + 1);
+                dominant_ttl = max_it - flows_per_ttl.begin();
+                n_to_send = *max_it;
+            }
         }
+        else {
+            // Otherwise only look at the nodes
+            dominant_ttl = ttl;
+            n_to_send = flows_per_ttl[ttl];
+        }
+
+
 
 //        if (dst_ip == 8671 && (ttl == 14 || ttl == 13)){
 //            std::cout << ttl << ", " << real_previous_max_flow_per_ttl[dominant_ttl] << ", " << n_to_send << "\n";
 //        }
-
-
-
 
         bool is_per_flow_needed = false;
         auto remaining_flow_to_send = 0;
