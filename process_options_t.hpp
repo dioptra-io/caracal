@@ -29,6 +29,9 @@ struct process_options_t {
     std::string exclusion_file;
     std::string db_host;
     std::string db_table;
+
+    // Field use to retrieve TTL in probes
+    std::string encoded_ttl_from;
 };
 
 

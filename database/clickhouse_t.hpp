@@ -68,7 +68,7 @@ private:
     std::string build_subspace_request_per_prefix_max_ttl(const std::string &table,
                                                           uint32_t vantage_point_src_ip, int snapshot,
                                                           int round, uint32_t inf_born,
-                                                          uint32_t sup_born);
+                                                          uint32_t sup_born, const process_options_t &);
 
     /**
      * Next round requests for finding load balanced paths
@@ -76,7 +76,8 @@ private:
     std::string build_subspace_request_per_prefix_load_balanced_paths(const std::string &table,
                                                                       uint32_t vantage_point_src_ip, int snapshot,
                                                                       int round, uint32_t inf_born,
-                                                                      uint32_t sup_born);
+                                                                      uint32_t sup_born,
+                                                                      const process_options_t &);
 
     bool can_skip_ipv4_block(uint32_t inf_born, uint32_t  sup_born);
 

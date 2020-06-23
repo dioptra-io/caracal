@@ -58,8 +58,8 @@ int main(int argc, char ** argv){
             ("skip-prefixes", po::value<std::string>(), "File that contains /24 prefixes that can be skipped because statistical guarantees have been reached")
             ("compute-rtt", "Compute the RTTs of the probes, needs the start-time-log-file")
             ("start-time-log-file", po::value<std::string>(), "File containing the start time of the D-Miner probes. Necessary to compute the RTTs.")
-            ("snapshot-reference", po::value<int>(), "Number of the snapshot that should be taken in reference for a new stochastic snapshot.");
-
+            ("snapshot-reference", po::value<int>(), "Number of the snapshot that should be taken in reference for a new stochastic snapshot.")
+            ("encoded-ttl-from", po::value<std::string>(), "Retrieve the TTL from encoded fields, possible values are ip-id, udp-length");
 
 
 
@@ -180,6 +180,25 @@ int main(int argc, char ** argv){
         options.is_compute_rtt = false;
     }
 
+
+    if (vm.count("encoded-ttl-from")){
+        std::vector<std::string> valid_values;
+        valid_values.emplace_back("ip-id");
+        valid_values.emplace_back("udp-length");
+        options.encoded_ttl_from = vm["encoded-ttl-from"].as<std::string>();
+        if (std::find(valid_values.begin(), valid_values.end(), options.encoded_ttl_from) == valid_values.end()){
+            std::cerr << "Please provide a valid value for "
+                         "encoded-ttl-from, valid values are ip-id, udp-length" << std::endl;
+        } else if (options.encoded_ttl_from == "ip-id"){
+            options.encoded_ttl_from = "ttl";
+        } else if (options.encoded_ttl_from == "udp-length"){
+            options.encoded_ttl_from = "ttl_from_udp_length";
+        }
+    } else {
+        // Default value
+        options.encoded_ttl_from = "ttl";
+    }
+
     if (options.is_read){
         reader_t reader {options};
         if (options.is_compute_rtt){
@@ -220,12 +239,12 @@ int main(int argc, char ** argv){
         }
 
     } else if (options.is_generate_snapshot){
-        clickhouse_t clickhouse(options);
-        std::ofstream ofstream;
-        ofstream.open(options.output_file);
-        clickhouse.next_stochastic_snapshot(options.snapshot_reference, options.db_table, vantage_point_src_ip,
-                options.inf_born, options.sup_born, options,
-                ofstream);
+//        clickhouse_t clickhouse(options);
+//        std::ofstream ofstream;
+//        ofstream.open(options.output_file);
+//        clickhouse.next_stochastic_snapshot(options.snapshot_reference, options.db_table, vantage_point_src_ip,
+//                options.inf_born, options.sup_born, options,
+//                ofstream);
 
     }
 

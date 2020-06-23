@@ -71,7 +71,7 @@ void clickhouse_t::next_max_ttl_traceroutes(const std::string &table, uint32_t v
     uint32_t vp_inf_born = options.inf_born;
     uint32_t vp_sup_born = options.sup_born;
 
-    std::string request = build_subspace_request_per_prefix_max_ttl(table, vantage_point_src_ip, snapshot, round, vp_inf_born, vp_sup_born);
+    std::string request = build_subspace_request_per_prefix_max_ttl(table, vantage_point_src_ip, snapshot, round, vp_inf_born, vp_sup_born, options);
 
 
 //    std::cout << request << std::endl;
@@ -114,13 +114,14 @@ void clickhouse_t::next_max_ttl_traceroutes(const std::string &table, uint32_t v
 
 std::string
 clickhouse_t::build_subspace_request_per_prefix_max_ttl(const std::string &table, uint32_t vantage_point_src_ip,
-                                                        int snapshot, int round, uint32_t inf_born, uint32_t sup_born) {
+                                                        int snapshot, int round, uint32_t inf_born, uint32_t sup_born,
+                                                        const process_options_t & options) {
 
     std::string subspace_request = {
             "SELECT \n"
             "    src_ip, \n"
             "    dst_ip, \n"
-            "    max(ttl) as max_ttl \n"
+            "    max(" + options.encoded_ttl_from + ") as max_ttl \n"
             "FROM \n"
             "(\n"
             "    SELECT *\n"
@@ -154,14 +155,14 @@ clickhouse_t::build_subspace_request_per_prefix_max_ttl(const std::string &table
             "        SELECT \n"
             "            src_ip, \n"
             "            dst_prefix, \n"
-            "            ttl, \n"
+            "            " + options.encoded_ttl_from + ", \n"
             "            COUNTDistinct(reply_ip) AS n_ips_per_ttl_flow, \n"
-            "            COUNT((src_ip, dst_ip, ttl, src_port, dst_port)) AS cnt \n"
+            "            COUNT((src_ip, dst_ip,  " + options.encoded_ttl_from + ", src_port, dst_port)) AS cnt \n"
             "        FROM " + table + "\n"
             "        WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + "\n"
             "        AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
             "        AND snapshot = " + std::to_string(snapshot) + " \n"
-            "        GROUP BY (src_ip, dst_prefix, dst_ip, ttl, src_port, dst_port, snapshot)\n"
+            "        GROUP BY (src_ip, dst_prefix, dst_ip, " + options.encoded_ttl_from + ", src_port, dst_port, snapshot)\n"
             "        HAVING (cnt > 2) OR (n_ips_per_ttl_flow > 1)\n"
             //                                  "        ORDER BY (src_ip, dst_ip, ttl) ASC\n"
             "    ) \n"
@@ -201,7 +202,7 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
 
         std::string link_query = build_subspace_request_per_prefix_load_balanced_paths(table, vantage_point_src_ip,
                                                                                        snapshot, round, inf_born,
-                                                                                       sup_born);
+                                                                                       sup_born, options);
 #ifndef NDEBUG
         std::cout << link_query << std::endl;
 #endif
@@ -318,7 +319,8 @@ std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(
                                                                                 uint32_t vantage_point_src_ip,
                                                                                 int snapshot, int round,
                                                                                 uint32_t inf_born,
-                                                                                uint32_t sup_born) {
+                                                                                uint32_t sup_born,
+                                                                                const process_options_t & options) {
 
     std::string subspace_request {"WITH groupUniqArray((dst_prefix, dst_ip, p1.reply_ip, p2.reply_ip)) as links_per_dst_ip,\n"
                                   "arrayFilter((x->(x.2 != x.4 AND x.3 != x.4)), links_per_dst_ip) as core_links_per_dst_ip,\n"
@@ -329,7 +331,8 @@ std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(
                                   "    src_ip, \n"
                                   "    dst_prefix, \n"
                                   "    max(p1.dst_ip), \n"
-                                  "    ttl, \n"
+
+                                  "    " + options.encoded_ttl_from + ", \n"
                                   "    n_links, \n"
                                   "    max(src_port), \n"
                                   "    min(dst_port), \n"
@@ -350,7 +353,10 @@ std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(
                                   "    WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + " AND round <= " + std::to_string(round) + "\n"
                                   "    AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
                                   "    AND snapshot = " + std::to_string(snapshot) + " \n"
-                                  ") AS p2 ON (p1.src_ip = p2.src_ip) AND (p1.dst_ip = p2.dst_ip) AND (p1.src_port = p2.src_port) AND (p1.dst_port = p2.dst_port) AND (p1.round = p2.round) AND (p1.snapshot = p2.snapshot) AND (toUInt8(p1.ttl + toUInt8(1)) = p2.ttl)\n"
+                                                                                     ") AS p2 ON (p1.src_ip = p2.src_ip) AND (p1.dst_ip = p2.dst_ip) "
+                                                                                     " AND (p1.src_port = p2.src_port) AND (p1.dst_port = p2.dst_port) "
+                                                                                     " AND (p1.round = p2.round) AND (p1.snapshot = p2.snapshot) "
+                                                                                     " AND (toUInt8(p1." + options.encoded_ttl_from + " + toUInt8(1)) = p2."+ options.encoded_ttl_from + ")\n"
                                   "WHERE dst_prefix NOT IN (\n"
                                   " SELECT dst_prefix\n"
                                   "    FROM \n"
@@ -373,24 +379,24 @@ std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(
                                   "        SELECT \n"
                                   "            src_ip, \n"
                                   "            dst_prefix, \n"
-                                  "            ttl, \n"
+                                  "            " + options.encoded_ttl_from +  ", \n"
                                   "            COUNTDistinct(reply_ip) AS n_ips_per_ttl_flow, \n"
-                                  "            COUNT((src_ip, dst_ip, ttl, src_port, dst_port)) AS cnt \n"
+                                  "            COUNT((src_ip, dst_ip, " + options.encoded_ttl_from +", src_port, dst_port)) AS cnt \n"
                                   "        FROM " + table + "\n"
                                   "        WHERE dst_ip > " + std::to_string(inf_born) + " AND dst_ip <= " + std::to_string(sup_born) + "\n"
                                   "        AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
                                   "        AND snapshot = " + std::to_string(snapshot) + " \n"
-                                  "        GROUP BY (src_ip, dst_prefix, dst_ip, ttl, src_port, dst_port, snapshot)\n"
+                                  "        GROUP BY (src_ip, dst_prefix, dst_ip, " + options.encoded_ttl_from +", src_port, dst_port, snapshot)\n"
                                   "        HAVING (cnt > 2) OR (n_ips_per_ttl_flow > 1)\n"
 //                                  "        ORDER BY (src_ip, dst_ip, ttl) ASC\n"
                                   "    ) \n"
                                   "    GROUP BY (src_ip, dst_prefix)\n"
                                   ")\n"
-                                  "GROUP BY (src_ip, dst_prefix, ttl)\n"
+                                  "GROUP BY (src_ip, dst_prefix, "+ options.encoded_ttl_from +")\n"
                                   "HAVING n_links > 1\n"
                                   "ORDER BY \n"
                                   "    dst_prefix ASC, \n"
-                                  "    ttl ASC\n"
+                                  "    " +options.encoded_ttl_from + " ASC\n"
 //                                  "LIMIT 200\n"
                                   ""};
 
