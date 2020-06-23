@@ -333,11 +333,11 @@ std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(
 
     std::string subspace_request {
         "WITH groupUniqArray((dst_prefix, dst_ip, p1.reply_ip, p2.reply_ip)) as links_per_dst_ip,\n"
-        "arrayFilter((x->(x.2 != x.4 AND x.3 != x.4)), links_per_dst_ip) as core_links_per_dst_ip,\n"
+        "arrayFilter((x->(x.2 != x.4 AND x.3 != x.4 AND x.3!=0  AND x.4 != 0 )), links_per_dst_ip) as core_links_per_dst_ip,\n"
         "arrayMap((x->(x.3, x.4)), core_links_per_dst_ip) as core_links_per_prefix,\n"
         "arrayDistinct(core_links_per_prefix) as unique_core_links_per_prefix,\n"
         "length(unique_core_links_per_prefix) as n_links,\n"
-        "length(groupUniqArray((p1.reply_ip))) as n_nodes_per_dst_prefix_per_ttl \n"
+        "length(groupUniqArray((p1.reply_ip))) as n_nodes \n"
         "SELECT \n"
         "    src_ip, \n"
         "    dst_prefix, \n"
@@ -349,7 +349,7 @@ std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(
         "    min(dst_port), \n"
         "    max(dst_port), \n"
         "    max(round), \n"
-        "    n_nodes_per_dst_prefix_per_ttl \n"
+        "    n_nodes \n"
         "FROM \n"
         "(\n"
         "    SELECT *\n"
@@ -358,7 +358,7 @@ std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(
         "    AND src_ip = " + std::to_string(vantage_point_src_ip) + " \n"
         "    AND snapshot = " + std::to_string(snapshot) + " \n"
         ") AS p1 \n"
-        "INNER JOIN \n"
+        "LEFT OUTER JOIN \n"
         "(\n"
         "    SELECT *\n"
         "    FROM " + table + "\n"
@@ -405,7 +405,7 @@ std::string clickhouse_t::build_subspace_request_per_prefix_load_balanced_paths(
         "    GROUP BY (src_ip, dst_prefix)\n"
         ")\n"
         "GROUP BY (src_ip, dst_prefix, "+ options.encoded_ttl_from +")\n"
-        "HAVING n_links > 1\n"
+        "HAVING n_links > 1 or (n_links=0 and n_nodes > 1) \n"
         "ORDER BY \n"
         "    dst_prefix ASC, \n"
         "    " +options.encoded_ttl_from + " ASC\n"
@@ -439,7 +439,8 @@ void clickhouse_t::flush_traceroute(int round, uint32_t src_ip, uint32_t dst_pre
         // It is the upper bound of the of the maximum dst ip in the nks.
         auto n_to_send = 0;
         auto max_flow = 0;
-        max_flow = *std::upper_bound(mda_maths::nks95.begin(), mda_maths::nks95.end(), previous_max_flow_per_ttl[ttl]);
+        max_flow = *std::lower_bound(mda_maths::nks95.begin(), mda_maths::nks95.end(), previous_max_flow_per_ttl[ttl]);
+//        max_flow = *std::lower_bound(mda_maths::nks95.begin(), mda_maths::nks95.end(), 8);
         if (round == 1) {
             if (max_flow < default_1_round_flows){
                 max_flow = default_1_round_flows;
@@ -509,6 +510,16 @@ void clickhouse_t::flush_traceroute(int round, uint32_t src_ip, uint32_t dst_pre
 
             int dst_ip_in_24 = real_previous_max_flow_per_ttl[dominant_ttl] + flow_id;
             if (dst_ip_in_24 <= 255){
+
+                // DEBUG
+//#ifndef NDEBUG
+//                std::cout << src_ip << ","
+//                        << dst_prefix + 1 + dst_ip_in_24 << "," // +1 because the first address probed in the prefix is 1.
+//                        // default sport
+//                        << options.sport << ","
+//                        << options.dport  << ","
+//                        << ttl << "\n";
+//#endif
                 ostream << htonl(src_ip) << ","
                         << htonl(dst_prefix + 1 + dst_ip_in_24) << "," // +1 because the first address probed in the prefix is 1.
                         // default sport
