@@ -285,12 +285,10 @@ void heartbeat_t::send_exhaustive() {
         if (i % 10000000 == 0){
             std::cout << i << "\n";
         }
-//#ifndef NDEBUG
-//        if (i >= 500){
-//            std::cout << "Finish earlier due to partial snapshot\n";
-//            break;
-//        }
-//#endif
+        if (i >= m_options.max_packets){
+            std::cout << "Finish earlier due to partial snapshot\n";
+            break;
+        }
     }
     cperm_destroy(perm);
 
