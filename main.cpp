@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
     Utils::gateway_from_ip("8.8.8.8", gateway_ip);
 
 
-    PacketSender resolve_gateway_sender {default_interface};
+    PacketSender resolve_gateway_sender {interface};
     auto hw_gateway = Utils::resolve_hwaddr(gateway_ip, resolve_gateway_sender);
     std::cout << "Gateway MAC address: " << hw_gateway.to_string() << "\n";
 
