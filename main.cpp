@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
             ("dport", po::value<uint16_t>(), "destination port for probing (default 33434)")
             ("min-ttl", po::value<uint16_t>(), "minimum ttl to probe (default 3, min 1)")
             ("max-ttl", po::value<uint16_t>(), "maximum ttl to probe (default 30, max 32)")
+            ("max-packets", po::value<uint64_t>(), "maximum number of packets to send")
             ("probes-files,f", po::value<std::string>(), "Format is SRC_IP, DST_IP, SRC_PORT, DST_PORT, TTL, ROUND")
             ("send-from-file,F", "Send from a file rather than an exhaustive IPv4 probing.")
             ("output-file,o", po::value<std::string>(), "pcap output file of replies")
@@ -91,6 +92,12 @@ int main(int argc, char **argv) {
 
     if (vm.count("max-ttl")){
         options.max_ttl = vm["max-ttl"].as<uint16_t>();
+    }
+
+    if (vm.count("max-packets")){
+        options.max_packets = vm["max-packets"].as<uint64_t>();
+    } else {
+        options.max_packets = std::numeric_limits<uint64_t>::max();
     }
 
     if (vm.count("output-file")){
@@ -208,7 +215,7 @@ int main(int argc, char **argv) {
     Utils::gateway_from_ip("8.8.8.8", gateway_ip);
 
 
-    PacketSender resolve_gateway_sender {default_interface};
+    PacketSender resolve_gateway_sender {interface};
     auto hw_gateway = Utils::resolve_hwaddr(gateway_ip, resolve_gateway_sender);
     std::cout << "Gateway MAC address: " << hw_gateway.to_string() << "\n";
 
