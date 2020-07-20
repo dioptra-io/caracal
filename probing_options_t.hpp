@@ -36,6 +36,8 @@ struct probing_options_t {
     bool is_send_from_targets_file;
     std::string targets_file;
 
+    uint64_t max_packets;
+
 
 
 };

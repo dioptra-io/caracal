@@ -341,7 +341,7 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
     auto n_skipped = 0;
 
 
-    long i = 0;
+    uint64_t i = 0;
 
     // Compute the number of bits needed for the target.
 
@@ -393,12 +393,10 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
         if (i % 1000000 == 0){
             std::cout << i << "\n";
         }
-//#ifndef NDEBUG
-//        if (i >= 500){
-//            std::cout << "Finish earlier due to partial snapshot\n";
-//            break;
-//        }
-//#endif
+        if (i >= m_options.max_packets){
+            std::cout << "Finish earlier due to partial snapshot\n";
+            break;
+        }
     }
     cperm_destroy(perm);
 
