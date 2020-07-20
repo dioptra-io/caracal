@@ -99,7 +99,7 @@ m_n_packets_sent(0)
         transport_header_size = sizeof(tcphdr);
     }
     // Buffer size is size of the IP header + size of transport + size of maximum payload
-    // We will only send the number of needded bytes for payload.
+    // We will only send the number of needed bytes for payload.
     uint32_t buffer_size = sizeof(compact_ip_hdr) + transport_header_size + utils::max_ttl + 2;
     m_buffer = reinterpret_cast<uint8_t *>(malloc(buffer_size));
     memset(m_buffer, 0, buffer_size);
