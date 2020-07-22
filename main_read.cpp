@@ -59,6 +59,7 @@ int main(int argc, char ** argv){
             ("compute-rtt", "Compute the RTTs of the probes, needs the start-time-log-file")
             ("start-time-log-file", po::value<std::string>(), "File containing the start time of the D-Miner probes. Necessary to compute the RTTs.")
             ("snapshot-reference", po::value<int>(), "Number of the snapshot that should be taken in reference for a new stochastic snapshot.")
+            ("max-ttl", po::value<int>(), "Maximum TTL to probe")
             ("encoded-ttl-from", po::value<std::string>(), "Retrieve the TTL from encoded fields, possible values are ip-id, udp-length");
 
 
@@ -180,6 +181,10 @@ int main(int argc, char ** argv){
         options.is_compute_rtt = false;
     }
 
+    auto max_ttl = utils::max_ttl;
+    if (vm.count("max-ttl")){
+        max_ttl = vm["max-ttl"].as<int>();
+    }
 
     if (vm.count("encoded-ttl-from")){
         std::vector<std::string> valid_values;
@@ -225,7 +230,7 @@ int main(int argc, char ** argv){
 //                                           ofstream);
 
 
-        if (options.round == 1){
+        if (options.round == 1 and max_ttl > 30){
             clickhouse.next_max_ttl_traceroutes(options.db_table, vantage_point_src_ip, options, ofstream);
         }
 

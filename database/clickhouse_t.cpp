@@ -71,21 +71,40 @@ void clickhouse_t::next_max_ttl_traceroutes(const std::string &table, uint32_t v
     uint32_t vp_inf_born = options.inf_born;
     uint32_t vp_sup_born = options.sup_born;
 
-    std::string request = build_subspace_request_per_prefix_max_ttl(table, vantage_point_src_ip, snapshot, round, vp_inf_born, vp_sup_born, options);
+    auto interval_split = 64; // Power of 2 because we want to keep track of all /24 prefixes
+
+    for (auto i = 0; i < interval_split; ++i) {
+        auto inf_born = static_cast<uint32_t >(vp_inf_born + i * ((vp_sup_born - vp_inf_born) / interval_split));
+        auto sup_born = static_cast<uint32_t >(vp_inf_born + (i + 1) * ((vp_sup_born - vp_inf_born) / interval_split));
+//        std::cout << "Computing next round for " << inf_born << " AND " << sup_born << "\n";
+        if (can_skip_ipv4_block(inf_born, sup_born)) {
+            continue;
+        }
 
 
+        std::string request = build_subspace_request_per_prefix_max_ttl(table, vantage_point_src_ip, snapshot, round,
+                inf_born,
+                sup_born,
+                options);
+#ifndef NDEBUG
+        std::cout << request << std::endl;
+#endif
 //    std::cout << request << std::endl;
 
-    m_client.Select(request, [&ostream,&options, first_round_max_ttl, absolute_max_ttl](const Block &block) {
-        for (size_t k = 0; k < block.GetRowCount(); ++k) {
-            uint32_t src_ip = block[0]->As<ColumnUInt32>()->At(k);
-            uint32_t dst_ip = block[1]->As<ColumnUInt32>()->At(k);
-            uint8_t  max_ttl = block[2]->As<ColumnUInt8>()->At(k);
+        m_client.Select(request, [&ostream, &options, first_round_max_ttl, absolute_max_ttl](const Block &block) {
+            for (size_t k = 0; k < block.GetRowCount(); ++k) {
+                uint32_t src_ip = block[0]->As<ColumnUInt32>()->At(k);
+                uint32_t dst_ip = block[1]->As<ColumnUInt32>()->At(k);
+                uint8_t max_ttl = block[2]->As<ColumnUInt8>()->At(k);
+
+                if (max_ttl > absolute_max_ttl){
+                    continue;
+                }
 //            uint16_t min_dst_port = block[6]->As<ColumnUInt16>()->At(k);
 //            uint16_t max_dst_port = block[7]->As<ColumnUInt16>()->At(k);
 //            uint32_t max_round = block[8]->As<ColumnUInt32>()->At(k);
-            if (max_ttl > 20){
-                for (auto i = first_round_max_ttl + 1; i <= max_ttl + 10 && i <= absolute_max_ttl; ++i){
+                if (max_ttl > 20) {
+                    for (auto i = first_round_max_ttl + 1; i <= max_ttl + 10 && i <= absolute_max_ttl; ++i) {
 
 //                    std::cout << src_ip << ","
 //                              << dst_ip << ","
@@ -94,19 +113,22 @@ void clickhouse_t::next_max_ttl_traceroutes(const std::string &table, uint32_t v
 //                              << options.dport  << ","
 //                              << i << "\n";
 
-                ostream << htonl(src_ip) << ","
-                        << htonl(dst_ip) << ","
-                        // default sport
-                        << options.sport << ","
-                        << options.dport  << ","
-                        << i << "\n";
+                        ostream << htonl(src_ip) << ","
+                                << htonl(dst_ip) << ","
+                                // default sport
+                                << options.sport << ","
+                                << options.dport << ","
+                                << i << "\n";
+                    }
                 }
+
+
             }
+        });
 
+        std::cout << i << " on " << interval_split << " IPv4 space done\n";
 
-
-        }
-    });
+    }
 
 
 
@@ -190,10 +212,19 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
     auto interval_split = 64; // Power of 2 because we want to keep track of all /24 prefixes
 
     for (auto i = 0; i < interval_split; ++i) {
+
+//        if (i < 5){
+//            continue;
+//        }
+
         auto inf_born = static_cast<uint32_t >(vp_inf_born + i * ((vp_sup_born - vp_inf_born) / interval_split));
         auto sup_born = static_cast<uint32_t >(vp_inf_born + (i + 1) * ((vp_sup_born - vp_inf_born) / interval_split));
 //        std::cout << "Computing next round for " << inf_born << " AND " << sup_born << "\n";
         if (can_skip_ipv4_block(inf_born, sup_born)){
+            continue;
+        }
+
+        if (sup_born > 3758096384){ // 224.0.0.0
             continue;
         }
 
@@ -246,6 +277,11 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
                 uint16_t max_dst_port = block[7]->As<ColumnUInt16>()->At(k);
                 uint32_t max_round = block[8]->As<ColumnUInt32>()->At(k);
 
+                if(current_prefix == 0){
+                    // First prefix in the batch
+                    current_prefix = dst_prefix;
+                }
+
                 if(dst_prefix == current_prefix){
                     // We are still in the same prefix so check if we have a higher IP address and a higher port.
                     if (current_max_dst_ip < max_dst_ip){
@@ -265,6 +301,7 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
                 if (dst_prefix != current_prefix){
                     // Flush the current structure and reset it.
                     if (current_max_round == round){
+//                        std::cout << current_prefix << std::endl;
                         // We did not get any answers from the previous round, so stop probing this prefix.
                         flush_traceroute(round, current_source, current_prefix, current_max_dst_ip,
                                          current_min_dst_port, current_max_dst_port, current_max_src_port,
@@ -287,6 +324,9 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
 
                 // Get TTL
                 int ttl = static_cast<int>(block[3]->As<ColumnUInt8>()->At(k));
+                if (ttl > max_ttl){
+                    continue;
+                }
                 // Get number of nodes
                 int n_nodes = static_cast<int>(block[9]->As<ColumnUInt64>()->At(k));
                 nodes_per_ttl[ttl] = n_nodes;
@@ -308,7 +348,7 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
 
             }
         });
-        // Start another traceroute and flush the current one to the ostream
+        // Flush the last traceroute
         flush_traceroute(round,
                 current_source, current_prefix, current_max_dst_ip,
                 current_min_dst_port, current_max_dst_port, current_max_src_port,

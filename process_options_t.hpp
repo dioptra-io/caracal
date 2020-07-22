@@ -6,6 +6,7 @@
 #define HEARTBEAT_PROCESS_OPTIONS_T_HPP
 
 #include <string>
+#include <limits>
 
 struct process_options_t {
     uint32_t round;
