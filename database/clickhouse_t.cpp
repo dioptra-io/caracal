@@ -280,6 +280,7 @@ clickhouse_t::next_round_csv(const std::string & table, uint32_t vantage_point_s
                 if(current_prefix == 0){
                     // First prefix in the batch
                     current_prefix = dst_prefix;
+                    current_source = src_ip;
                 }
 
                 if(dst_prefix == current_prefix){
