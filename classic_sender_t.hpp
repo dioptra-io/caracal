@@ -24,6 +24,7 @@ public:
     ~classic_sender_t();
 
 private:
+    unsigned long set_frequence();
     void dump_reference_time();
 
     int         m_socket;
@@ -41,7 +42,6 @@ private:
     timeval     m_now;
 
     std::ofstream m_start_time_log_file;
-
 };
 
 

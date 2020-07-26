@@ -33,8 +33,10 @@ public:
             m_ofstream << std::fixed << probe_dto.m_source_ip << "," << prefix << "," << probe_dto.m_indirect_ip << "," <<
                        probe_dto.m_reply_ip <<","
                        << unsigned(probe_dto.m_proto) << ","
-                       << probe_dto.m_sport <<"," << probe_dto.m_dport << "," <<
-                       unsigned(probe_dto.m_ttl) << "," << unsigned(probe_dto.m_type) << "," << unsigned(probe_dto.m_code) <<
+                       << probe_dto.m_sport <<"," << probe_dto.m_dport
+                       << "," << unsigned(probe_dto.m_ttl)
+                       << "," << unsigned(probe_dto.m_ttl_from_udp_length)
+                       << "," << unsigned(probe_dto.m_type) << "," << unsigned(probe_dto.m_code) <<
                        "," << probe_dto.m_rtt <<
                        "," << unsigned(probe_dto.m_reply_ttl) <<
                        "," << probe_dto.m_reply_size <<

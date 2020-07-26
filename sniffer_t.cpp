@@ -35,14 +35,17 @@ m_options{options}
     SnifferConfiguration config;
     config.set_immediate_mode(true);
     // 2 Gb buffer size tcpdump like
-    config.set_buffer_size(options.buffer_sniffer_size * 1024);
+    config.set_buffer_size(options.buffer_sniffer_size  * 1024);
 
     
+
+#ifdef NDEBUG
     std::string filter = "icmp or (src port " + std::to_string(m_options.dport) + " )";
     std::cout << "Setting filter: " << filter << std::endl;
-#ifdef NDEBUG
     config.set_filter(filter);
 #else
+    std::string filter = "icmp or port " + std::to_string(m_options.dport);
+    std::cout << "Setting filter: " << filter << std::endl;
     config.set_filter(filter);
 #endif
 

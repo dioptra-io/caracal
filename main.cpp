@@ -216,6 +216,8 @@ int main(int argc, char **argv) {
 
 
     PacketSender resolve_gateway_sender {interface};
+    auto hw_source = interface.hw_address();
+    std::cout << "Source MAC address: " << hw_source.to_string() << "\n";
     auto hw_gateway = Utils::resolve_hwaddr(gateway_ip, resolve_gateway_sender);
     std::cout << "Gateway MAC address: " << hw_gateway.to_string() << "\n";
 

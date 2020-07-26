@@ -75,13 +75,13 @@ if(Boost_FOUND)
             message(STATUS "PF_RING Enabled")
             add_definitions(-DPF_RING_ENABLED)
             add_executable(Heartbeat main.cpp heartbeat_t.cpp patricia.cpp classic_sender_t.cpp sniffer_t.cpp pfring_sender_t.cpp utils/timing_utils.cpp probing_options_t.cpp
-                    utils/network_utils_t.cpp utils/packets_utils.cpp)
+                    utils/network_utils_t.cpp utils/packets_utils.cpp utils/parameters_utils_t.cpp)
             target_link_libraries(Heartbeat PUBLIC tins cperm z pthread pfring ${Boost_LIBRARIES})
         else()
             message(STATUS "PF_RING Disabled")
 #            add_definitions(-DPF_RING_ENABLED=0)
             add_executable(Heartbeat main.cpp heartbeat_t.cpp patricia.cpp classic_sender_t.cpp sniffer_t.cpp utils/timing_utils.cpp probing_options_t.cpp
-                    utils/network_utils_t.cpp utils/packets_utils.cpp)
+                    utils/network_utils_t.cpp utils/packets_utils.cpp utils/parameters_utils_t.cpp)
             target_link_libraries(Heartbeat PUBLIC tins cperm z pthread ${Boost_LIBRARIES})
         endif()
 

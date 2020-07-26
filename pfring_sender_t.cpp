@@ -14,6 +14,7 @@
 
 //#include <netinet/udp.h> // udphdr
 #include <netinet/ip.h> // ip
+#include <utils/parameters_utils_t.hpp>
 //#include <netinet/tcp.h> //tcph
 
 using namespace utils;
@@ -65,27 +66,6 @@ m_n_packets_sent{0}
         perror("inet_pton");
     }
 
-
-    std::size_t transport_header_size = 0;
-    if (proto == IPPROTO_UDP){
-        transport_header_size = sizeof(udphdr);
-    } else if (proto == IPPROTO_TCP){
-        transport_header_size = sizeof(tcphdr);
-    }
-
-    m_buffer = reinterpret_cast<uint8_t *>(malloc(sizeof(ether_header) + sizeof(compact_ip_hdr) + transport_header_size + m_payload.size()));
-    memset(m_buffer, 0, sizeof(ether_header) +  sizeof(compact_ip_hdr) + transport_header_size + m_payload.size());
-
-    /**
-     * Ethernet header
-     */
-    packets_utils::init_ethernet_header(m_buffer, family, hw_source, hw_gateway);
-    /**
-     * IP header
-     */
-
-    packets_utils::init_ip_header(m_buffer + sizeof(ether_header), proto, uint_src_addr);
-
     // Check that the PDU is well formed.
 
 //    Tins::EthernetII test (m_buffer, sizeof(ether_header) + sizeof(ip) + sizeof(udphdr) + m_payload.size());
@@ -93,23 +73,31 @@ m_n_packets_sent{0}
 //    auto ip_pdu = test.find_pdu<IP>();
 //    std::cout << ip_pdu->dst_addr() << ", " << ip_pdu->src_addr() << "\n";
 
+// Raw packet stuff
+    std::size_t transport_header_size = 0;
+    if (proto == IPPROTO_UDP){
+        transport_header_size = sizeof(udphdr);
+    } else if (proto == IPPROTO_TCP){
+        transport_header_size = sizeof(tcphdr);
+    }
+    // Buffer size is size of the IP header + size of transport + size of maximum payload
+    // We will only send the number of needed bytes for payload.
+    uint32_t buffer_size = sizeof(ether_header) + sizeof(compact_ip_hdr) + transport_header_size + utils::max_ttl + 2;
+    m_buffer = reinterpret_cast<uint8_t *>(malloc(buffer_size));
+    memset(m_buffer, 0, buffer_size);
+    packets_utils::init_ethernet_header(m_buffer, family, hw_source, hw_gateway);
+    packets_utils::init_ip_header(m_buffer + sizeof(ether_header), proto, uint_src_addr);
+
+
+
+
     // Raw packet stuff
     if (proto == IPPROTO_UDP){
-        packets_utils::init_udp_header(m_buffer + sizeof(ether_header) + sizeof(compact_ip_hdr),
-                                       static_cast<uint16_t>(m_payload.size()));
+//        packets_utils::init_udp_header(m_buffer + sizeof(ether_header) + sizeof(compact_ip_hdr),
+//                                       static_cast<uint16_t>(m_payload.size()));
     } else if (proto == IPPROTO_TCP){
         packets_utils::init_tcp_header(m_buffer + sizeof(ether_header) + sizeof(compact_ip_hdr));
     }
-
-    /**
-     * Data
-     */
-    char * data = nullptr;
-    data = reinterpret_cast<char *>(m_buffer + sizeof(ether_header) + sizeof(compact_ip_hdr) + transport_header_size);
-    std::cout << "Payload: " <<  m_payload << "\n";
-    std::strncpy(data , m_payload.c_str(), m_payload.size());
-
-
 
     // Compute the tickdelta to control the probing rate.
 
@@ -157,10 +145,6 @@ void pf_ring_sender_t::send(int n_packets, uint32_t destination, uint8_t ttl, ui
 //    m_ip_template.id(ttl);
 //    static_cast<UDP*> (m_ip_template.inner_pdu())->dport(flow_id);
 
-
-    packets_utils::complete_ip_header(m_buffer + sizeof(ether_header), destination, ttl, m_proto,
-                                      static_cast<uint16_t>(m_payload.size()));
-
     if (m_n_packets_sent == 0){
         m_tick_start = getticks();
         gettimeofday(&m_start, NULL);
@@ -185,14 +169,32 @@ void pf_ring_sender_t::send(int n_packets, uint32_t destination, uint8_t ttl, ui
         dump_reference_time();
     }
 
+    std::size_t transport_header_size = 0;
+    if (m_proto == IPPROTO_UDP){
+        transport_header_size = sizeof(udphdr);
+    } else if (m_proto == IPPROTO_TCP){
+        transport_header_size = sizeof(tcphdr);
+    }
+
+    packets_utils::complete_ip_header(m_buffer + sizeof(ether_header), destination, ttl, m_proto, ttl + 2);
+
+
     uint16_t buf_size = 0;
     if (m_proto == IPPROTO_UDP){
-        packets_utils::add_udp_ports(m_buffer + sizeof(ether_header) + sizeof(ip), sport, dport);
-        packets_utils::add_udp_timestamp(m_buffer + sizeof(ether_header) + sizeof(ip), m_buffer + sizeof(ether_header), m_start, m_now);
-//        packets_utils::add_transport_checksum(m_buffer + sizeof(ether_header) + sizeof(ip), m_buffer + sizeof(ether_header), m_proto,
-//                const_cast<char *>(m_payload.c_str()),
-//                static_cast<uint16_t>(m_payload.size()));
-        buf_size = sizeof(ether_header) + sizeof(compact_ip_hdr) + sizeof(udphdr) + m_payload.size();
+
+        uint16_t payload_length = ttl + 2;
+        uint16_t udp_length = sizeof(udphdr) + payload_length;
+
+        packets_utils::add_udp_ports(m_buffer + sizeof(ether_header) +  sizeof(ip), sport, dport);
+        packets_utils::add_udp_length(m_buffer + sizeof(ether_header) + sizeof(ip), payload_length);
+        packets_utils::add_udp_timestamp(m_buffer + sizeof(ether_header) + sizeof(ip),
+                m_buffer  + sizeof(ether_header),
+                payload_length,
+                m_start, m_now);
+//        packets_utils::add_transport_checksum(m_buffer + sizeof(ip), m_buffer, m_proto,
+//                                              const_cast<char *>(m_payload.c_str()),
+//                                              static_cast<uint16_t>(m_payload.size()));
+        buf_size = sizeof (ether_header) + sizeof(compact_ip_hdr) + udp_length;
     }
     else if (m_proto == IPPROTO_TCP){
         packets_utils::add_tcp_ports(m_buffer + sizeof(ether_header) + sizeof(ip), sport, dport);

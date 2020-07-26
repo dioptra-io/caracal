@@ -16,6 +16,7 @@ struct probe_dto_t {
     uint32_t m_reply_ip;
     uint16_t m_size;
     uint8_t  m_ttl;
+    uint8_t  m_ttl_from_udp_length;
     uint8_t  m_proto;
     uint16_t m_sport;
     uint16_t m_dport;

@@ -68,7 +68,7 @@ private:
     std::string build_subspace_request_per_prefix_max_ttl(const std::string &table,
                                                           uint32_t vantage_point_src_ip, int snapshot,
                                                           int round, uint32_t inf_born,
-                                                          uint32_t sup_born);
+                                                          uint32_t sup_born, const process_options_t &);
 
     /**
      * Next round requests for finding load balanced paths
@@ -76,7 +76,8 @@ private:
     std::string build_subspace_request_per_prefix_load_balanced_paths(const std::string &table,
                                                                       uint32_t vantage_point_src_ip, int snapshot,
                                                                       int round, uint32_t inf_born,
-                                                                      uint32_t sup_born);
+                                                                      uint32_t sup_born,
+                                                                      const process_options_t &);
 
     bool can_skip_ipv4_block(uint32_t inf_born, uint32_t  sup_born);
 
@@ -90,7 +91,9 @@ private:
 
     void flush_traceroute(int round, uint32_t src_ip, uint32_t dst_prefix, uint32_t dst_ip,
                                          uint16_t min_dst_port, uint16_t max_dst_port, uint16_t max_src_port,
-                                         const std::vector<int> & links_per_ttl, const std::vector<int> & previous_max_flow_per_ttl,
+                                         const std::vector<int> & nodes_per_ttl,
+                                         const std::vector<int> & links_per_ttl,
+                                         const std::vector<int> & previous_max_flow_per_ttl,
                                          const process_options_t & options,
                                          std::ostream & ostream);
 

@@ -21,6 +21,7 @@
 
 
 #include <utils/packets_utils.hpp>
+#include <utils/parameters_utils_t.hpp>
 
 using namespace Tins;
 using namespace utils;
@@ -97,20 +98,25 @@ m_n_packets_sent(0)
     } else if (proto == IPPROTO_TCP){
         transport_header_size = sizeof(tcphdr);
     }
-    uint32_t buffer_size = sizeof(compact_ip_hdr) + transport_header_size + m_payload.size();
+    // Buffer size is size of the IP header + size of transport + size of maximum payload
+    // We will only send the number of needed bytes for payload.
+    uint32_t buffer_size = sizeof(compact_ip_hdr) + transport_header_size + utils::max_ttl + 2;
     m_buffer = reinterpret_cast<uint8_t *>(malloc(buffer_size));
     memset(m_buffer, 0, buffer_size);
     packets_utils::init_ip_header(m_buffer, proto, uint_src_addr);
     if (proto == IPPROTO_UDP){
-        packets_utils::init_udp_header(m_buffer + sizeof(compact_ip_hdr), static_cast<uint16_t>(m_payload.size()));
+        // The length depending on the ttl, sets it later
+//        packets_utils::init_udp_header(m_buffer + sizeof(compact_ip_hdr), static_cast<uint16_t>(m_payload.size()));
     } else if (proto == IPPROTO_TCP){
         packets_utils::init_tcp_header(m_buffer + sizeof(compact_ip_hdr));
     }
 
-    char * data = nullptr;
-    data = reinterpret_cast<char *>(m_buffer + sizeof(compact_ip_hdr) + transport_header_size);
-    std::cout << m_payload << std::endl;
-    std::strncpy(data , m_payload.c_str(), m_payload.size());
+
+    // Set the payload later
+//    char * data = nullptr;
+//    data = reinterpret_cast<char *>(m_buffer + sizeof(compact_ip_hdr) + transport_header_size);
+//    std::cout << m_payload << std::endl;
+//    std::strncpy(data , m_payload.c_str(), m_payload.size());
 
 
 
@@ -120,17 +126,23 @@ m_n_packets_sent(0)
 
 #if !(defined(__arm__) || defined(__mips__))
     /* computing usleep delay */
-    auto tick_start = getticks();
-    usleep(1);
-    auto tick_delta = getticks() - tick_start;
+    bool is_valid_frequence = false;
+    unsigned long hz = 0;
+    for (auto i = 0; i < 10; ++i){
 
-    /* computing CPU freq */
-    tick_start = getticks();
-    usleep(1001);
-    auto hz = (getticks() - tick_start - tick_delta) * 1000 /*kHz -> Hz*/;
-    std::cout << "Estimated CPU freq: "<< (long unsigned int)hz << "\n";
+        hz = set_frequence();
+        decltype(hz) maximum_frequency = 10000000000; // 10 GHz
+        if (hz <= maximum_frequency){
+            is_valid_frequence = true;
+            break;
+        }
+    }
 
-
+    if (!is_valid_frequence){
+        std::cerr << "Exiting because of impossible frequency: " << hz << "\n";
+        exit(1);
+    }
+    std::cout << "Estimated CPU freq: "<< (long unsigned int) hz <<  " hz\n";
 
     auto td = static_cast<double> (hz) / pps;
     std::cout << "1 packet every "<< td <<  " ticks."<< "\n";
@@ -142,6 +154,19 @@ m_n_packets_sent(0)
 
 #endif
 }
+
+unsigned long classic_sender_t::set_frequence(){
+    auto tick_start = getticks();
+    usleep(1);
+    auto tick_delta = getticks() - tick_start;
+
+    /* computing CPU freq */
+    tick_start = getticks();
+    usleep(1001);
+    auto hz = (getticks() - tick_start - tick_delta) * 1000; /*kHz -> Hz*/
+    return hz;
+}
+
 void classic_sender_t::send(int n_packets, uint32_t destination, uint8_t ttl, uint16_t  sport, uint16_t dport) {
     uint32_t time_interval = 5;
 
@@ -169,19 +194,32 @@ void classic_sender_t::send(int n_packets, uint32_t destination, uint8_t ttl, ui
         dump_reference_time();
     }
 
-    packets_utils::complete_ip_header(m_buffer, destination, ttl, m_proto, static_cast<uint16_t>(m_payload.size()));
+    std::size_t transport_header_size = 0;
+    if (m_proto == IPPROTO_UDP){
+        transport_header_size = sizeof(udphdr);
+    } else if (m_proto == IPPROTO_TCP){
+        transport_header_size = sizeof(tcphdr);
+    }
+
+    // The payload len is the ttl + 2, the +2 is to be able to fully
+    // tweak the checksum for the timestamp
+    packets_utils::complete_ip_header(m_buffer, destination, ttl, m_proto, ttl + 2);
 
 
     // Compute payload len to
 
     uint16_t buf_size = 0;
     if (m_proto == IPPROTO_UDP){
+        uint16_t payload_length = ttl + 2;
+        uint16_t udp_length = sizeof(udphdr) + payload_length;
+
         packets_utils::add_udp_ports(m_buffer + sizeof(ip), sport, dport);
-        packets_utils::add_udp_timestamp(m_buffer + sizeof(ip), m_buffer, m_start, m_now);
+        packets_utils::add_udp_length(m_buffer + sizeof(ip), payload_length);
+        packets_utils::add_udp_timestamp(m_buffer + sizeof(ip), m_buffer, payload_length, m_start, m_now);
 //        packets_utils::add_transport_checksum(m_buffer + sizeof(ip), m_buffer, m_proto,
 //                                              const_cast<char *>(m_payload.c_str()),
 //                                              static_cast<uint16_t>(m_payload.size()));
-        buf_size = sizeof(compact_ip_hdr) + sizeof(udphdr) + m_payload.size();
+        buf_size = sizeof(compact_ip_hdr) + udp_length;
 
     }
     else if (m_proto == IPPROTO_TCP){
