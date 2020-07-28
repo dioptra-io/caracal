@@ -172,7 +172,7 @@ void heartbeat_t::send_from_probes_file() {
 
         ++count;
         if (count % 1000000 == 0){
-            std::cout << count << "\n";
+            std::cout << "Packets sent: " <<  count << "\n";
         }
 #ifndef NDEBUG
         if (count >= 1000000){
@@ -283,7 +283,7 @@ void heartbeat_t::send_exhaustive() {
         sender.send(n_packets_per_flow, addr, ttl, starting_sport, starting_dport);
         ++i;
         if (i % 10000000 == 0){
-            std::cout << i << "\n";
+            std::cout << "Packets sent: " <<  i << "\n";
         }
         if (i >= m_options.max_packets){
             std::cout << "Finish earlier due to partial snapshot\n";
@@ -389,7 +389,7 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
         sender.send(n_packets_per_flow, addr, ttl, starting_sport, starting_dport);
         ++i;
         if (i % 1000000 == 0){
-            std::cout << i << "\n";
+            std::cout << "Packets sent: " <<  i << "\n";
         }
         if (i >= m_options.max_packets){
             std::cout << "Finish earlier due to partial snapshot\n";
