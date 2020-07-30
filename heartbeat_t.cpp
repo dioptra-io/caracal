@@ -62,7 +62,7 @@ heartbeat_t::heartbeat_t(const std::string & interface, const std::string & hw_g
 }
 
 bool heartbeat_t::check_destination_ttl(uint32_t little_endian_addr, uint8_t ttl, uint32_t host_offset) {
-    if (ttl <= m_options.min_ttl){
+    if (ttl < m_options.min_ttl){
         // Do not overload the gateway
         return false;
     }
