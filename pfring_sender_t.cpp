@@ -225,7 +225,7 @@ void pf_ring_sender_t::send(int n_packets, uint32_t destination, uint8_t ttl, ui
                 // Buffer full, retry
 //                in_addr ip_addr;
 //                ip_addr.s_addr = ip_header->ip_dst;
-                std::cerr << "Could not send packet, error code: " << rc <<  "\n";
+                std::cerr << "Could not send packet, error code: " << strerror(errno) <<  "\n";
 //                std::cerr << "The IP destination address is " << inet_ntoa(ip_addr) << "\n";
             } else {
                 // Control the probing rate with active waiting to be precise
