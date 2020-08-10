@@ -455,9 +455,9 @@ std::vector<uint32_t> heartbeat_t::targets_from_file() {
 
     while (std::getline(infile, line)){
 
-        if (ends_with(line, ".0")){
-            continue;
-        }
+//        if (ends_with(line, ".0")){
+//            continue;
+//        }
         inet_pton(AF_INET, line.c_str(), &(sa.sin_addr));
         // Little endian
         targets.push_back(ntohl(sa.sin_addr.s_addr));
