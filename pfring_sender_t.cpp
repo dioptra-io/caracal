@@ -104,22 +104,30 @@ m_n_packets_sent{0}
 
 #if !(defined(__arm__) || defined(__mips__))
     /* computing usleep delay */
-    auto tick_start = getticks();
-    usleep(1);
-    auto tick_delta = getticks() - tick_start;
+    bool is_valid_frequence = false;
+    unsigned long hz = 0;
+    for (auto i = 0; i < 10; ++i){
 
-    /* computing CPU freq */
-    tick_start = getticks();
-    usleep(1001);
-    auto hz = (getticks() - tick_start - tick_delta) * 1000 /*kHz -> Hz*/;
-    std::cout << "Estimated CPU freq: "<< (long unsigned int)hz << "\n";
+        hz = set_frequence();
+        decltype(hz) maximum_frequency = 10000000000; // 10 GHz
+        if (hz <= maximum_frequency){
+            is_valid_frequence = true;
+            break;
+        }
+    }
 
-
+    if (!is_valid_frequence){
+        std::cerr << "Exiting because of impossible frequency: " << hz << "\n";
+        exit(1);
+    }
+    std::cout << "Estimated CPU freq: "<< (long unsigned int) hz <<  " hz\n";
 
     auto td = static_cast<double> (hz) / pps;
+    std::cout << "1 packet every "<< td <<  " ticks."<< "\n";
     m_tick_delta = static_cast<ticks> (td);
-    std::cout << "Delta ticks set to "<<  m_tick_delta << " ticks \n";
     std::cout << "Rate set to "<<  pps <<  " pps."<< "\n";
+    std::cout << "1 packet every "<< m_tick_delta <<  " ticks."<< "\n";
+    std::cout << "1 packet every "<< 1.0/m_tick_delta <<  " s."<< "\n";
 
 
 #endif
