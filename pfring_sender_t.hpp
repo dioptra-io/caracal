@@ -27,6 +27,7 @@ public:
     ~pf_ring_sender_t();
 
 private:
+    unsigned long set_frequence();
     void dump_reference_time();
 
     pfring * m_pf_ring;

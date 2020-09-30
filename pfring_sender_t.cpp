@@ -285,3 +285,15 @@ void pf_ring_sender_t::dump_reference_time() {
     std::cout << std::fixed << "Start time set to: " << seconds_since_epoch << " seconds since epoch." << std::endl;
     m_start_time_log_file << std::fixed << seconds_since_epoch << std::endl;
 }
+
+unsigned long pf_ring_sender_t::set_frequence(){
+    auto tick_start = getticks();
+    usleep(1);
+    auto tick_delta = getticks() - tick_start;
+
+    /* computing CPU freq */
+    tick_start = getticks();
+    usleep(1001);
+    auto hz = (getticks() - tick_start - tick_delta) * 1000; /*kHz -> Hz*/
+    return hz;
+}
