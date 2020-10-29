@@ -354,7 +354,9 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
     std::cout << "Total number of bits needeed: " << max_ttl << " ttls: " << a + 5 << "\n";
 
     uint32_t permutation_size = static_cast<uint32_t >(std::pow(2, a + 5));
-
+    if (a + 5 == 32){
+        permutation_size = static_cast<uint32_t >(std::pow(2, a + 5) - 1);
+    }
     cperm_t* perm = cperm_create(permutation_size, PERM_MODE_CYCLE,
                                         PERM_CIPHER_RC5, key, KEYLEN);
 
@@ -452,7 +454,7 @@ std::vector<uint32_t> heartbeat_t::targets_from_file() {
 // store this IP address in sa:
 //    Patricia trie {32};
     std::vector<uint32_t> targets;
-
+    std::cout << "Populating targets..." << std::endl;
     while (std::getline(infile, line)){
 
 //        if (ends_with(line, ".0")){
@@ -470,7 +472,7 @@ std::vector<uint32_t> heartbeat_t::targets_from_file() {
 //            continue;
 //        }
     }
-
+    std::cout << "Finished populating targets..." << std::endl;
     infile.close();
     return targets;
 }

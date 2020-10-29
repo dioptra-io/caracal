@@ -92,8 +92,6 @@ public:
                 batch.clear();
             }
 
-
-
             return true;
         };
 
