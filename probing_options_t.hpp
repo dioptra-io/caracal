@@ -38,8 +38,7 @@ struct probing_options_t {
 
     uint64_t max_packets;
 
-
-
+    bool experimental_host_offset;
 };
 
 #endif //HEARTBEAT_OPTIONS_T_HPP

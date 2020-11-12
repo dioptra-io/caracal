@@ -52,7 +52,8 @@ int main(int argc, char **argv) {
             ("record-timestamp", "record the sending time of the packets. Needs to set the start-time-log-file option")
             ("start-time-log-file", po::value<std::string>(), "Logging file to record the starting time of the tool. Needed if record-timestamp is set.")
             ("send-from-targets-file,T", "Send from a target file rather than an exhaustive IPv4 probing.")
-            ("targets-file,t", po::value<std::string>(), "File containing targets (< 100000) in string or little endian format. Need to set the send-from-targets");
+            ("targets-file,t", po::value<std::string>(), "File containing targets (< 100000) in string or little endian format. Need to set the send-from-targets")
+            ("experimental-host-offset", "Apply a function [0,255] -> [0,255] to the host offset. Exhaustive scan only.");
 
 
     po::variables_map vm;
@@ -201,6 +202,12 @@ int main(int argc, char **argv) {
         }
     } else {
         options.is_send_from_targets_file = false;
+    }
+
+    if (vm.count("experimental-host-offset")) {
+        options.experimental_host_offset = true;
+    } else {
+        options.experimental_host_offset = false;
     }
 
 
