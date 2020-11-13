@@ -1,0 +1,3 @@
+[submodule "libcperm"]
+	path = libcperm
+	url = https://github.com/lancealt/libcperm.git
