@@ -1,4 +1,7 @@
 # Diamond-Miner Prober :gem:
 
-TODO: libcperm (GPLv3) license incompatibility.
-TODO: cmake -RELEASE?
+![CI](https://github.com/dioptra-io/diamond-miner-prober/workflows/CI/badge.svg)
+
+### TODO
+- libcperm (GPLv3) license incompatibility.
+- cmake -RELEASE?

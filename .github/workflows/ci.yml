@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Install build dependencies
+      run: sudo apt-get install -y build-essential cmake libboost-program-options-dev libpcap-dev libtins-dev pkg-config zlib1g-dev
+    - name: Build
+      run: |
+        mkdir build && cd build
+        cmake .. && cmake --build .
+    - name: Test
+      run: build/diamond-miner-prober --help
