@@ -1,3 +1,3 @@
-See https://github.com/dioptra-io/diamond-miner-wrapper instructions.
+# Diamond-Miner Prober :gem:
 
-
+TODO: libcperm (GPLv3) license incompatibility.
