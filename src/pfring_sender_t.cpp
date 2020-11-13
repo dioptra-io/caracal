@@ -4,9 +4,10 @@
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <utils/timing_utils.hpp>
-#include <utils/packets_utils.hpp>
-#include <utils/network_utils_t.hpp>
+#include "packets_utils.hpp"
+#include "parameters_utils_t.hpp"
+#include "network_utils_t.hpp"
+#include "timing_utils.hpp"
 
 #include <pfring_sender_t.hpp>
 #include <cerrno>
@@ -14,7 +15,6 @@
 
 //#include <netinet/udp.h> // udphdr
 #include <netinet/ip.h> // ip
-#include <utils/parameters_utils_t.hpp>
 //#include <netinet/tcp.h> //tcph
 
 using namespace utils;

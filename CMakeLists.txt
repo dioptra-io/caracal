@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(Heartbeat)
+project(diamond-miner-prober)
 
 set(CMAKE_CXX_STANDARD 17)
 if(NOT CMAKE_BUILD_TYPE)
@@ -14,10 +14,7 @@ message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
 set(HOME $ENV{HOME})
 message(HOME: ${HOME})
 
-include_directories(.)
-include_directories(utils)
-include_directories(database)
-include_directories(maths)
+include_directories(src)
 
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
@@ -42,23 +39,18 @@ if ("${PROFILE}" STREQUAL 1)
     set("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE} ${PROFILE_CXX_FLAGS}")
 endif()
 
-if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 
-    if ("${PROBER}" STREQUAL 1)
         if("${PF_RING}" STREQUAL 1)
             message(STATUS "PF_RING Enabled")
             add_definitions(-DPF_RING_ENABLED)
-            add_executable(Heartbeat main.cpp heartbeat_t.cpp patricia.cpp classic_sender_t.cpp sniffer_t.cpp pfring_sender_t.cpp utils/timing_utils.cpp probing_options_t.cpp
-                    utils/network_utils_t.cpp utils/packets_utils.cpp utils/parameters_utils_t.cpp)
+            add_executable(Heartbeat src/main.cpp src/heartbeat_t.cpp src/patricia.cpp src/classic_sender_t.cpp src/sniffer_t.cpp src/pfring_sender_t.cpp src/timing_utils.cpp
+                    src/network_utils_t.cpp src/packets_utils.cpp src/parameters_utils_t.cpp)
             target_link_libraries(Heartbeat PUBLIC tins cperm z pthread pfring ${Boost_LIBRARIES})
         else()
             message(STATUS "PF_RING Disabled")
 #            add_definitions(-DPF_RING_ENABLED=0)
-            add_executable(Heartbeat main.cpp heartbeat_t.cpp patricia.cpp classic_sender_t.cpp sniffer_t.cpp utils/timing_utils.cpp probing_options_t.cpp
-                    utils/network_utils_t.cpp utils/packets_utils.cpp utils/parameters_utils_t.cpp)
+            add_executable(Heartbeat src/main.cpp src/heartbeat_t.cpp src/patricia.cpp src/classic_sender_t.cpp src/sniffer_t.cpp src/timing_utils.cpp
+                    src/network_utils_t.cpp src/packets_utils.cpp src/parameters_utils_t.cpp)
             target_link_libraries(Heartbeat PUBLIC tins cperm z pthread ${Boost_LIBRARIES})
         endif()
-
-    endif()
-endif()

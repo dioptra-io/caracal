@@ -11,7 +11,7 @@
 
 #include <tins/tins.h>
 #include "probing_options_t.hpp"
-#include <patricia.hpp>
+#include "patricia.hpp"
 
 class heartbeat_t {
 public:

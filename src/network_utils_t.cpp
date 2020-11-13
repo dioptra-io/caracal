@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <iostream>
 #include <tins/tins.h>
-#include <patricia.hpp>
+#include "patricia.hpp"
 #include <assert.h>
 #include <sstream>
 #include <fstream>

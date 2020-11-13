@@ -12,8 +12,8 @@
 #include <netinet/ip.h> //ip
 //#include <netinet/udp.h> // udphdr
 //#include <netinet/tcp.h> //tcphdr
-#include <utils/network_utils_t.hpp>
-#include <utils/timing_utils.hpp>
+#include "network_utils_t.hpp"
+#include "timing_utils.hpp"
 #include <net/ethernet.h>
 
 #include <iostream>

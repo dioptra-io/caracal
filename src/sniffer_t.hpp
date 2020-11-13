@@ -7,7 +7,7 @@
 #include <tins/tins.h>
 #include <string>
 #include <thread>
-#include <probing_options_t.hpp>
+#include "probing_options_t.hpp"
 
 class sniffer_t {
 public:

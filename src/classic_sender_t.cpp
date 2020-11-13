@@ -6,22 +6,20 @@
 
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <utils/network_utils_t.hpp>
 #include <errno.h>
 #include <iostream>
 #include <cmath>
 
 #include <tins/tins.h>
 #include <fcntl.h>
-#include <utils/timing_utils.hpp>
 //#include <netinet/udp.h> // udphdr
 #include <netinet/ip.h> // ip
 //#include <netinet/tcp.h> //tcphdr
 
-
-
-#include <utils/packets_utils.hpp>
-#include <utils/parameters_utils_t.hpp>
+#include "packets_utils.hpp"
+#include "parameters_utils_t.hpp"
+#include "network_utils_t.hpp"
+#include "timing_utils.hpp"
 
 using namespace Tins;
 using namespace utils;

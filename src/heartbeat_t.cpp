@@ -22,10 +22,11 @@
 #include <pfring_sender_t.hpp>
 #endif
 
-#include <classic_sender_t.hpp>
-#include <utils/network_utils_t.hpp>
-#include <utils/parameters_utils_t.hpp>
-#include <sniffer_t.hpp>
+#include "classic_sender_t.hpp"
+#include "network_utils_t.hpp"
+#include "parameters_utils_t.hpp"
+#include "sniffer_t.hpp"
+
 #include <unordered_map>
 #include <fstream>
 #include <sstream>
