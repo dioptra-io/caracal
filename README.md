@@ -5,6 +5,7 @@
 ### TODO
 - libcperm (GPLv3) license incompatibility.
 - cmake -RELEASE?
+- cmake project name and version (C headers)
 - cpack / cmake install
 - code format / linting
 - proper file headers
