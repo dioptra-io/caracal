@@ -2,6 +2,15 @@
 
 ![CI](https://github.com/dioptra-io/diamond-miner-prober/workflows/CI/badge.svg)
 
+### Building from source
+
+```bash
+# Ubuntu
+apt-get install cmake libboost-program-options-dev libpcap-dev libtins-dev pkg-config zlib1g-dev
+# macOS
+brew install boost cmake libtins pkg-config
+```
+
 ```bash
 mkdir build && cd build
 # Debug build
@@ -10,6 +19,8 @@ cmake .. && cmake --build .
 cmake -DUSE_PF_RING=ON -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
 ```
 
+### Development
+
 ```bash
 clang-format --style=Google -i src/*
 cpplint --filter=-build/c++11,-legal/copyright src/*
@@ -17,8 +28,4 @@ cpplint --filter=-build/c++11,-legal/copyright src/*
 
 ### TODO
 - libcperm (GPLv3) license incompatibility.
-- cmake -RELEASE?
-- cmake project name and version (C headers)
 - cpack / cmake install
-- code format / linting
-- proper file headers
