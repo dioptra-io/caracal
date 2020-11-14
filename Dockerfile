@@ -3,6 +3,7 @@ FROM ubuntu:20.04 as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# TODO: Use stable builds?
 RUN apt-get update && \
     apt-get install -y -q gnupg lsb-release wget && \
     wget -q http://apt.ntop.org/20.04/all/apt-ntop.deb && dpkg -i apt-ntop.deb && \
