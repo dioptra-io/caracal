@@ -1,11 +1,3 @@
-//
-// Created by System Administrator on 2019-08-16.
-//
-
-#ifndef HEARTBEAT_PATRICIA_HPP
-#define HEARTBEAT_PATRICIA_HPP
-
-
 #ifndef _PATRICIA_H
 #define _PATRICIA_H
 
@@ -231,8 +223,3 @@ void* Patricia_get(Patricia* patricia, uint32_t addr);
 }
 
 #endif /* _PATRICIA_H */
-
-
-#endif //HEARTBEAT_PATRICIA_HPP
-
-

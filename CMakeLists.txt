@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(diamond-miner-prober VERSION 0.1.4 LANGUAGES CXX)
+project(diamond-miner-prober VERSION 0.1.4)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
@@ -10,6 +10,7 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Cperm REQUIRED)
+find_package(Patricia REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -23,7 +24,6 @@ add_executable(
     src/main.cpp
     src/classic_sender_t.cpp
     src/heartbeat_t.cpp
-    src/patricia.cpp
     src/sniffer_t.cpp
     src/network_utils_t.cpp
     src/packets_utils.cpp
@@ -35,6 +35,7 @@ target_link_libraries(
     diamond-miner-prober PUBLIC
     Boost::program_options
     Cperm
+    Patricia
     PkgConfig::Tins
     Threads::Threads
     ZLIB::ZLIB

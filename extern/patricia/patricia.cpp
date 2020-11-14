@@ -1,8 +1,3 @@
-//
-// Created by System Administrator on 2019-08-16.
-//
-
-
 /*
  * From Dave Plonka's Net-Patricia-1.22
  *
