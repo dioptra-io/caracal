@@ -3,7 +3,6 @@
 //
 
 #include "packets_utils.hpp"
-#include "bits_utils_t.hpp"
 
 
 #include <cstdlib> // malloc
