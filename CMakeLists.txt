@@ -51,3 +51,12 @@ if (USE_PF_RING)
     target_link_libraries(diamond-miner-prober PUBLIC PfRing::PfRing)
     target_sources(diamond-miner-prober PUBLIC src/pfring_sender_t.cpp)
 endif()
+
+install(TARGETS diamond-miner-prober DESTINATION bin)
+
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_VERSION_MAJOR "${diamond-miner-prober_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${diamond-miner-prober_VERSION_MINOR}")
+
+include(InstallRequiredSystemLibraries)
+include(CPack)

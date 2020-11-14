@@ -17,6 +17,10 @@ mkdir build && cd build
 cmake .. && cmake --build .
 # Release build
 cmake -DUSE_PF_RING=ON -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
+# (Optional) Installation
+cmake --install .
+# (Optional) Packaging
+cpack
 ```
 
 ### Development
