@@ -12,6 +12,7 @@ RUN apt-get update && \
         build-essential \
         cmake \
         gdb \
+        git \
         libboost-log1.71-dev \
         libboost-program-options1.71-dev \
         libpcap0.8-dev \
