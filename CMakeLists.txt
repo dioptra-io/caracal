@@ -8,7 +8,7 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
-find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(Boost REQUIRED COMPONENTS log program_options)
 find_package(Cperm REQUIRED)
 find_package(Patricia REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -33,6 +33,7 @@ add_executable(
 
 target_link_libraries(
     diamond-miner-prober PUBLIC
+    Boost::log
     Boost::program_options
     Cperm
     Patricia

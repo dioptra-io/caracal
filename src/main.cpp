@@ -18,7 +18,13 @@ using Tins::Utils::resolve_hwaddr;
 int main(int argc, char **argv) {
   std::cout << "diamond-miner-prober"
             << " v" << DMINER_VERSION_MAJOR << "." << DMINER_VERSION_MINOR
-            << "." << DMINER_VERSION_PATCH << std::endl;
+            << "." << DMINER_VERSION_PATCH;
+#ifdef USE_PF_RING
+  std::cout << " (USE_PF_RING=YES)";
+#else
+  std::cout << " (USE_PF_RING=NO)";
+#endif
+  std::cout << std::endl;
 
   namespace po = boost::program_options;
   std::string help_message;
@@ -26,61 +32,40 @@ int main(int argc, char **argv) {
 
   // Declare the supported options.
   po::options_description desc("Options");
-  desc.add_options()("help,h", help_message.c_str())(
-      "interface", po::value<std::string>(),
-      "Interface from which to send the packets")(
-      "proto,p", po::value<std::string>(),
-      "Protocol to use for probing (udp (default), tcp, icmp)")(
-      "dport", po::value<uint16_t>(),
-      "destination port for probing (default 33434)")(
-      "min-ttl", po::value<uint16_t>(),
-      "minimum ttl to probe (default 3, min 1)")(
-      "max-ttl", po::value<uint16_t>(),
-      "maximum ttl to probe (default 30, max 32)")(
-      "max-packets", po::value<uint64_t>(),
-      "maximum number of packets to send")(
-      "probes-files,f", po::value<std::string>(),
-      "Format is SRC_IP, DST_IP, SRC_PORT, DST_PORT, TTL, ROUND")(
-      "send-from-file,F",
-      "Send from a file rather than an exhaustive IPv4 probing.")(
-      "output-file,o", po::value<std::string>(), "pcap output file of replies")(
-      "probing-rate,r", po::value<uint32_t>(), "Probing rate in pps")(
-      "buffer-sniffer-size", po::value<uint32_t>(),
-      "Size of the sniffer buffer (equivalent of -B option in tcpdump)")(
-      "inf-born,i", po::value<uint32_t>(), "inf born of the dst_ip")(
-      "sup-born,s", po::value<uint32_t>(), "sup born of the dst_ip")(
-      "destinations,d", po::value<uint32_t>(),
-      "Number of destinations per /24")(
-      "send-from-prefix-file,P",
-      "Send from a prefix files rather than an exhaustive IPv4 probing")(
-      "prefix-file", po::value<std::string>(),
-      "File with prefixes to send (format A.B.C.D/M ")(
-      "only-routable",
-      "Send only to routable destinations, need the bgp file argument")(
-      "bgp-file", po::value<std::string>(),
-      "BGP file to send only to routable destinations")(
-      "exclusion-file,E", po::value<std::string>(),
-      "File with prefix to exclude (same format as prefix-file")(
-      "record-timestamp",
-      "record the sending time of the packets. Needs to set the "
-      "start-time-log-file option")(
-      "start-time-log-file", po::value<std::string>(),
-      "Logging file to record the starting time of the tool. Needed if "
-      "record-timestamp is set.")(
-      "send-from-targets-file,T",
-      "Send from a target file rather than an exhaustive IPv4 probing.")(
-      "targets-file,t", po::value<std::string>(),
-      "File containing targets (< 100000) in string or little endian format. "
-      "Need to set the send-from-targets")(
-      "experimental-host-offset",
-      "Apply a function [0,255] -> [0,255] to the host offset. Exhaustive scan "
-      "only.");
+  // clang-format off
+  desc.add_options()
+    ("help,h", help_message.c_str())
+    ("interface", po::value<std::string>(), "Interface from which to send the packets")
+    ("proto,p", po::value<std::string>(), "Protocol to use for probing (udp (default), tcp, icmp)")
+    ("dport", po::value<uint16_t>(), "destination port for probing (default 33434)")
+    ("min-ttl", po::value<uint16_t>(), "minimum ttl to probe (default 3, min 1)")
+    ("max-ttl", po::value<uint16_t>(), "maximum ttl to probe (default 30, max 32)")
+    ("max-packets", po::value<uint64_t>(), "maximum number of packets to send")
+    ("probes-files,f", po::value<std::string>(), "Format is SRC_IP, DST_IP, SRC_PORT, DST_PORT, TTL, ROUND")
+    ("send-from-file,F", "Send from a file rather than an exhaustive IPv4 probing.")
+    ("output-file,o", po::value<std::string>(), "pcap output file of replies")
+    ("probing-rate,r", po::value<uint32_t>(), "Probing rate in pps")
+    ("buffer-sniffer-size", po::value<uint32_t>(), "Size of the sniffer buffer (equivalent of -B option in tcpdump)")
+    ("inf-born,i", po::value<uint32_t>(), "inf born of the dst_ip")
+    ("sup-born,s", po::value<uint32_t>(), "sup born of the dst_ip")
+    ("destinations,d", po::value<uint32_t>(), "Number of destinations per /24")
+    ("send-from-prefix-file,P", "Send from a prefix files rather than an exhaustive IPv4 probing")
+    ("prefix-file", po::value<std::string>(), "File with prefixes to send (format A.B.C.D/M ")
+    ("only-routable", "Send only to routable destinations, need the bgp file argument")
+    ("bgp-file", po::value<std::string>(), "BGP file to send only to routable destinations")
+    ("exclusion-file,E", po::value<std::string>(), "File with prefix to exclude (same format as prefix-file")
+    ("record-timestamp", "record the sending time of the packets. Needs to set the start-time-log-file option")
+    ("start-time-log-file", po::value<std::string>(), "Logging file to record the starting time of the tool. Needed if record-timestamp is set.")
+    ("send-from-targets-file,T", "Send from a target file rather than an exhaustive IPv4 probing.")
+    ("targets-file,t", po::value<std::string>(), "File containing targets (< 100000) in string or little endian format. Need to set the send-from-targets")
+    ("experimental-host-offset", "Apply a function [0,255] -> [0,255] to the host offset. Exhaustive scan only.");
+  // clang-format on
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
   po::notify(vm);
 
-  if (vm.count("help")) {
+  if (vm.count("help") || vm.size() == 0) {
     std::cout << desc << "\n";
     return 0;
   }

@@ -6,6 +6,7 @@
 #include <tins/tins.h>
 
 #include <algorithm>
+#include <boost/log/trivial.hpp>
 #include <chrono>
 #include <cmath>
 #include <ctime>
@@ -198,6 +199,8 @@ void heartbeat_t::send_from_probes_file() {
 }
 
 void heartbeat_t::send_exhaustive() {
+  BOOST_LOG_TRIVIAL(info) << "Starting exhaustive probing...";
+
   //    std::ofstream ofstream;
   //    ofstream.open("resources/destinations");
 
@@ -263,6 +266,11 @@ void heartbeat_t::send_exhaustive() {
     uint32_t host_offset =
         val >> 29;  // pick the 3 remaining bits for the offset.
 
+    BOOST_LOG_TRIVIAL(trace)
+        << "permutation=0x" << std::hex << val << " prefix=0x" << addr
+        << std::dec << " offset=" << host_offset << " ttl=" << uint(ttl)
+        << std::endl;
+
     // Avoid CEF drops on prefixes, addresses are big endian, so convert it to
     // little endian
     auto little_endian_addr = ntohl(addr);
@@ -271,8 +279,9 @@ void heartbeat_t::send_exhaustive() {
 #ifndef NDEBUG
       in_addr ip_addr;
       ip_addr.s_addr = addr;
-      std::cerr << "Filtered IP address ttl host_offset: " << inet_ntoa(ip_addr)
-                << " " << uint(ttl) << " " << host_offset << std::endl;
+      BOOST_LOG_TRIVIAL(trace)
+          << "Filtered prefix=" << inet_ntoa(ip_addr)
+          << " offset=" << host_offset << " ttl=" << uint(ttl);
 #endif
       continue;
     }
@@ -439,16 +448,16 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
 void heartbeat_t::start() {
   // Init the exclusion patricia trie
   // Only v4 at the moment
-  std::cout << "Populating exclusion prefix...\n";
+  BOOST_LOG_TRIVIAL(info) << "Loading excluded prefixes...";
   m_patricia_trie_excluded.populateBlock(AF_INET,
                                          m_options.exclusion_file.c_str());
   // Init patricia trie if only routable destinations is specified
   if (m_options.is_from_bgp) {
-    std::cout << "Populating routing space...\n";
+    BOOST_LOG_TRIVIAL(info) << "Loading routing informations...";
     m_patricia_trie.populate(m_options.bgp_file.c_str());
   } else if (m_options.is_from_prefix_file) {
     // Only IPv4
-    std::cout << "Populating prefixes...\n";
+    BOOST_LOG_TRIVIAL(info) << "Loading prefixes...";
     m_patricia_trie.populateBlock(AF_INET, m_options.prefix_file.c_str());
   }
   // Init sniffer
