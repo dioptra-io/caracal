@@ -8,16 +8,24 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: true
     - name: Install build dependencies
       run: sudo apt-get install -y build-essential cmake libboost-program-options-dev libpcap-dev libtins-dev pkg-config zlib1g-dev
+    - name: Install PF_RING
+      run: |
+        # sudo apt-get install -y software-properties-common wget
+        # sudo add-apt-repository universe
+        wget https://packages.ntop.org/apt-stable/20.04/all/apt-ntop-stable.deb
+        sudo apt-get install -y ./apt-ntop-stable.deb
+        sudo apt-get update
+        sudo apt-get install -y pfring
     - name: Build
       run: |
         mkdir build && cd build
-        cmake .. && cmake --build .
+        cmake -DUSE_PF_RING=ON .. && cmake --build .
     - name: Test
       run: build/diamond-miner-prober --help

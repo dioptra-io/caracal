@@ -18,7 +18,7 @@
 
 #include <sys/socket.h>
 
-#ifdef PF_RING_ENABLED
+#ifdef USE_PF_RING
 #include <pfring_sender_t.hpp>
 #endif
 
@@ -109,7 +109,7 @@ void heartbeat_t::send_from_probes_file() {
     IPv4Address source = m_interface.ipv4_address();
 
 
-#ifdef PF_RING_ENABLED
+#ifdef USE_PF_RING
     pf_ring_sender_t sender{AF_INET, SOCK_DGRAM, m_options.proto, m_interface, m_interface.hw_address(), m_hw_gateway, m_options.pps};
 #else
     classic_sender_t sender{AF_INET, SOCK_DGRAM, m_options.proto, source.to_string(), m_options.pps};
@@ -217,7 +217,7 @@ void heartbeat_t::send_exhaustive() {
 
     std::cout << uint32_t (source) << "\n";
 
-#ifdef PF_RING_ENABLED
+#ifdef USE_PF_RING
     pf_ring_sender_t sender{AF_INET, SOCK_DGRAM, m_options.proto, m_interface, m_interface.hw_address(), m_hw_gateway, m_options.pps};
 #else
     classic_sender_t sender{AF_INET, SOCK_DGRAM, m_options.proto, source.to_string(), m_options.pps};
@@ -335,7 +335,7 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
 
     std::cout << uint32_t (source) << "\n";
 
-#ifdef PF_RING_ENABLED
+#ifdef USE_PF_RING
     pf_ring_sender_t sender{AF_INET, SOCK_DGRAM, m_options.proto, m_interface, m_interface.hw_address(), m_hw_gateway, m_options.pps};
 #else
     classic_sender_t sender{AF_INET, SOCK_DGRAM, m_options.proto, source.to_string(), m_options.pps};

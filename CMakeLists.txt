@@ -44,7 +44,6 @@ target_compile_features(diamond-miner-prober PUBLIC cxx_std_17)
 target_compile_options(diamond-miner-prober PRIVATE -Wall -Wextra)
 target_include_directories(diamond-miner-prober PUBLIC "${PROJECT_BINARY_DIR}")
 
-# TODO: Test PfRing build
 if (USE_PF_RING)
     find_package(PfRing REQUIRED)
     target_link_libraries(diamond-miner-prober PUBLIC PfRing::PfRing)
