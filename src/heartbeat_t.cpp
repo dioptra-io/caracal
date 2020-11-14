@@ -9,28 +9,22 @@
 #include <chrono>
 #include <cmath>
 #include <ctime>
+#include <fstream>
 #include <iostream>
 #include <random>
+#include <sstream>
 #include <thread>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
+#include "classic_sender_t.hpp"
 #ifdef USE_PF_RING
 #include <pfring_sender_t.hpp>
 #endif
-
-#include <fstream>
-#include <sstream>
-#include <unordered_map>
-#include <unordered_set>
-
-#include "classic_sender_t.hpp"
-#include "network_utils_t.hpp"
-#include "parameters_utils_t.hpp"
 #include "sniffer_t.hpp"
 
-using namespace Tins;
-
-using namespace utils;
+using Tins::IPv4Address;
 
 namespace {
 /*

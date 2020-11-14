@@ -3,10 +3,12 @@
 #include <iostream>
 #include <thread>
 
-#include "parameters_utils_t.hpp"
+using Tins::DataLinkType;
+using Tins::EthernetII;
+using Tins::Packet;
+using Tins::Sniffer;
+using Tins::SnifferConfiguration;
 
-using namespace Tins;
-using namespace utils;
 void sniffer_t::start() {
   std::cout << "Starting sniffer...\n";
   auto handler = [this](Packet &p) {

@@ -3,7 +3,6 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <tins/tins.h>
 #include <unistd.h>
 
 #include <cmath>
@@ -17,8 +16,11 @@
 #include "parameters_utils_t.hpp"
 #include "timing_utils.hpp"
 
-using namespace Tins;
-using namespace utils;
+using utils::compact_ip_hdr;
+using utils::getticks;
+using utils::tcphdr;
+using utils::ticks;
+using utils::udphdr;
 
 classic_sender_t::classic_sender_t(uint8_t family, int type, uint8_t proto,
                                    const std::string &src_addr,

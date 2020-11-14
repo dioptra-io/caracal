@@ -16,8 +16,17 @@
 #include "network_utils_t.hpp"
 #include "timing_utils.hpp"
 
-using namespace Tins;
-using namespace utils;
+using Tins::HWAddress;
+using utils::compact_ip_hdr;
+using utils::elapsed;
+using utils::in_cksum;
+using utils::one_s_complement_bits32_sum_to_16;
+using utils::pseudo_header;
+using utils::pseudo_header_udp;
+using utils::sum;
+using utils::tcphdr;
+using utils::udphdr;
+using utils::wrapsum;
 
 void packets_utils::init_ethernet_header(uint8_t *buffer, int family,
                                          const HWAddress<6> &hw_source,

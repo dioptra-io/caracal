@@ -1,14 +1,10 @@
 #include <arpa/inet.h>
 #include <assert.h>
-#include <tins/tins.h>
 
 #include <cstdint>
 #include <fstream>
 #include <iostream>
-#include <patricia.hpp>
 #include <sstream>
-
-using namespace Tins;
 
 namespace utils {
 
