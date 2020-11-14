@@ -7,11 +7,13 @@
 #include <vector>
 
 #include "heartbeat_t.hpp"
-#include "parameters_utils_t.hpp"
 #include "probing_options_t.hpp"
 
-using namespace Tins;
-using namespace utils;
+using Tins::IPv4Address;
+using Tins::NetworkInterface;
+using Tins::PacketSender;
+using Tins::Utils::gateway_from_ip;
+using Tins::Utils::resolve_hwaddr;
 
 int main(int argc, char **argv) {
   std::cout << "diamond-miner-prober"
@@ -235,12 +237,12 @@ int main(int argc, char **argv) {
   std::cout << "Probing interface: " << interface.name() << "\n";
   // Find gateway of the addresses
   IPv4Address gateway_ip;
-  Utils::gateway_from_ip("8.8.8.8", gateway_ip);
+  gateway_from_ip("8.8.8.8", gateway_ip);
 
   PacketSender resolve_gateway_sender{interface};
   auto hw_source = interface.hw_address();
   std::cout << "Source MAC address: " << hw_source.to_string() << "\n";
-  auto hw_gateway = Utils::resolve_hwaddr(gateway_ip, resolve_gateway_sender);
+  auto hw_gateway = resolve_hwaddr(gateway_ip, resolve_gateway_sender);
   std::cout << "Gateway MAC address: " << hw_gateway.to_string() << "\n";
 
   heartbeat_t heartbeat(interface.name(), hw_gateway.to_string(), options);

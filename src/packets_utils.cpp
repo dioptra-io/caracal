@@ -1,12 +1,12 @@
 #include "packets_utils.hpp"
 
-#include <netinet/ip.h>  //ip
+#include <netinet/ip.h>  // ip
 
 #include <cmath>    // pow
 #include <cstdlib>  // malloc
 #include <cstring>  // memset
-//#include <netinet/udp.h> // udphdr
-//#include <netinet/tcp.h> //tcphdr
+// #include <netinet/udp.h> // udphdr
+// #include <netinet/tcp.h> //tcphdr
 #include <assert.h>
 #include <net/ethernet.h>
 

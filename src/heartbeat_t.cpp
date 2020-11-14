@@ -12,6 +12,7 @@
 #include <iostream>
 #include <random>
 #include <thread>
+#include <vector>
 
 #ifdef USE_PF_RING
 #include <pfring_sender_t.hpp>

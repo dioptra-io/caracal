@@ -8,9 +8,9 @@
 
 #include <cmath>
 #include <iostream>
-//#include <netinet/udp.h> // udphdr
+// #include <netinet/udp.h> // udphdr
 #include <netinet/ip.h>  // ip
-//#include <netinet/tcp.h> //tcphdr
+// #include <netinet/tcp.h> // tcphdr
 
 #include "network_utils_t.hpp"
 #include "packets_utils.hpp"
@@ -45,9 +45,7 @@ classic_sender_t::classic_sender_t(uint8_t family, int type, uint8_t proto,
 
   if (res == -1) {
     std::cout << "Error getsockopt one\n";
-  }
-
-  else {
+  } else {
     std::cout << "send buffer size = " << sendbuff << "\n";
   }
 

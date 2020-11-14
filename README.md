@@ -12,6 +12,7 @@ cmake -DUSE_PF_RING=ON -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
 
 ```bash
 clang-format --style=Google -i src/*
+cpplint --filter=-build/c++11,-legal/copyright src/*
 ```
 
 ### TODO

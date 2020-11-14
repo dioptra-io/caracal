@@ -6,6 +6,7 @@
 #include <patricia.hpp>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "probing_options_t.hpp"
 

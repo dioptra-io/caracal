@@ -11,9 +11,9 @@
 #include "parameters_utils_t.hpp"
 #include "timing_utils.hpp"
 
-//#include <netinet/udp.h> // udphdr
+// #include <netinet/udp.h> // udphdr
 #include <netinet/ip.h>  // ip
-//#include <netinet/tcp.h> //tcph
+// #include <netinet/tcp.h> // tcphdr
 
 using namespace utils;
 

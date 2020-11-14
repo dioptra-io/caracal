@@ -8,10 +8,10 @@ bool is_excluded(uint32_t addr);
 
 //    struct udphdr
 //    {
-//        uint16_t uh_sport;		/* source port */
-//        uint16_t uh_dport;		/* destination port */
-//        uint16_t uh_ulen;		/* udp length */
-//        uint16_t uh_sum;		/* udp checksum */
+//        uint16_t uh_sport; /* source port */
+//        uint16_t uh_dport; /* destination port */
+//        uint16_t uh_ulen;  /* udp length */
+//        uint16_t uh_sum;   /* udp checksum */
 //    };
 
 struct compact_ip_hdr {
@@ -64,10 +64,10 @@ struct tcphdr {
       uint8_t th_x2 : 4;  /* (unused) */
       uint8_t th_off : 4; /* data offset */
 #endif
-      //# if __BYTE_ORDER == __BIG_ENDIAN
-      //                uint8_t th_off:4;	/* data offset */
-      //	uint8_t th_x2:4;	/* (unused) */
-      //# endif
+      // # if __BYTE_ORDER == __BIG_ENDIAN
+      //     uint8_t th_off:4; /* data offset */
+      //     uint8_t th_x2:4;  /* (unused) */
+      // # endif
       uint8_t th_flags;
 #define TH_FIN 0x01
 #define TH_SYN 0x02
