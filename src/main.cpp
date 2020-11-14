@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
     std::cout << "diamond-miner-prober" << " v" << DMINER_VERSION_MAJOR << "." << DMINER_VERSION_MINOR << "." << DMINER_VERSION_PATCH << std::endl;
 
     namespace po = boost::program_options;
+    std::string help_message;
     probing_options_t options;
 
     // Declare the supported options.
