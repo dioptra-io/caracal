@@ -15,23 +15,23 @@ bool is_excluded(uint32_t addr);
 //    };
 
 struct compact_ip_hdr {
-  u_int32_t ip_hl : 4, ip_v : 4, ip_tos : 8, ip_len : 16;
-  u_int16_t ip_id;
-  u_int16_t ip_off;
-  u_int8_t ip_ttl;
-  u_int8_t ip_p;
-  u_int16_t ip_sum;
-  u_int32_t ip_src;
-  u_int32_t ip_dst;
+  uint32_t ip_hl : 4, ip_v : 4, ip_tos : 8, ip_len : 16;
+  uint16_t ip_id;
+  uint16_t ip_off;
+  uint8_t ip_ttl;
+  uint8_t ip_p;
+  uint16_t ip_sum;
+  uint32_t ip_src;
+  uint32_t ip_dst;
 };
 
 struct compact_ipv6_hdr {
-  u_int32_t flow_lbl : 24, priority : 4, version : 4;
-  u_int16_t payload_len;
-  u_int8_t nexthdr;
-  u_int8_t hop_limit;
-  u_int32_t saddr[4]; /* struct in6_addr */
-  u_int32_t daddr[4]; /* struct in6_addr */
+  uint32_t flow_lbl : 24, priority : 4, version : 4;
+  uint16_t payload_len;
+  uint8_t nexthdr;
+  uint8_t hop_limit;
+  uint32_t saddr[4]; /* struct in6_addr */
+  uint32_t daddr[4]; /* struct in6_addr */
 };
 
 struct udphdr {
@@ -118,19 +118,19 @@ struct tcphdr {
     96 bit (12 bytes) pseudo header needed for udp header checksum calculation
 */
 struct pseudo_header {
-  u_int32_t source_address;
-  u_int32_t dest_address;
-  u_int8_t placeholder;
-  u_int8_t protocol;
-  u_int16_t transport_length;
+  uint32_t source_address;
+  uint32_t dest_address;
+  uint8_t placeholder;
+  uint8_t protocol;
+  uint16_t transport_length;
 };
 
 struct pseudo_header_udp {
-  u_int32_t source_address;
-  u_int32_t dest_address;
-  u_int8_t placeholder;
-  u_int8_t protocol;
-  u_int16_t transport_length;
+  uint32_t source_address;
+  uint32_t dest_address;
+  uint8_t placeholder;
+  uint8_t protocol;
+  uint16_t transport_length;
 
   uint16_t uh_sport; /* source port */
   uint16_t uh_dport; /* destination port */

@@ -2,6 +2,18 @@
 
 ![CI](https://github.com/dioptra-io/diamond-miner-prober/workflows/CI/badge.svg)
 
+## Quickstart
+
+```bash
+git clone --recursive git@github.com:dioptra-io/diamond-miner-prober.git
+cd diamond-miner-prober
+# Without PF_RING
+docker build --build-arg USE_PF_RING=OFF -t diamond-miner-prober .
+# With PF_RING
+docker build --build-arg USE_PF_RING=ON -t diamond-miner-prober .
+docker run diamond-miner-prober --help
+```
+
 ### Building from source
 
 ```bash

@@ -20,9 +20,9 @@ int main(int argc, char **argv) {
             << " v" << DMINER_VERSION_MAJOR << "." << DMINER_VERSION_MINOR
             << "." << DMINER_VERSION_PATCH;
 #ifdef USE_PF_RING
-  std::cout << " (USE_PF_RING=YES)";
+  std::cout << " (USE_PF_RING=ON)";
 #else
-  std::cout << " (USE_PF_RING=NO)";
+  std::cout << " (USE_PF_RING=OFF)";
 #endif
   std::cout << std::endl;
 

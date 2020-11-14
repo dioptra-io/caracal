@@ -13,16 +13,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: true
-    - name: Install PF_RING repository
-      run: |
-        wget https://packages.ntop.org/apt-stable/20.04/all/apt-ntop-stable.deb
-        sudo apt-get install -y ./apt-ntop-stable.deb
-        sudo apt-get update
-    - name: Install build dependencies
-      run: sudo apt-get install -y build-essential cmake libboost-program-options-dev libpcap-dev libtins-dev pfring pkg-config zlib1g-dev
-    - name: Build
-      run: |
-        mkdir build && cd build
-        cmake -DUSE_PF_RING=ON .. && cmake --build .
-    - name: Test
-      run: build/diamond-miner-prober --help
+    - name: Build Docker image
+      run: docker build --build-arg USE_PF_RING=ON -t diamond-miner-prober .
+    - name: Test Docker image
+      run: docker run diamond-miner-prober --help

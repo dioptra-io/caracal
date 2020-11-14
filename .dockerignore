@@ -1,0 +1,6 @@
+*
+!cmake/
+!extern/
+!src/
+!CMakeLists.txt
+!LICENSE
