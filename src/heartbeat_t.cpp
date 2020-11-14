@@ -93,7 +93,7 @@ bool heartbeat_t::check_destination_ttl(uint32_t little_endian_addr,
     return false;
   }
   // Flow starting at 0
-  if (ttl > m_options.max_ttl or ttl == 0 or
+  if (ttl > m_options.max_ttl || ttl == 0 ||
       host_offset >= m_options.n_destinations_per_24) {
     return false;
   }

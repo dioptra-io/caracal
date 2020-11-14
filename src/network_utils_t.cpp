@@ -1,3 +1,5 @@
+#include "network_utils_t.hpp"
+
 #include <arpa/inet.h>
 #include <assert.h>
 
