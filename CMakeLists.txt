@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(dminer LANGUAGES CXX)
+project(diamond-miner-prober VERSION 0.1.4 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
@@ -14,6 +14,9 @@ find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 pkg_check_modules(Tins REQUIRED IMPORTED_TARGET libtins)
+
+option(USE_PF_RING "Use PF_RING to send packets" OFF)
+configure_file(src/dminer_config.h.in dminer_config.h)
 
 add_executable(
     diamond-miner-prober
@@ -37,14 +40,13 @@ target_link_libraries(
     ZLIB::ZLIB
 )
 
-# PUBLIC or PRIVATE?
 target_compile_features(diamond-miner-prober PUBLIC cxx_std_17)
 target_compile_options(diamond-miner-prober PRIVATE -Wall -Wextra)
+target_include_directories(diamond-miner-prober PUBLIC "${PROJECT_BINARY_DIR}")
 
 # TODO: Test PfRing build
-if (PF_RING)
+if (USE_PF_RING)
     find_package(PfRing REQUIRED)
-    target_compile_definitions(diamond-miner-prober PUBLIC PF_RING_ENABLED)
     target_link_libraries(diamond-miner-prober PUBLIC PfRing::PfRing)
     target_sources(diamond-miner-prober PUBLIC src/pfring_sender_t.cpp)
 endif()

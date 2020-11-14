@@ -10,21 +10,16 @@
 #include <boost/program_options.hpp>
 
 #include <limits>
+#include <dminer_config.h>
 
 using namespace Tins;
 using namespace utils;
 
 int main(int argc, char **argv) {
-
-
+    std::cout << "diamond-miner-prober" << " v" << DMINER_VERSION_MAJOR << "." << DMINER_VERSION_MINOR << "." << DMINER_VERSION_PATCH << std::endl;
 
     namespace po = boost::program_options;
-
-    std::string help_message;
-
     probing_options_t options;
-
-    std::string output_file;
 
     // Declare the supported options.
     po::options_description desc("Options");
