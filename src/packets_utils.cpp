@@ -1,7 +1,3 @@
-//
-// Created by System Administrator on 2019-11-04.
-//
-
 #include "packets_utils.hpp"
 
 

@@ -1,9 +1,4 @@
-//
-// Created by System Administrator on 2019-03-18.
-//
-
-#ifndef HEARTBEAT_PF_RING_SENDER_T_HPP
-#define HEARTBEAT_PF_RING_SENDER_T_HPP
+#pragma once
 
 #include <string>
 #include <tins/tins.h>
@@ -45,6 +40,3 @@ private:
 
     std::ofstream m_start_time_log_file;
 };
-
-
-#endif //HEARTBEAT_PF_RING_SENDER_T_HPP

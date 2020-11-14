@@ -1,10 +1,4 @@
-//
-// Created by System Administrator on 2019-06-04.
-//
-
-#ifndef HEARTBEAT_PFRING_UTILS_HPP
-#define HEARTBEAT_PFRING_UTILS_HPP
-
+#pragma once
 
 #include <cstdint>
 #include <sys/time.h>
@@ -40,5 +34,3 @@ namespace utils {
     uint32_t elapsed(timeval * now, timeval *start);
 
 }
-
-#endif //HEARTBEAT_PFRING_UTILS_HPP

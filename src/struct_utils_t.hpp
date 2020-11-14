@@ -1,9 +1,5 @@
-//
-// Created by System Administrator on 2019-02-11.
-//
+#pragma once
 
-#ifndef HEARTBEAT_STRUCT_UTILS_T_HPP
-#define HEARTBEAT_STRUCT_UTILS_T_HPP
 #include <memory>
 
 namespace utils{
@@ -34,5 +30,3 @@ namespace utils{
     };
 
 }
-
-#endif //HEARTBEAT_STRUCT_UTILS_T_HPP

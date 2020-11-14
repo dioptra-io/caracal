@@ -1,7 +1,3 @@
-//
-// Created by System Administrator on 2019-02-04.
-//
-
 #include <thread>
 #include <iostream>
 #include "sniffer_t.hpp"

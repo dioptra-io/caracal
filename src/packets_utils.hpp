@@ -1,9 +1,4 @@
-//
-// Created by System Administrator on 2019-11-04.
-//
-
-#ifndef HEARTBEAT_PACKETS_UTILS_HPP
-#define HEARTBEAT_PACKETS_UTILS_HPP
+#pragma once
 
 #include <cstdint>
 #include <cstddef> // std::size_t
@@ -47,6 +42,3 @@ public:
     static void add_tcp_ports(uint8_t *transport_buffer, uint16_t sport, uint16_t dport);
     static void add_tcp_timestamp(uint8_t * transport_buffer, timeval & start, timeval & now, uint8_t ttl);
 };
-
-
-#endif //HEARTBEAT_PACKETS_UTILS_HPP

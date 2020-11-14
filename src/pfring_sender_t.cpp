@@ -1,7 +1,3 @@
-//
-// Created by System Administrator on 2019-03-18.
-//
-
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "packets_utils.hpp"
@@ -9,7 +5,7 @@
 #include "network_utils_t.hpp"
 #include "timing_utils.hpp"
 
-#include <pfring_sender_t.hpp>
+#include "pfring_sender_t.hpp"
 #include <cerrno>
 #include <iostream>
 

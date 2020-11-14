@@ -1,9 +1,4 @@
-//
-// Created by System Administrator on 2019-08-02.
-//
-
-#ifndef HEARTBEAT_PARAMETERS_UTILS_T_HPP
-#define HEARTBEAT_PARAMETERS_UTILS_T_HPP
+#pragma once
 
 #include <cstdint>
 
@@ -14,6 +9,3 @@ namespace utils{
     extern int default_1_round_flows;
     extern int max_ttl;
 }
-
-
-#endif //HEARTBEAT_PARAMETERS_UTILS_T_HPP

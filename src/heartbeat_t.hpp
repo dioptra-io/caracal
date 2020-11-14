@@ -1,9 +1,4 @@
-//
-// Created by System Administrator on 29/05/2018.
-//
-
-#ifndef HEARTBEAT_HEARTBEAT_HPP
-#define HEARTBEAT_HEARTBEAT_HPP
+#pragma once
 
 #include <string>
 #include <thread>
@@ -52,6 +47,3 @@ private:
     probing_options_t m_options;
 
 };
-
-
-#endif //HEARTBEAT_HEARTBEAT_HPP

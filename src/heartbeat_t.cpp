@@ -1,7 +1,3 @@
-//
-// Created by System Administrator on 29/05/2018.
-//
-
 #include "heartbeat_t.hpp"
 #include <arpa/inet.h>
 #include <cmath>

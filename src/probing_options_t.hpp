@@ -1,9 +1,4 @@
-//
-// Created by System Administrator on 2019-05-29.
-//
-
-#ifndef HEARTBEAT_OPTIONS_T_HPP
-#define HEARTBEAT_OPTIONS_T_HPP
+#pragma once
 
 #include <string>
 
@@ -40,5 +35,3 @@ struct probing_options_t {
 
     bool experimental_host_offset;
 };
-
-#endif //HEARTBEAT_OPTIONS_T_HPP

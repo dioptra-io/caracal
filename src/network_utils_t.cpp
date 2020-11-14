@@ -1,7 +1,3 @@
-//
-// Created by System Administrator on 2019-03-18.
-//
-
 #include <cstdint>
 #include <arpa/inet.h>
 #include <iostream>

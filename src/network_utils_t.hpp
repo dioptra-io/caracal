@@ -1,13 +1,6 @@
-//
-// Created by System Administrator on 2019-03-18.
-//
-
+#pragma once
 
 #include <cstdint>
-
-#ifndef HEARTBEAT_NETWORK_UTILS_T_HPP
-#define HEARTBEAT_NETWORK_UTILS_T_HPP
-
 
 namespace utils {
     void init_exclude();
@@ -201,5 +194,3 @@ namespace utils {
     uint32_t closest_prefix(uint32_t inf_born, uint32_t prefix_mask);
 
 }
-
-#endif //HEARTBEAT_NETWORK_UTILS_T_HPP

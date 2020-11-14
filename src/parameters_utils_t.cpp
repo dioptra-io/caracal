@@ -1,7 +1,3 @@
-//
-// Created by System Administrator on 2019-08-02.
-//
-
 #include "parameters_utils_t.hpp"
 
 namespace utils{

@@ -1,7 +1,3 @@
-//
-// Created by System Administrator on 2019-06-04.
-//
-
 #include <cstddef>
 #include "timing_utils.hpp"
 

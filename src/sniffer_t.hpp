@@ -1,9 +1,5 @@
-//
-// Created by System Administrator on 2019-02-04.
-//
+#pragma once
 
-#ifndef HEARTBEAT_SNIFFER_T_HPP
-#define HEARTBEAT_SNIFFER_T_HPP
 #include <tins/tins.h>
 #include <string>
 #include <thread>
@@ -20,6 +16,3 @@ private:
     std::thread m_thread;
     probing_options_t m_options;
 };
-
-
-#endif //HEARTBEAT_SNIFFER_T_HPP

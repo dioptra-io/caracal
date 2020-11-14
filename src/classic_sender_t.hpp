@@ -1,9 +1,4 @@
-//
-// Created by System Administrator on 2019-01-31.
-//
-
-#ifndef HEARTBEAT_CLASSIC_SENDER_T_HPP
-#define HEARTBEAT_CLASSIC_SENDER_T_HPP
+#pragma once
 
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -43,6 +38,3 @@ private:
 
     std::ofstream m_start_time_log_file;
 };
-
-
-#endif //HEARTBEAT_SENDER_T_HPP

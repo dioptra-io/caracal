@@ -1,7 +1,3 @@
-//
-// Created by System Administrator on 2019-01-31.
-//
-
 #include "classic_sender_t.hpp"
 
 #include <arpa/inet.h>
