@@ -388,7 +388,12 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
   if (a + 5 == 32) {
     permutation_size = static_cast<uint32_t>(std::pow(2, a + 5) - 1);
   }
-  cperm_t *perm = cperm_create(permutation_size, PERM_MODE_CYCLE,
+
+  PermMode mode = PERM_MODE_CYCLE;
+  if (n_targets < 500000) {
+    mode = PERM_MODE_PREFIX;
+  }
+  cperm_t *perm = cperm_create(permutation_size, mode,
                                PERM_CIPHER_RC5, key, KEYLEN);
 
   char *p = nullptr;
