@@ -11,8 +11,6 @@ RUN apt-get update && \
     apt-get install -y -q --no-install-recommends \
         build-essential \
         cmake \
-        gdb \
-        git \
         libboost-log1.71-dev \
         libboost-program-options1.71-dev \
         libpcap0.8-dev \
@@ -20,5 +18,14 @@ RUN apt-get update && \
         pfring \
         pfring-dkms \
         pkg-config \
-        zlib1g-dev && \
+        zlib1g-dev \
+        # devcontainer specific
+        clang-format \
+        cppcheck \
+        gdb \
+        git \
+        python3 \
+        python3-pip && \
     rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install cpplint pre-commit

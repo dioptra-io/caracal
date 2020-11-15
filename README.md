@@ -42,4 +42,3 @@ cpplint --filter=-build/c++11,-legal/copyright src/*
 ### TODO
 - libcperm (GPLv3) license incompatibility.
 - add CLI flag to disable/enable PF_RING sender (if WITH_PF_RING)
-

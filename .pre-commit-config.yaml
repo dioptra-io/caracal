@@ -1,0 +1,19 @@
+exclude: ^extern/.*
+
+repos:
+- repo: https://github.com/bmorcos/pre-commit-hooks-cpp
+  rev: master
+  hooks:
+    - id: clang-format
+      args: ["--style=Google"]
+    # - id: cpplint
+    #   args: ["--filter=-build/c++11,-legal/copyright"]
+    # - id: cppcheck
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v3.2.0
+  hooks:
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+    - id: check-yaml
+    - id: check-added-large-files
