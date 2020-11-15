@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "classic_sender_t.hpp"
-#ifdef USE_PF_RING
+#ifdef WITH_PF_RING
 #include <pfring_sender_t.hpp>
 #endif
 #include "sniffer_t.hpp"
@@ -93,7 +93,7 @@ void heartbeat_t::send_from_probes_file() {
 
   IPv4Address source = m_interface.ipv4_address();
 
-#ifdef USE_PF_RING
+#ifdef WITH_PF_RING
   pf_ring_sender_t sender{AF_INET,
                           SOCK_DGRAM,
                           m_options.proto,
@@ -197,7 +197,7 @@ void heartbeat_t::send_exhaustive() {
 
   std::cout << uint32_t(source) << "\n";
 
-#ifdef USE_PF_RING
+#ifdef WITH_PF_RING
   pf_ring_sender_t sender{AF_INET,
                           SOCK_DGRAM,
                           m_options.proto,
@@ -322,7 +322,7 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
 
   std::cout << uint32_t(source) << "\n";
 
-#ifdef USE_PF_RING
+#ifdef WITH_PF_RING
   pf_ring_sender_t sender{AF_INET,
                           SOCK_DGRAM,
                           m_options.proto,
@@ -376,8 +376,8 @@ void heartbeat_t::send_from_targets_file(uint8_t max_ttl) {
   if (n_targets < 500000) {
     mode = PERM_MODE_PREFIX;
   }
-  cperm_t *perm = cperm_create(permutation_size, mode,
-                               PERM_CIPHER_RC5, key, KEYLEN);
+  cperm_t *perm =
+      cperm_create(permutation_size, mode, PERM_CIPHER_RC5, key, KEYLEN);
 
   while (PERM_END != cperm_next(perm, &val)) {
     uint32_t addr_index =

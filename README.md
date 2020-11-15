@@ -7,10 +7,7 @@
 ```bash
 git clone --recursive git@github.com:dioptra-io/diamond-miner-prober.git
 cd diamond-miner-prober
-# Without PF_RING
-docker build --build-arg USE_PF_RING=OFF -t diamond-miner-prober .
-# With PF_RING
-docker build --build-arg USE_PF_RING=ON -t diamond-miner-prober .
+docker build -t diamond-miner-prober .
 docker run diamond-miner-prober --help
 ```
 
@@ -28,7 +25,7 @@ mkdir build && cd build
 # Debug build
 cmake .. && cmake --build .
 # Release build
-cmake -DUSE_PF_RING=ON -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
+cmake -DWITH_PF_RING=ON -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
 # (Optional) Installation
 cmake --install .
 # (Optional) Packaging
@@ -44,4 +41,5 @@ cpplint --filter=-build/c++11,-legal/copyright src/*
 
 ### TODO
 - libcperm (GPLv3) license incompatibility.
-- cpack / cmake install
+- add CLI flag to disable/enable PF_RING sender (if WITH_PF_RING)
+

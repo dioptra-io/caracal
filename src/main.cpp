@@ -19,10 +19,10 @@ int main(int argc, char **argv) {
   std::cout << "diamond-miner-prober"
             << " v" << DMINER_VERSION_MAJOR << "." << DMINER_VERSION_MINOR
             << "." << DMINER_VERSION_PATCH;
-#ifdef USE_PF_RING
-  std::cout << " (USE_PF_RING=ON)";
+#ifdef WITH_PF_RING
+  std::cout << " (WITH_PF_RING=ON)";
 #else
-  std::cout << " (USE_PF_RING=OFF)";
+  std::cout << " (WITH_PF_RING=OFF)";
 #endif
   std::cout << std::endl;
 

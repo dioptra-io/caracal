@@ -24,12 +24,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ADD . /tmp
-ARG USE_PF_RING=OFF
 
 RUN mkdir /tmp/build && \
     cd /tmp/build && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DUSE_PF_RING=$USE_PF_RING .. && \
-    cmake --build .
+    cmake -DCMAKE_BUILD_TYPE=Release -DWITH_PF_RING=ON .. && \
+    cmake --build . --parallel 4
 
 # Main
 FROM ubuntu:20.04
