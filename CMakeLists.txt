@@ -1,12 +1,13 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.12)
 project(diamond-miner-prober VERSION 0.1.4)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
-find_package(Boost REQUIRED COMPONENTS log program_options)
+find_package(Boost REQUIRED COMPONENTS log log_setup program_options)
 find_package(Catch2 REQUIRED)
 find_package(Cperm REQUIRED)
+find_package(CppCoro REQUIRED)
 find_package(Patricia REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
@@ -24,14 +25,23 @@ add_library(
   src/network_utils_t.cpp
   src/packets_utils.cpp
   src/parameters_utils_t.cpp
+  src/random_permutation.cpp
+  src/rate_limiter.cpp
   src/sniffer_t.cpp
   src/timing_utils.cpp)
 
 target_link_libraries(
-  diamond-miner-prober-lib PUBLIC Boost::log Cperm::Cperm Patricia::Patricia
-                                  PkgConfig::Tins Threads::Threads ZLIB::ZLIB)
+  diamond-miner-prober-lib
+  PUBLIC Boost::log
+         Boost::log_setup
+         Cperm::Cperm
+         CppCoro::CppCoro
+         Patricia::Patricia
+         PkgConfig::Tins
+         Threads::Threads
+         ZLIB::ZLIB)
 
-target_compile_features(diamond-miner-prober-lib PUBLIC cxx_std_17)
+target_compile_features(diamond-miner-prober-lib PUBLIC cxx_std_20)
 target_compile_options(diamond-miner-prober-lib PRIVATE -Wall -Wextra)
 target_include_directories(diamond-miner-prober-lib
                            PUBLIC "${PROJECT_BINARY_DIR}")
@@ -39,10 +49,11 @@ target_include_directories(diamond-miner-prober-lib
 # Executable
 add_executable(diamond-miner-prober src/main.cpp)
 
-target_link_libraries(diamond-miner-prober PUBLIC Boost::program_options
-                                                  diamond-miner-prober-lib)
+target_link_libraries(
+  diamond-miner-prober PUBLIC Boost::log Boost::log_setup
+                              Boost::program_options diamond-miner-prober-lib)
 
-target_compile_features(diamond-miner-prober PUBLIC cxx_std_17)
+target_compile_features(diamond-miner-prober PUBLIC cxx_std_20)
 target_compile_options(diamond-miner-prober PRIVATE -Wall -Wextra)
 target_include_directories(diamond-miner-prober PUBLIC "${PROJECT_BINARY_DIR}")
 
@@ -56,11 +67,12 @@ endif()
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(Catch)
   include(CTest)
-  add_executable(diamond-miner-prober-tests src/tests.cpp src/rate_limiter.cpp
-                                            src/rate_limiter_test.cpp)
+  add_executable(
+    diamond-miner-prober-tests src/tests.cpp src/random_permutation_test.cpp
+                               src/rate_limiter_test.cpp)
   target_link_libraries(diamond-miner-prober-tests
                         PUBLIC Catch2::Catch2 diamond-miner-prober-lib)
-  target_compile_features(diamond-miner-prober-tests PUBLIC cxx_std_17)
+  target_compile_features(diamond-miner-prober-tests PUBLIC cxx_std_20)
   target_compile_options(diamond-miner-prober-tests PRIVATE -Wall -Wextra)
   catch_discover_tests(diamond-miner-prober-tests)
 endif()
