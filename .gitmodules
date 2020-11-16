@@ -1,3 +1,6 @@
 [submodule "libcperm"]
 	path = extern/libcperm
 	url = https://github.com/lancealt/libcperm.git
+[submodule "extern/Catch2"]
+	path = extern/Catch2
+	url = https://github.com/catchorg/Catch2.git
