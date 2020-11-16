@@ -17,3 +17,5 @@ jobs:
       run: docker build -t diamond-miner-prober .
     - name: Test Docker image
       run: docker run diamond-miner-prober --help
+    - name: Run unit tests
+      run: docker run --entrypoint /app/diamond-miner-prober-tests diamond-miner-prober
