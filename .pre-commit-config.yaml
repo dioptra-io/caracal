@@ -10,6 +10,12 @@ repos:
     #   args: ["--filter=-build/c++11,-legal/copyright"]
     # - id: cppcheck
 
+- repo: https://github.com/cheshirekow/cmake-format-precommit
+  rev: v0.6.13
+  hooks:
+    - id: cmake-format
+    - id: cmake-lint
+
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v3.2.0
   hooks:
