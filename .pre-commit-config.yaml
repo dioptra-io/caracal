@@ -14,7 +14,9 @@ repos:
   rev: v0.6.13
   hooks:
     - id: cmake-format
+      exclude: ^cmake/CodeCoverage.cmake
     - id: cmake-lint
+      exclude: ^cmake/CodeCoverage.cmake
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v3.2.0
