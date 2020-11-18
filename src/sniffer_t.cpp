@@ -1,7 +1,12 @@
 #include "sniffer_t.hpp"
 
+#include <boost/log/trivial.hpp>
+#include <chrono>
+#include <filesystem>
 #include <iostream>
 #include <thread>
+
+namespace fs = std::filesystem;
 
 using Tins::DataLinkType;
 using Tins::EthernetII;
@@ -10,50 +15,42 @@ using Tins::Sniffer;
 using Tins::SnifferConfiguration;
 
 void sniffer_t::start() {
-  std::cout << "Starting sniffer...\n";
+  BOOST_LOG_TRIVIAL(info) << "Starting sniffer...";
   auto handler = [this](Packet &p) {
-    //        timeval t;
-    //        gettimeofday(&t, NULL);
-    ////        std::cout << "Receive time: " << t.tv_sec << "." << t.tv_usec <<
-    ///" seconds since epoch." << "\n";
-    //
-    //        auto us = std::chrono::microseconds(p.timestamp()).count();
-    //        std::cout.precision(17);
-    //        std::cout << std::fixed << static_cast<double>(us) << " us\n";
+    BOOST_LOG_TRIVIAL(trace)
+        << "Received packet with timestamp "
+        << std::chrono::microseconds{p.timestamp()}.count();
+    m_received_count++;
     m_packet_writer.write(p);
     return true;
   };
   m_thread = std::thread([this, handler]() { m_sniffer.sniff_loop(handler); });
 }
 
-sniffer_t::sniffer_t(const std::string &interface,
-                     const probing_options_t &options, const std::string &ofile)
-    : m_sniffer{interface},
-      m_packet_writer{ofile, DataLinkType<EthernetII>()},
-      m_options{options} {
-  SnifferConfiguration config;
-  config.set_immediate_mode(true);
-  // 2 Gb buffer size tcpdump like
-  config.set_buffer_size(options.buffer_sniffer_size * 1024);
-
-#ifdef NDEBUG
+sniffer_t::sniffer_t(const Tins::NetworkInterface interface,
+                     const fs::path ofile, const int buffer_size,
+                     const uint16_t destination_port)
+    : m_sniffer{interface.name()},
+      m_packet_writer{ofile.string(), DataLinkType<EthernetII>()},
+      m_received_count{0} {
   std::string filter =
-      "icmp or (src port " + std::to_string(m_options.dport) + " )";
-  std::cout << "Setting filter: " << filter << std::endl;
+      "icmp or (src port " + std::to_string(destination_port) + ")";
+  BOOST_LOG_TRIVIAL(info) << "Sniffer filter: " << filter;
+
+  SnifferConfiguration config;
+  config.set_buffer_size(buffer_size * 1024);
   config.set_filter(filter);
-#else
-  std::string filter = "icmp or port " + std::to_string(m_options.dport);
-  std::cout << "Setting filter: " << filter << std::endl;
-  config.set_filter(filter);
-#endif
+  config.set_immediate_mode(true);
 
   // As sniffer does not have set_configuration, we copy...
-  m_sniffer = Sniffer(interface, config);
-
+  m_sniffer = Sniffer(interface.name(), config);
   m_sniffer.set_extract_raw_pdus(true);
 }
 
 void sniffer_t::stop() {
+  BOOST_LOG_TRIVIAL(info) << "Stopping the sniffer..." << std::endl;
   m_sniffer.stop_sniff();
   m_thread.join();
 }
+
+int sniffer_t::received_count() const { return m_received_count; }

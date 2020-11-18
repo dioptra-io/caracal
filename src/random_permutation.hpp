@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cperm.h>
 
 #include <random>

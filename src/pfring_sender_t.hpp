@@ -1,29 +1,30 @@
 #pragma once
 
-#include <net/ethernet.h>
-#include <netinet/ip.h>
+#include <arpa/inet.h>
 #include <pfring.h>
+#include <sys/time.h>
 #include <tins/tins.h>
 
+#include <filesystem>
 #include <fstream>
+#include <optional>
 #include <string>
+
+#include "rate_limiter.hpp"
+
+namespace fs = std::filesystem;
 
 class pf_ring_sender_t {
  public:
-  pf_ring_sender_t(int family, int type, uint8_t proto,
-                   const Tins::NetworkInterface& iface,
-                   const Tins::HWAddress<6>& hw_source,
-                   const Tins::HWAddress<6>& hw_addr_gateway,
-                   const uint32_t pps);
-
-  void send(int n_packets, uint32_t destination, uint8_t ttl, uint16_t sport,
-            uint16_t dport);
-
-  void set_start_time_log_file(const std::string& ofile);
+  pf_ring_sender_t(int family, const std::string protocol,
+                   const Tins::NetworkInterface iface, const uint32_t pps,
+                   const std::optional<fs::path> ofile);
   ~pf_ring_sender_t();
 
+  void send(int n_packets, in_addr destination, uint8_t ttl, uint16_t sport,
+            uint16_t dport);
+
  private:
-  unsigned long set_frequence();
   void dump_reference_time();
 
   pfring* m_pf_ring;
@@ -31,13 +32,10 @@ class pf_ring_sender_t {
   uint8_t m_proto;
   std::string m_payload;
   uint8_t* m_buffer;
-  uint64_t m_n_packets_sent;
-
-  uint64_t m_tick_delta;
-  uint64_t m_tick_start;
 
   timeval m_start;
   timeval m_now;
 
   std::ofstream m_start_time_log_file;
+  RateLimiter m_rl;
 };

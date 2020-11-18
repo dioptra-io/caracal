@@ -23,12 +23,18 @@ RUN apt-get update && \
         zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
 
+# Clash between PF_RING `likely` macro and Boost::DateTime
+RUN sed -i'bak' 's/static bool likely/static bool is_likely/g' \
+    /usr/include/boost/date_time/special_values_parser.hpp && \
+    sed -i'bak' 's/svp_type::likely/svp_type::is_likely/g' \
+    /usr/include/boost/date_time/time_parsing.hpp
+
 ADD . /tmp
 
 RUN mkdir /tmp/build && \
     cd /tmp/build && \
     cmake -DCMAKE_BUILD_TYPE=Release -DWITH_PF_RING=ON .. && \
-    cmake --build . --parallel 4
+    cmake --build . --parallel 8
 
 # Main
 FROM ubuntu:20.04

@@ -21,7 +21,7 @@ configure_file(src/dminer_config.h.in dminer_config.h)
 add_library(
   diamond-miner-prober-lib
   src/classic_sender_t.cpp
-  src/heartbeat_t.cpp
+  src/heartbeat_config.cpp
   src/network_utils_t.cpp
   src/packets_utils.cpp
   src/parameters_utils_t.cpp

@@ -1,39 +1,54 @@
 #include "pfring_sender_t.hpp"
 
 #include <arpa/inet.h>
+#include <net/ethernet.h>
+#include <netinet/ip.h>
 #include <sys/socket.h>
 
+#include <boost/log/trivial.hpp>
 #include <cerrno>
+#include <filesystem>
 #include <iostream>
+#include <optional>
 
 #include "network_utils_t.hpp"
 #include "packets_utils.hpp"
 #include "parameters_utils_t.hpp"
-#include "timing_utils.hpp"
 
 // #include <netinet/udp.h> // udphdr
 #include <netinet/ip.h>  // ip
 // #include <netinet/tcp.h> // tcphdr
 
-using namespace utils;
+namespace fs = std::filesystem;
 
 using namespace Tins;
 using namespace utils;
 
-pf_ring_sender_t::pf_ring_sender_t(int family, int type, uint8_t proto,
-                                   const NetworkInterface &iface,
-                                   const HWAddress<6> &hw_source,
-                                   const HWAddress<6> &hw_gateway,
-                                   const uint32_t pps)
+pf_ring_sender_t::pf_ring_sender_t(int family, const std::string protocol,
+                                   const Tins::NetworkInterface iface,
+                                   const uint32_t pps,
+                                   const std::optional<fs::path> ofile)
     : m_family{family},
-      m_proto{proto},
       m_payload("fr"),
-      m_n_packets_sent{0}
+      m_rl(pps)
 //, m_payload("kevin.vermeulen@sorbonne-universite.fr")
 {
-  /**
-   * Open pfring
-   */
+  m_proto = -1;
+  if (protocol == "udp") {
+    m_proto = IPPROTO_UDP;
+  } else if (protocol == "tcp") {
+    m_proto = IPPROTO_TCP;
+  } else {
+    throw std::invalid_argument("Invalid protocol!");
+  }
+
+  // TODO: Improve this + log. discovered gateway.
+  Tins::IPv4Address gateway_ip;
+  Tins::Utils::gateway_from_ip("8.8.8.8", gateway_ip);
+  Tins::PacketSender resolve_gateway_sender{iface};
+  auto hw_source = iface.ipv4_address().to_string();
+  auto hw_gateway =
+      Tins::Utils::resolve_hwaddr(gateway_ip, resolve_gateway_sender);
 
   m_pf_ring = pfring_open(iface.name().c_str(), 1500, 0 /* PF_RING_PROMISC */);
   if (m_pf_ring == NULL) {
@@ -74,9 +89,9 @@ pf_ring_sender_t::pf_ring_sender_t(int family, int type, uint8_t proto,
 
   // Raw packet stuff
   std::size_t transport_header_size = 0;
-  if (proto == IPPROTO_UDP) {
+  if (m_proto == IPPROTO_UDP) {
     transport_header_size = sizeof(udphdr);
-  } else if (proto == IPPROTO_TCP) {
+  } else if (m_proto == IPPROTO_TCP) {
     transport_header_size = sizeof(tcphdr);
   }
   // Buffer size is size of the IP header + size of transport + size of maximum
@@ -86,55 +101,27 @@ pf_ring_sender_t::pf_ring_sender_t(int family, int type, uint8_t proto,
   m_buffer = reinterpret_cast<uint8_t *>(malloc(buffer_size));
   memset(m_buffer, 0, buffer_size);
   packets_utils::init_ethernet_header(m_buffer, family, hw_source, hw_gateway);
-  packets_utils::init_ip_header(m_buffer + sizeof(ether_header), proto,
+  packets_utils::init_ip_header(m_buffer + sizeof(ether_header), m_proto,
                                 uint_src_addr);
 
   // Raw packet stuff
-  if (proto == IPPROTO_UDP) {
+  if (m_proto == IPPROTO_UDP) {
     //        packets_utils::init_udp_header(m_buffer + sizeof(ether_header) +
     //        sizeof(compact_ip_hdr),
     //                                       static_cast<uint16_t>(m_payload.size()));
-  } else if (proto == IPPROTO_TCP) {
+  } else if (m_proto == IPPROTO_TCP) {
     packets_utils::init_tcp_header(m_buffer + sizeof(ether_header) +
                                    sizeof(compact_ip_hdr));
   }
 
-  // Compute the tickdelta to control the probing rate.
-
-#if !(defined(__arm__) || defined(__mips__))
-  /* computing usleep delay */
-  bool is_valid_frequence = false;
-  unsigned long hz = 0;
-  for (auto i = 0; i < 10; ++i) {
-    hz = set_frequence();
-    decltype(hz) maximum_frequency = 10000000000;  // 10 GHz
-    if (hz <= maximum_frequency) {
-      is_valid_frequence = true;
-      break;
-    }
+  if (ofile) {
+    m_start_time_log_file.open(ofile.value());
+    m_start_time_log_file.precision(17);
+    std::cout.precision(17);
   }
-
-  if (!is_valid_frequence) {
-    std::cerr << "Exiting because of impossible frequency: " << hz << "\n";
-    exit(1);
-  }
-  std::cout << "Estimated CPU freq: " << (long unsigned int)hz << " hz\n";
-
-  auto td = static_cast<double>(hz) / pps;
-  std::cout << "1 packet every " << td << " ticks."
-            << "\n";
-  m_tick_delta = static_cast<ticks>(td);
-  std::cout << "Rate set to " << pps << " pps."
-            << "\n";
-  std::cout << "1 packet every " << m_tick_delta << " ticks."
-            << "\n";
-  std::cout << "1 packet every " << 1.0 / m_tick_delta << " s."
-            << "\n";
-
-#endif
 }
 
-void pf_ring_sender_t::send(int n_packets, uint32_t destination, uint8_t ttl,
+void pf_ring_sender_t::send(int n_packets, in_addr destination, uint8_t ttl,
                             uint16_t sport, uint16_t dport) {
   static uint32_t n_interval = 0;
   uint32_t time_interval = 5;
@@ -151,14 +138,14 @@ void pf_ring_sender_t::send(int n_packets, uint32_t destination, uint8_t ttl,
   //    m_ip_template.id(ttl);
   //    static_cast<UDP*> (m_ip_template.inner_pdu())->dport(flow_id);
 
-  if (m_n_packets_sent == 0) {
-    m_tick_start = getticks();
-    gettimeofday(&m_start, NULL);
-    // std::cout << "Start time set to: " << m_start.tv_sec << "." <<
-    // m_start.tv_usec << " seconds since epoch." << "\n";
-    m_start_time_log_file << m_start.tv_sec << "." << m_start.tv_usec
-                          << std::endl;
-  }
+  // TODO
+  // if (m_n_packets_sent == 0) {
+  // gettimeofday(&m_start, NULL);
+  // // std::cout << "Start time set to: " << m_start.tv_sec << "." <<
+  // // m_start.tv_usec << " seconds since epoch." << "\n";
+  // m_start_time_log_file << m_start.tv_sec << "." << m_start.tv_usec
+  //                       << std::endl;
+  // }
 
   if ((m_now.tv_sec - m_start.tv_sec) >= time_interval) {
     //        if (m_n_packets_sent > n_interval * time_interval *
@@ -190,7 +177,7 @@ void pf_ring_sender_t::send(int n_packets, uint32_t destination, uint8_t ttl,
   }
 
   packets_utils::complete_ip_header(m_buffer + sizeof(ether_header),
-                                    destination, ttl, m_proto, ttl + 2);
+                                    destination.s_addr, ttl, m_proto, ttl + 2);
 
   uint16_t buf_size = 0;
   if (m_proto == IPPROTO_UDP) {
@@ -249,18 +236,8 @@ void pf_ring_sender_t::send(int n_packets, uint32_t destination, uint8_t ttl,
         //                inet_ntoa(ip_addr) << "\n";
       } else {
         // Control the probing rate with active waiting to be precise
-        ++m_n_packets_sent;
-        while ((getticks() - m_tick_start) <
-               (m_n_packets_sent * m_tick_delta)) {
-          // Active wait
-        }
+        m_rl.wait();
       }
-    }
-
-    if (m_n_packets_sent >= 100000000) {
-      // Reset the m_tick_start to avoid the uint64_t multiplication overflow.
-      m_n_packets_sent = 0;
-      m_tick_start = getticks();
     }
 
     if (rc == PF_RING_ERROR_INVALID_ARGUMENT) {
@@ -278,12 +255,6 @@ void pf_ring_sender_t::send(int n_packets, uint32_t destination, uint8_t ttl,
   ip_header->ip_sum = 0;
 }
 
-void pf_ring_sender_t::set_start_time_log_file(const std::string &ofile) {
-  m_start_time_log_file.open(ofile);
-  m_start_time_log_file.precision(17);
-  std::cout.precision(17);
-}
-
 pf_ring_sender_t::~pf_ring_sender_t() {
   delete m_buffer;
   pfring_close(m_pf_ring);
@@ -294,19 +265,8 @@ void pf_ring_sender_t::dump_reference_time() {
   double seconds_since_epoch =
       m_start.tv_sec + static_cast<double>(m_start.tv_usec) / 1000000;
 
-  std::cout << std::fixed << "Start time set to: " << seconds_since_epoch
-            << " seconds since epoch." << std::endl;
+  BOOST_LOG_TRIVIAL(info) << std::fixed
+                          << "Start time set to: " << seconds_since_epoch
+                          << " seconds since epoch.";
   m_start_time_log_file << std::fixed << seconds_since_epoch << std::endl;
-}
-
-unsigned long pf_ring_sender_t::set_frequence() {
-  auto tick_start = getticks();
-  usleep(1);
-  auto tick_delta = getticks() - tick_start;
-
-  /* computing CPU freq */
-  tick_start = getticks();
-  usleep(1001);
-  auto hz = (getticks() - tick_start - tick_delta) * 1000; /*kHz -> Hz*/
-  return hz;
 }

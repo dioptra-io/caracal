@@ -2,6 +2,7 @@
 
 #include <catch2/catch.hpp>
 #include <chrono>
+#include <iostream>
 
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -24,8 +25,10 @@ TEST_CASE("RateLimiter") {
         rl.wait();
       }
     });
-    REQUIRE(delta >= milliseconds{500});
-    REQUIRE(delta <= milliseconds{1000});
+    // NOTE: We use `.count()` to allow Catch2 to show
+    // the values if the assertion fails.
+    REQUIRE(delta.count() >= milliseconds{500}.count());
+    REQUIRE(delta.count() <= milliseconds{1000}.count());
   }
 
   SECTION("750 packets at 500pps should take at-least 1.5s") {
@@ -34,7 +37,7 @@ TEST_CASE("RateLimiter") {
         rl.wait();
       }
     });
-    REQUIRE(delta >= milliseconds{1500});
-    REQUIRE(delta <= milliseconds{2000});
+    REQUIRE(delta.count() >= milliseconds{1500}.count());
+    REQUIRE(delta.count() <= milliseconds{2000}.count());
   }
 }

@@ -1,4 +1,5 @@
 // clang-format off
+#pragma once
 #define DMINER_VERSION_MAJOR @diamond-miner-prober_VERSION_MAJOR@
 #define DMINER_VERSION_MINOR @diamond-miner-prober_VERSION_MINOR@
 #define DMINER_VERSION_PATCH @diamond-miner-prober_VERSION_PATCH@
