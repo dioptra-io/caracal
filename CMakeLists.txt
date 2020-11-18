@@ -28,7 +28,8 @@ add_library(
   src/probe.cpp
   src/rate_limiter.cpp
   src/sniffer_t.cpp
-  src/timing_utils.cpp)
+  src/timing_utils.cpp
+  src/sources/csv.cpp)
 
 target_link_libraries(
   diamond-miner-prober-lib
@@ -68,7 +69,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
   add_executable(
     diamond-miner-prober-tests
-    src/tests.cpp src/probe_test.cpp src/random_permutation_test.cpp
+    src/tests.cpp src/sources/csv_test.cpp src/random_permutation_test.cpp
     src/rate_limiter_test.cpp)
   target_link_libraries(diamond-miner-prober-tests
                         PUBLIC Catch2::Catch2 diamond-miner-prober-lib)
