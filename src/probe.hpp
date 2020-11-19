@@ -12,6 +12,7 @@ struct Probe {
   uint16_t dst_port;
   uint8_t ttl;
   std::string human_dst_addr() const;
+  bool operator==(const Probe& other) const;
 };
 
 std::ostream& operator<<(std::ostream& os, Probe const& v);
