@@ -7,6 +7,7 @@
 
 class RandomPermutationIterator {
  public:
+  RandomPermutationIterator() : m_perm(NULL), m_value(PERM_END) {}
   RandomPermutationIterator(uint32_t range) {
     // TODO: Seeding.
     uint8_t key[16] = {static_cast<uint8_t>(rand() % 256)};
@@ -26,10 +27,11 @@ class RandomPermutationIterator {
     next();
   }
 
-  RandomPermutationIterator(cperm_t* perm, uint32_t value)
-      : m_perm(perm), m_value(value) {}
-
-  ~RandomPermutationIterator() { cperm_destroy(m_perm); }
+  ~RandomPermutationIterator() {
+    if (m_perm != NULL) {
+      cperm_destroy(m_perm);
+    }
+  }
 
   bool operator==(const RandomPermutationIterator& other) const {
     return (m_perm == other.m_perm) && (m_value == other.m_value);
@@ -61,6 +63,7 @@ class RandomPermutationIterator {
 
 class RandomPermutationGenerator {
  public:
+  RandomPermutationGenerator() : m_range{1} {};
   RandomPermutationGenerator(uint32_t range) {
     if (range <= 0) {
       throw std::domain_error("range must be > 0");
@@ -72,9 +75,7 @@ class RandomPermutationGenerator {
     return RandomPermutationIterator(m_range);
   }
 
-  RandomPermutationIterator end() {
-    return RandomPermutationIterator(NULL, PERM_END);
-  }
+  RandomPermutationIterator end() { return RandomPermutationIterator(); }
 
  private:
   uint32_t m_range;
