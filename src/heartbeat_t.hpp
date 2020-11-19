@@ -91,6 +91,14 @@ void send(const HeartbeatConfig config, T probes) {
       continue;
     }
 
+    // Temporary safeguard, until we cleanup packets_utils.
+    if (probe.ttl > 32) {
+      BOOST_LOG_TRIVIAL(warning)
+          << "TTL > 32 are not supported, the probe will not be sent: "
+          << probe;
+      continue;
+    }
+
     BOOST_LOG_TRIVIAL(trace) << "Sending probe " << probe;
     sender.send(config.n_packets, probe.dst_addr, probe.ttl, probe.src_port,
                 probe.dst_port);
