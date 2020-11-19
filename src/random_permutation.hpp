@@ -19,7 +19,7 @@ class RandomPermutationIterator {
       mode = PERM_MODE_PREFIX;
     }
 
-    m_perm = cperm_create(range, PERM_MODE_PREFIX, PERM_CIPHER_RC5, key, 16);
+    m_perm = cperm_create(range, mode, PERM_CIPHER_RC5, key, 16);
     if (m_perm == NULL) {
       throw std::runtime_error("Failed to create permutation.");
     }
