@@ -2,13 +2,17 @@
 
 #include <cperm.h>
 
+#include <boost/iterator/iterator_facade.hpp>
 #include <random>
 #include <stdexcept>
 
-class RandomPermutationIterator {
+class RandomPermutationIterator
+    : public boost::iterator_facade<RandomPermutationIterator, uint32_t const,
+                                    boost::forward_traversal_tag> {
  public:
   RandomPermutationIterator() : m_perm(NULL), m_value(PERM_END) {}
-  RandomPermutationIterator(uint32_t range) {
+
+  explicit RandomPermutationIterator(uint32_t range) {
     // TODO: Seeding.
     uint8_t key[16] = {static_cast<uint8_t>(rand() % 256)};
 
@@ -24,7 +28,7 @@ class RandomPermutationIterator {
       throw std::runtime_error("Failed to create permutation.");
     }
 
-    next();
+    increment();
   }
 
   ~RandomPermutationIterator() {
@@ -33,32 +37,27 @@ class RandomPermutationIterator {
     }
   }
 
-  bool operator==(const RandomPermutationIterator& other) const {
-    return (m_perm == other.m_perm) && (m_value == other.m_value);
-  }
-
-  bool operator!=(const RandomPermutationIterator& other) const {
-    return !(*this == other);
-  }
-
-  uint32_t operator*() const { return m_value; }
-
-  RandomPermutationIterator& operator++() {
-    next();
-    return *this;
-  }
-
  private:
+  friend class boost::iterator_core_access;
+
   cperm_t* m_perm;
   uint32_t m_value;
 
-  void next() {
-    int status = cperm_next(m_perm, &m_value);
-    if (status == PERM_END) {
+  void increment() {
+    if (m_perm == NULL) {
+      return;
+    }
+    if (cperm_next(m_perm, &m_value) == PERM_END) {
       m_perm = NULL;
       m_value = PERM_END;
     }
   }
+
+  bool equal(RandomPermutationIterator const& other) const {
+    return (m_perm == other.m_perm) && (m_value == other.m_value);
+  }
+
+  uint32_t const& dereference() const { return m_value; }
 };
 
 class RandomPermutationGenerator {
