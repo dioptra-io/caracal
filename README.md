@@ -1,6 +1,7 @@
 # Diamond-Miner Prober :gem:
 
 ![CI](https://github.com/dioptra-io/diamond-miner-prober/workflows/CI/badge.svg)
+[![codecov](https://codecov.io/gh/dioptra-io/diamond-miner-prober/branch/master/graph/badge.svg?token=NJUZI5GM34)](https://codecov.io/gh/dioptra-io/diamond-miner-prober)
 
 **Repositories:** [diamond-miner-core](https://github.com/dioptra-io/diamond-miner-core) •
 [diamond-miner-prober](https://github.com/dioptra-io/diamond-miner-prober) •
