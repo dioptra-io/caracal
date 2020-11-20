@@ -1,6 +1,5 @@
 # Builder
 FROM ubuntu:20.04 as builder
-
 ENV DEBIAN_FRONTEND=noninteractive
 
 # TODO: Use stable builds?
@@ -13,6 +12,7 @@ RUN apt-get update && \
     apt-get install -y -q --no-install-recommends \
         build-essential \
         cmake \
+        gcovr \
         libboost-log1.71-dev \
         libboost-program-options1.71-dev \
         libpcap0.8-dev \
@@ -31,9 +31,14 @@ RUN sed -i'bak' 's/static bool likely/static bool is_likely/g' \
 
 ADD . /tmp
 
-RUN mkdir /tmp/build && \
-    cd /tmp/build && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DWITH_PF_RING=ON .. && \
+RUN mkdir -p /tmp/build/debug && \
+    cd /tmp/build/debug && \
+    cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_PF_RING=ON -DWITH_TESTS=ON ../.. && \
+    cmake --build . --parallel 8
+
+RUN mkdir -p /tmp/build/release && \
+    cd /tmp/build/release && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DWITH_PF_RING=ON ../.. && \
     cmake --build . --parallel 8
 
 # Main
@@ -60,7 +65,5 @@ RUN apt-get update && \
     rm -rf /usr/src && \
     rm -rf /usr/share/doc
 
-COPY --from=builder /tmp/build/diamond-miner-prober /app/diamond-miner-prober
-COPY --from=builder /tmp/build/diamond-miner-prober-tests /app/diamond-miner-prober-tests
-
+COPY --from=builder /tmp/build/release/diamond-miner-prober /app/diamond-miner-prober
 ENTRYPOINT ["/app/diamond-miner-prober"]

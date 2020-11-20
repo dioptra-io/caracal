@@ -14,8 +14,14 @@ jobs:
         with:
           submodules: true
       - name: Build Docker image
-        run: docker build -t diamond-miner-prober .
+        run: |
+          docker build --target builder -t debug .
+          docker build -t diamond-miner-prober .
       - name: Test Docker image
         run: docker run diamond-miner-prober --help
       - name: Run unit tests
-        run: docker run --entrypoint /app/diamond-miner-prober-tests diamond-miner-prober -s
+        run: docker run --name debug -w /tmp/build/debug debug make coverage
+      - name: Upload coverage
+        run: |
+          docker cp debug:/tmp/build/debug/coverage.xml .
+          bash <(curl -s https://codecov.io/bash)

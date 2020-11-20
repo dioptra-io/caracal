@@ -13,8 +13,8 @@ find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 pkg_check_modules(Tins REQUIRED IMPORTED_TARGET libtins)
 
-option(WITH_COVERAGE "Enable tests coverage target" OFF)
 option(WITH_PF_RING "Enable PF_RING support for sending packets" OFF)
+option(WITH_TESTS "Build tests and enable coverage" OFF)
 configure_file(src/dminer_config.h.in dminer_config.h)
 
 # Library
@@ -64,9 +64,11 @@ if(WITH_PF_RING)
 endif()
 
 # Tests
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(WITH_TESTS)
   include(Catch)
+  include(CodeCoverage)
   include(CTest)
+
   add_executable(
     diamond-miner-prober-tests
     src/tests.cpp src/sources/csv_test.cpp src/random_permutation_test.cpp
@@ -77,13 +79,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   target_compile_options(diamond-miner-prober-tests PRIVATE -Wall -Wextra)
   catch_discover_tests(diamond-miner-prober-tests)
 
-  if(WITH_COVERAGE)
-    include(CodeCoverage)
-    append_coverage_compiler_flags()
-    setup_target_for_coverage_gcovr_html(
-      NAME coverage EXECUTABLE diamond-miner-prober-tests EXCLUDE
-      "${PROJECT_SOURCE_DIR}/extern/*")
-  endif()
+  append_coverage_compiler_flags()
+  setup_target_for_coverage_gcovr_xml(
+    NAME coverage EXECUTABLE diamond-miner-prober-tests EXCLUDE
+    "${PROJECT_SOURCE_DIR}/extern/*")
 endif()
 
 # Install
