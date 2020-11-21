@@ -28,8 +28,7 @@ add_library(
   src/probe.cpp
   src/rate_limiter.cpp
   src/sniffer_t.cpp
-  src/timing_utils.cpp
-  src/sources/csv.cpp)
+  src/timing_utils.cpp)
 
 target_link_libraries(
   diamond-miner-prober-lib
