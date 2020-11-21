@@ -16,7 +16,6 @@ class CSVProbeIterator {
  public:
   CSVProbeIterator();
   CSVProbeIterator(const fs::path path);
-  ~CSVProbeIterator();
   bool operator==(const CSVProbeIterator& other) const;
   bool operator!=(const CSVProbeIterator& other) const;
   const Probe& operator*() const;
@@ -25,7 +24,7 @@ class CSVProbeIterator {
  private:
   bool m_ended;
   Probe m_probe;
-  std::ifstream* m_stream;
+  std::unique_ptr<std::ifstream> m_stream;
   void next();
 };
 
@@ -46,7 +45,6 @@ class CSVRandomProbeIterator {
   CSVRandomProbeIterator();
   CSVRandomProbeIterator(const fs::path path, const int line_count,
                          const int line_size);
-  ~CSVRandomProbeIterator();
   bool operator==(const CSVRandomProbeIterator& other) const;
   bool operator!=(const CSVRandomProbeIterator& other) const;
   const Probe& operator*() const;
@@ -55,7 +53,7 @@ class CSVRandomProbeIterator {
  private:
   bool m_ended;
   Probe m_probe;
-  std::ifstream* m_stream;
+  std::unique_ptr<std::ifstream> m_stream;
   RandomPermutationIterator m_permutation;
   RandomPermutationIterator m_permutation_end;
   const int m_line_size;

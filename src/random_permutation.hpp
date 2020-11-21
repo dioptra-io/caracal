@@ -10,7 +10,7 @@ class RandomPermutationIterator
     : public boost::iterator_facade<RandomPermutationIterator, uint32_t const,
                                     boost::forward_traversal_tag> {
  public:
-  RandomPermutationIterator() : m_perm(NULL), m_value(PERM_END) {}
+  RandomPermutationIterator() : m_perm(nullptr), m_value(PERM_END) {}
 
   explicit RandomPermutationIterator(uint32_t range) {
     // TODO: Seeding.
@@ -24,7 +24,7 @@ class RandomPermutationIterator
     }
 
     m_perm = cperm_create(range, mode, PERM_CIPHER_RC5, key, 16);
-    if (m_perm == NULL) {
+    if (m_perm == nullptr) {
       throw std::runtime_error("Failed to create permutation.");
     }
 
@@ -32,7 +32,7 @@ class RandomPermutationIterator
   }
 
   ~RandomPermutationIterator() {
-    if (m_perm != NULL) {
+    if (m_perm != nullptr) {
       cperm_destroy(m_perm);
     }
   }
@@ -44,17 +44,17 @@ class RandomPermutationIterator
   uint32_t m_value;
 
   void increment() {
-    if (m_perm == NULL) {
+    if (m_perm == nullptr) {
       return;
     }
     if (cperm_next(m_perm, &m_value) == PERM_END) {
-      m_perm = NULL;
+      m_perm = nullptr;
       m_value = PERM_END;
     }
   }
 
   bool equal(RandomPermutationIterator const& other) const {
-    return (m_perm == other.m_perm) && (m_value == other.m_value);
+    return m_value == other.m_value;
   }
 
   uint32_t const& dereference() const { return m_value; }

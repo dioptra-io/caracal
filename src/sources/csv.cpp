@@ -57,15 +57,14 @@ void probe_from_csv(const std::string& line, Probe& probe) {
 }
 
 // Classical reader
+// TODO: Accept aribtrary stream (like stdin...)
 
-CSVProbeIterator::CSVProbeIterator() : m_ended(true), m_stream(NULL){};
+CSVProbeIterator::CSVProbeIterator() : m_ended(true), m_stream(nullptr){};
 
 CSVProbeIterator::CSVProbeIterator(const fs::path path) : m_ended(false) {
-  m_stream = new std::ifstream{path};
+  m_stream = std::make_unique<std::ifstream>(path);
   next();
 }
-
-CSVProbeIterator::~CSVProbeIterator() { delete m_stream; }
 
 bool CSVProbeIterator::operator==(const CSVProbeIterator& other) const {
   return (m_ended && other.m_ended);
@@ -98,7 +97,7 @@ CSVProbeIterator CSVProbeReader::end() { return CSVProbeIterator{}; }
 // Random reader
 
 CSVRandomProbeIterator::CSVRandomProbeIterator()
-    : m_ended(true), m_stream(NULL), m_line_size(0){};
+    : m_ended(true), m_stream(nullptr), m_line_size(0){};
 
 CSVRandomProbeIterator::CSVRandomProbeIterator(const fs::path path,
                                                const int line_count,
@@ -108,11 +107,9 @@ CSVRandomProbeIterator::CSVRandomProbeIterator(const fs::path path,
       m_permutation{
           RandomPermutationIterator{static_cast<uint32_t>(line_count)}},
       m_permutation_end{RandomPermutationIterator{}} {
-  m_stream = new std::ifstream{path};
+  m_stream = std::make_unique<std::ifstream>(path);
   next();
 }
-
-CSVRandomProbeIterator::~CSVRandomProbeIterator() { delete m_stream; }
 
 bool CSVRandomProbeIterator::operator==(
     const CSVRandomProbeIterator& other) const {
