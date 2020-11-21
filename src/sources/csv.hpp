@@ -169,3 +169,36 @@ class CSVRandomProbeReader {
   int m_line_count;
   int m_line_size;
 };
+
+// TODO: This is bad, deduplicate this code.
+// Use a simple transform adaptator instead?
+class CSVStdInProbeIterator
+    : public boost::iterator_facade<CSVStdInProbeIterator, Probe const,
+                                    std::input_iterator_tag> {
+ public:
+  CSVStdInProbeIterator(){};
+
+ private:
+  friend class boost::iterator_core_access;
+
+  std::string m_line;
+  Probe m_probe;
+
+  void increment() {
+    std::getline(std::cin, m_line);
+    probe_from_csv(m_line, m_probe);
+  }
+
+  bool equal(CSVStdInProbeIterator const &other) const {
+    // TODO: Something cleaner?
+    return false;
+  }
+
+  Probe const &dereference() const { return m_probe; }
+};
+
+class CSVStdInProbeReader {
+ public:
+  CSVStdInProbeIterator begin() { return CSVStdInProbeIterator{}; }
+  CSVStdInProbeIterator end() { return CSVStdInProbeIterator{}; }
+};
