@@ -9,6 +9,7 @@ find_package(Catch2 REQUIRED)
 find_package(Cperm REQUIRED)
 find_package(Patricia REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(RangeV3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 pkg_check_modules(Tins REQUIRED IMPORTED_TARGET libtins)
@@ -37,6 +38,7 @@ target_link_libraries(
          Cperm::Cperm
          Patricia::Patricia
          PkgConfig::Tins
+         RangeV3::RangeV3
          Threads::Threads
          ZLIB::ZLIB)
 
