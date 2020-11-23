@@ -14,6 +14,7 @@
 #include "network_utils_t.hpp"
 #include "packets_utils.hpp"
 #include "parameters_utils_t.hpp"
+#include "probe.hpp"
 
 // #include <netinet/udp.h> // udphdr
 #include <netinet/ip.h>  // ip
@@ -121,8 +122,13 @@ pf_ring_sender_t::pf_ring_sender_t(int family, const std::string protocol,
   }
 }
 
-void pf_ring_sender_t::send(int n_packets, in_addr destination, uint8_t ttl,
-                            uint16_t sport, uint16_t dport) {
+void pf_ring_sender_t::send(Probe &probe, int n_packets) {
+  // TEMP
+  in_addr destination = probe.dst_addr;
+  uint8_t ttl = probe.ttl;
+  uint16_t sport = probe.src_port;
+  uint16_t dport = probe.dst_port;
+
   static uint32_t n_interval = 0;
   uint32_t time_interval = 5;
   //    uint32_t monitoring_interval = 1;

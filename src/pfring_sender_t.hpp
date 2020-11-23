@@ -10,6 +10,7 @@
 #include <optional>
 #include <string>
 
+#include "probe.hpp"
 #include "rate_limiter.hpp"
 
 namespace fs = std::filesystem;
@@ -20,9 +21,7 @@ class pf_ring_sender_t {
                    const Tins::NetworkInterface iface, const uint32_t pps,
                    const std::optional<fs::path> ofile);
   ~pf_ring_sender_t();
-
-  void send(int n_packets, in_addr destination, uint8_t ttl, uint16_t sport,
-            uint16_t dport);
+  void send(Probe& probe, int n_packets);
 
  private:
   void dump_reference_time();

@@ -10,9 +10,16 @@
 #include <string>
 #include <vector>
 
+#include "probe.hpp"
 #include "rate_limiter.hpp"
 
 namespace fs = std::filesystem;
+
+/* class Sender { */
+// public:
+// virtual ~Sender() = 0;
+// virtual void send(Probe& probe, int n_packets) = 0;
+/* }; */
 
 class classic_sender_t {
  public:
@@ -20,8 +27,7 @@ class classic_sender_t {
                    const Tins::NetworkInterface interface, const int pps,
                    const std::optional<fs::path> ofile);
   ~classic_sender_t();
-  void send(int n_packets, in_addr destination, uint8_t ttl, uint16_t sport,
-            uint16_t dport);
+  void send(Probe& probe, int n_packets);
 
  private:
   void dump_reference_time();
@@ -30,7 +36,7 @@ class classic_sender_t {
   uint8_t m_family;
   uint8_t m_proto;
   sockaddr_in m_src_addr;
-  uint8_t *m_buffer;
+  uint8_t* m_buffer;
   std::string m_payload;
 
   timeval m_start;

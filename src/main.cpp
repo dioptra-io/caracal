@@ -7,7 +7,6 @@
 #include "heartbeat_config.hpp"
 #include "heartbeat_t.hpp"
 #include "logging.hpp"
-#include "sources/csv.hpp"
 
 namespace fs = std::filesystem;
 namespace po = boost::program_options;
@@ -45,10 +44,10 @@ int main(int argc, char** argv) {
   filters.add_options()
     ("filter-from-bgp-file", po::value<string>()->value_name("file"), "Do not send probes to un-routed destinations")
     ("filter-from-prefix-file", po::value<string>()->value_name("file"), "Do not send probes to prefixes specified in file")
-    ("filter-min-ttl", po::value<int>()->value_name("min_ttl"), "Do not send probes with ttl < min_ttl")
-    ("filter-max-ttl", po::value<int>()->value_name("max_ttl"), "Do not send probes with ttl > max_ttl")
     ("filter-min-ip", po::value<string>()->value_name("min_ip"), "Do not send probes with dest_ip < min_ip")
-    ("filter-max-ip", po::value<string>()->value_name("max_ip"), "Do not send probes with dest_ip > max_ip");
+    ("filter-max-ip", po::value<string>()->value_name("max_ip"), "Do not send probes with dest_ip > max_ip")
+    ("filter-min-ttl", po::value<int>()->value_name("min_ttl"), "Do not send probes with ttl < min_ttl")
+    ("filter-max-ttl", po::value<int>()->value_name("max_ttl"), "Do not send probes with ttl > max_ttl");
   // clang-format on
 
   po::options_description all;
@@ -66,10 +65,9 @@ int main(int argc, char** argv) {
   try {
     HeartbeatConfigBuilder builder;
 
-    if (!vm.count("input-file")) {
-      throw std::invalid_argument("No input file provided");
-      // fs::path path{vm["input-file"].as<string>()};
-      // builder.set_input_file(path);
+    if (vm.count("input-file")) {
+      fs::path path{vm["input-file"].as<string>()};
+      builder.set_input_file(path);
     }
 
     if (vm.count("output-file")) {
@@ -116,35 +114,29 @@ int main(int argc, char** argv) {
       builder.set_prefix_filter_file(path);
     }
 
-    // TODO: min/max IP/TTL.
+    if (vm.count("filter-min-ip")) {
+      builder.set_filter_min_ip(vm["filter-min-ip"].as<string>());
+    }
+
+    if (vm.count("filter-max-ip")) {
+      builder.set_filter_max_ip(vm["filter-max-ip"].as<string>());
+    }
+
+    if (vm.count("filter-min-ttl")) {
+      builder.set_filter_min_ttl(vm["filter-min-ttl"].as<int>());
+    }
+
+    if (vm.count("filter-max-ttl")) {
+      builder.set_filter_min_ttl(vm["filter-max-ttl"].as<int>());
+    }
 
     configure_logging(vm["log-level"].as<string>());
     HeartbeatConfig config = builder.build();
-    CSVProbeReader probes{vm["input-file"].as<string>()};
-    send(config, probes);
+    send_heartbeat(config);
   } catch (const std::invalid_argument& e) {
     std::cerr << "Error: " << e.what() << std::endl;
+    return 1;
   }
-
-  /* if (vm.count("min-ttl")) { */
-  //   options.min_ttl = vm["min-ttl"].as<uint16_t>();
-  // }
-  //
-  // if (vm.count("max-ttl")) {
-  //   options.max_ttl = vm["max-ttl"].as<uint16_t>();
-  // }
-  //
-  //
-  // if (vm.count("inf-born")) {
-  //   options.inf_born = vm["inf-born"].as<uint32_t>();
-  // } else {
-  //   options.inf_born = std::numeric_limits<uint32_t>::min();
-  // }
-  // if (vm.count("sup-born")) {
-  //   options.sup_born = vm["sup-born"].as<uint32_t>();
-  // } else {
-  //   options.sup_born = std::numeric_limits<uint32_t>::max();
-  // }
 
   return 0;
 }

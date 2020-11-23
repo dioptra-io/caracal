@@ -67,5 +67,5 @@ RUN apt-get update && \
     rm -rf /usr/src && \
     rm -rf /usr/share/doc
 
-COPY --from=builder /tmp/build/release/diamond-miner-prober /app/diamond-miner-prober
-ENTRYPOINT ["/app/diamond-miner-prober"]
+COPY --from=builder /tmp/build/release/diamond-miner-prober /usr/bin/diamond-miner-prober
+ENTRYPOINT ["diamond-miner-prober"]

@@ -21,6 +21,7 @@
 #include "packets_utils.hpp"
 #include "parameters_utils_t.hpp"
 #include "pretty.hpp"
+#include "probe.hpp"
 
 namespace fs = std::filesystem;
 
@@ -135,9 +136,14 @@ classic_sender_t::classic_sender_t(uint8_t family, const std::string protocol,
   }
 }
 
-void classic_sender_t::send(int n_packets, in_addr destination, uint8_t ttl,
-                            uint16_t sport, uint16_t dport) {
+void classic_sender_t::send(Probe &probe, int n_packets) {
   uint32_t time_interval = 5;
+
+  // Temp
+  in_addr destination = probe.dst_addr;
+  uint8_t ttl = probe.ttl;
+  uint16_t sport = probe.src_port;
+  uint16_t dport = probe.dst_port;
 
   sockaddr_in m_dst_addr;
 
