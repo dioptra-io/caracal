@@ -5,56 +5,12 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <string>
 
 #include "../probe.hpp"
 #include "../random_permutation.hpp"
 
 namespace fs = std::filesystem;
-
-// Quick hack from https://stackoverflow.com/a/966497,
-// to make tests pass, since inet_pton returns an error
-// on Linux when the address contains leading zeros.
-// e.g. 008.008.008.008 => 8.8.8.8.
-std::string remove_leading_zeros(std::string s) {
-  std::replace(s.begin(), s.end(), '.', ' ');
-  std::istringstream iss(s);
-  int a, b, c, d;
-  iss >> a >> b >> c >> d;
-  std::ostringstream oss;
-  oss << a << '.' << b << '.' << c << '.' << d;
-  return oss.str();
-}
-
-void probe_from_csv(const std::string &line, Probe &probe) {
-  std::stringstream lstream{line};
-  std::string token;
-  int index = 0;
-  while (std::getline(lstream, token, ',')) {
-    switch (index) {
-      case 0:
-        token = remove_leading_zeros(token);
-        if (!inet_pton(AF_INET, token.c_str(), &probe.dst_addr)) {
-          throw std::runtime_error("Invalid token: " + token);
-        }
-        break;
-      case 1:
-        probe.src_port = std::stoul(token);
-        break;
-      case 2:
-        probe.dst_port = std::stoul(token);
-        break;
-      case 3:
-        probe.ttl = std::stoul(token);
-        break;
-    }
-    index++;
-  }
-  if (index != 4) {
-    throw std::runtime_error("Invalid CSV line: " + line);
-  }
-}
 
 class CSVProbeIterator
     : public boost::iterator_facade<CSVProbeIterator, Probe const,
@@ -79,7 +35,7 @@ class CSVProbeIterator
       return;
     }
     if (std::getline(*m_stream, m_line)) {
-      probe_from_csv(m_line, m_probe);
+      m_probe = Probe::from_csv(m_line);
     } else {
       m_stream.reset();
     }
@@ -136,7 +92,7 @@ class CSVRandomProbeIterator
     }
     (*m_stream).seekg(*m_permutation * m_line_size);
     std::getline(*m_stream, m_line);
-    probe_from_csv(m_line, m_probe);
+    m_probe = Probe::from_csv(m_line);
     std::advance(m_permutation, 1);
   }
 
@@ -187,7 +143,7 @@ class CSVStdInProbeIterator
 
   void increment() {
     std::getline(std::cin, m_line);
-    probe_from_csv(m_line, m_probe);
+    m_probe = Probe::from_csv(m_line);
   }
 
   bool equal(CSVStdInProbeIterator const &other) const {

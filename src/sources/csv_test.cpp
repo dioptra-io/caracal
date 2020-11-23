@@ -18,23 +18,6 @@ std::vector<Probe> collect(F lambda) {
   return values;
 }
 
-TEST_CASE("probe_from_csv") {
-  Probe probe;
-
-  probe_from_csv("0.0.0.0,1,2,3", probe);
-  REQUIRE(probe.human_dst_addr() == "0.0.0.0");
-  REQUIRE(probe.dst_addr.s_addr == 0);
-  REQUIRE(probe.src_port == 1);
-  REQUIRE(probe.dst_port == 2);
-  REQUIRE(probe.ttl == 3);
-
-  probe_from_csv("008.008.004.004,0010,1000,050", probe);
-  REQUIRE(probe.human_dst_addr() == "8.8.4.4");
-  REQUIRE(probe.src_port == 10);
-  REQUIRE(probe.dst_port == 1000);
-  REQUIRE(probe.ttl == 50);
-}
-
 TEST_CASE("CSVProbeReader") {
   fs::path path{"zzz_probes.csv"};
   std::ofstream ofs{path};

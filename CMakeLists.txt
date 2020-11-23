@@ -26,7 +26,6 @@ add_library(
   src/network_utils_t.cpp
   src/packets_utils.cpp
   src/parameters_utils_t.cpp
-  src/probe.cpp
   src/rate_limiter.cpp
   src/sniffer_t.cpp
   src/timing_utils.cpp)
@@ -72,8 +71,8 @@ if(WITH_TESTS)
 
   add_executable(
     diamond-miner-prober-tests
-    src/tests.cpp src/sources/csv_test.cpp src/random_permutation_test.cpp
-    src/rate_limiter_test.cpp)
+    src/tests.cpp src/sources/csv_test.cpp src/probe_test.cpp
+    src/random_permutation_test.cpp src/rate_limiter_test.cpp)
   target_link_libraries(diamond-miner-prober-tests
                         PUBLIC Catch2::Catch2 diamond-miner-prober-lib)
   target_compile_features(diamond-miner-prober-tests PUBLIC cxx_std_17)
