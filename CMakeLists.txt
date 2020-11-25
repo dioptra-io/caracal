@@ -21,13 +21,8 @@ configure_file(src/dminer_config.h.in dminer_config.h)
 # Library
 add_library(
   diamond-miner-prober-lib
-  src/classic_sender_t.cpp
-  src/network_utils_t.cpp
-  src/packets_utils.cpp
-  src/parameters_utils_t.cpp
-  src/rate_limiter.cpp
-  src/sniffer_t.cpp
-  src/timing_utils.cpp)
+  src/classic_sender_t.cpp src/network_utils_t.cpp src/packets_utils.cpp
+  src/parameters_utils_t.cpp src/sniffer_t.cpp src/timing_utils.cpp)
 
 target_link_libraries(
   diamond-miner-prober-lib

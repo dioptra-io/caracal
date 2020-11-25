@@ -23,7 +23,18 @@ using std::chrono::steady_clock;
 void send_heartbeat(const HeartbeatConfig config) {
   BOOST_LOG_TRIVIAL(info) << config;
 
-  // Filter tries, only v4 at the moment.
+  // Test the rate limiter
+  BOOST_LOG_TRIVIAL(info)
+      << "Testing the rate limiter, this should take ~1s... If it takes too "
+         "long try to reduce the probing rate.";
+  if (!RateLimiter::test(config.probing_rate)) {
+    BOOST_LOG_TRIVIAL(warning)
+        << "Unable to achieve the target probing rate, either the system clock "
+           "resolution is insufficient, or the probing rate is too high for "
+           "the system.";
+  }
+
+  // Filter tries, only v4 at the moment
   Patricia prefix_filter_trie{32};
   Patricia bgp_filter_trie{32};
 
