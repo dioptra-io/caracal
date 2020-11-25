@@ -10,6 +10,7 @@ class RateLimiter {
   RateLimiter(unsigned int target_rate);
   void wait();
   double current_rate() const;
+  // TODO: static clock_resolution();
 
  private:
   const double m_target_rate;  // Calls per second.
