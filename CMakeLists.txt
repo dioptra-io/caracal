@@ -41,6 +41,7 @@ target_link_libraries(
          ZLIB::ZLIB)
 
 target_compile_features(diamond-miner-prober-lib PUBLIC cxx_std_17)
+target_compile_options(diamond-miner-prober-lib PUBLIC -DBOOST_LOG_DYN_LINK)
 target_compile_options(diamond-miner-prober-lib PRIVATE -Wall -Wextra)
 target_include_directories(diamond-miner-prober-lib
                            PUBLIC "${PROJECT_BINARY_DIR}")
