@@ -47,16 +47,19 @@ void send_heartbeat(const HeartbeatConfig config) {
   Sender* sender = nullptr;
 #ifdef WITH_PF_RING
   try {
-    sender = new pf_ring_sender_t {AF_INET, config.protocol, config.interface,
-                          config.probing_rate, config.start_time_log_file};
+    sender =
+        new pf_ring_sender_t{AF_INET, config.protocol, config.interface,
+                             config.probing_rate, config.start_time_log_file};
   } catch (const std::runtime_error& e) {
     BOOST_LOG_TRIVIAL(warning) << e.what();
   }
 #endif
   if (sender == nullptr) {
-      BOOST_LOG_TRIVIAL(info) << "PF_RING not available, using classical sender...";
-    sender = new classic_sender_t {AF_INET, config.protocol, config.interface,
-                          config.probing_rate, config.start_time_log_file};
+    BOOST_LOG_TRIVIAL(info)
+        << "PF_RING not available, using classical sender...";
+    sender =
+        new classic_sender_t{AF_INET, config.protocol, config.interface,
+                             config.probing_rate, config.start_time_log_file};
   }
 
   auto probes_sent = 0;
