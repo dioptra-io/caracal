@@ -43,8 +43,8 @@ void send_heartbeat(const HeartbeatConfig config) {
                     config.sniffer_buffer_size, 33434};
   sniffer.start();
 
+  // Sender
   Sender* sender = nullptr;
-
 #ifdef WITH_PF_RING
   try {
     sender = new pf_ring_sender_t {AF_INET, config.protocol, config.interface,
@@ -53,7 +53,6 @@ void send_heartbeat(const HeartbeatConfig config) {
     BOOST_LOG_TRIVIAL(warning) << e.what();
   }
 #endif
-
   if (sender == nullptr) {
       BOOST_LOG_TRIVIAL(info) << "PF_RING not available, using classical sender...";
     sender = new classic_sender_t {AF_INET, config.protocol, config.interface,
