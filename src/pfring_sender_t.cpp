@@ -47,7 +47,7 @@ pf_ring_sender_t::pf_ring_sender_t(int family, const std::string protocol,
   Tins::IPv4Address gateway_ip;
   Tins::Utils::gateway_from_ip("8.8.8.8", gateway_ip);
   Tins::PacketSender resolve_gateway_sender{iface};
-  auto hw_source = iface.ipv4_address().to_string();
+  auto hw_source = iface.hw_address();
   auto hw_gateway =
       Tins::Utils::resolve_hwaddr(gateway_ip, resolve_gateway_sender);
 
