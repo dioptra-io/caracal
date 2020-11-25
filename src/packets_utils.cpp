@@ -66,14 +66,6 @@ void packets_utils::init_ip_header(uint8_t *buffer, uint8_t ip_proto,
   ip_header->ip_src = uint_src_addr;
 }
 
-void packets_utils::init_udp_header(uint8_t *transport_buffer,
-                                    uint16_t payload_len) {
-  udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
-  // Source and destination ports number filled later
-  // m_udp_hdr.udph_destport = htons(atoi(argv[4]));
-  udp_header->uh_ulen = htons(sizeof(udphdr) + payload_len);
-}
-
 void packets_utils::init_tcp_header(uint8_t *transport_buffer) {
   tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
 
@@ -125,41 +117,6 @@ void packets_utils::complete_ip_header(uint8_t *ip_buffer, uint32_t destination,
   // Value of the checksum in big endian
   ip_header->ip_sum =
       wrapsum(in_cksum((unsigned char *)ip_header, sizeof(*ip_header), 0));
-}
-
-void packets_utils::adjust_payload_len(uint8_t *ip_buffer, uint16_t checksum,
-                                       uint8_t proto) {
-  uint32_t target_checksum_little_endian = ~ntohs(checksum) & 0xFFFF;
-  // Deconstruct the checksum
-  // Little endian checksum
-  uint32_t wrong_checksum = in_cksum(ip_buffer, sizeof(compact_ip_hdr), 0);
-
-  uint16_t payload_len = 0;
-  std::size_t transport_size_header = 0;
-  uint32_t c = target_checksum_little_endian;
-  if (c < wrong_checksum) {
-    c += 0xFFFF;
-  }
-  if (proto == IPPROTO_UDP) {
-    payload_len = c - wrong_checksum;
-    transport_size_header = sizeof(udphdr);
-  } else if (proto == IPPROTO_TCP) {
-    payload_len = c - wrong_checksum;
-    transport_size_header = sizeof(tcphdr);
-  }
-
-  compact_ip_hdr *ip_header = reinterpret_cast<compact_ip_hdr *>(ip_buffer);
-  ip_header->ip_len = htons(payload_len);
-
-  uint16_t new_checksum =
-      wrapsum(in_cksum(ip_buffer, sizeof(compact_ip_hdr), 0));
-  assert(checksum == new_checksum);
-
-  //    uint8_t * data = ip_buffer + sizeof(compact_ip_hdr) +
-  //    transport_size_header; payload_len = payload_len -
-  //    (sizeof(compact_ip_hdr) + transport_size_header); char
-  //    payload[payload_len]; memset(payload, 'A', payload_len); memcpy(data,
-  //    payload, payload_len);
 }
 
 void packets_utils::add_udp_ports(uint8_t *transport_buffer, uint16_t sport,

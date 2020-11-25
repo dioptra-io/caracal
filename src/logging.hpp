@@ -7,6 +7,7 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <iostream>
+#include <string>
 
 namespace expr = boost::log::expressions;
 namespace logging = boost::log;

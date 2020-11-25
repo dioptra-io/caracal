@@ -49,30 +49,6 @@ uint32_t sum(uint16_t *buf, int nwords) {
   return sum;
 }
 
-uint16_t csum(uint16_t *buf, int nwords) {
-  std::cout << "nwords: " << nwords << "\n";
-
-  uint32_t sum;
-
-  // Compute the sum
-  for (sum = 0; nwords > 0; nwords -= 2) {
-    std::cout << *buf << "\n";
-    sum += *buf++;
-  }
-
-  // If one 16-bits word remains left
-  if (nwords) {
-    sum = sum + *(unsigned char *)buf;
-  }
-
-  // Fold 32-bits sum into 16 bit
-  sum = (sum >> 16) + (sum & 0xFFFF);
-  // Keep only the 16 last bits.
-  sum += (sum >> 16);
-  std::cout << "checksum: " << (unsigned short)(~sum) << "\n";
-  return (unsigned short)(~sum);
-}
-
 /*
  * Checksum routine for Internet Protocol family headers (C Version)
  * Borrowed from DHCPd
@@ -96,18 +72,6 @@ uint32_t in_cksum(unsigned char *buf, unsigned nbytes, uint32_t sum) {
 uint32_t wrapsum(uint32_t sum) {
   sum = ~sum & 0xFFFF;
   return htons(sum);
-}
-
-uint32_t closest_prefix(uint32_t inf_born, uint32_t prefix_mask) {
-  uint32_t increment = (0xFFFFFFFF >> prefix_mask) + 1;
-  // Find the first /prefix_mask prefix greater than inf_born.
-  uint32_t i = 0;
-  for (;; i += increment) {
-    if (i > inf_born) {
-      break;
-    }
-  }
-  return i;
 }
 
 }  // namespace utils

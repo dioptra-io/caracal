@@ -63,9 +63,9 @@ class RandomPermutationIterator
 class RandomPermutationGenerator {
  public:
   RandomPermutationGenerator() : m_range{1} {};
-  RandomPermutationGenerator(uint32_t range) {
-    if (range <= 0) {
-      throw std::domain_error("range must be > 0");
+  explicit RandomPermutationGenerator(uint32_t range) {
+    if (range < 1) {
+      throw std::domain_error("range must be >= 1");
     }
     m_range = range;
   }

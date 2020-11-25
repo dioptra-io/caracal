@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 // Quick hack from https://stackoverflow.com/a/966497,
 // to make tests pass, since inet_pton returns an error

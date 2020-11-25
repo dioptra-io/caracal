@@ -16,10 +16,6 @@
 #include "parameters_utils_t.hpp"
 #include "probe.hpp"
 
-// #include <netinet/udp.h> // udphdr
-#include <netinet/ip.h>  // ip
-// #include <netinet/tcp.h> // tcphdr
-
 namespace fs = std::filesystem;
 
 using namespace Tins;
@@ -122,7 +118,7 @@ pf_ring_sender_t::pf_ring_sender_t(int family, const std::string protocol,
   }
 }
 
-void pf_ring_sender_t::send(Probe &probe, int n_packets) {
+void pf_ring_sender_t::send(const Probe &probe, int n_packets) {
   // TEMP
   in_addr destination = probe.dst_addr;
   uint8_t ttl = probe.ttl;
@@ -173,13 +169,6 @@ void pf_ring_sender_t::send(Probe &probe, int n_packets) {
     //        std::endl;
     //        ++n_interval;
     dump_reference_time();
-  }
-
-  std::size_t transport_header_size = 0;
-  if (m_proto == IPPROTO_UDP) {
-    transport_header_size = sizeof(udphdr);
-  } else if (m_proto == IPPROTO_TCP) {
-    transport_header_size = sizeof(tcphdr);
   }
 
   packets_utils::complete_ip_header(m_buffer + sizeof(ether_header),

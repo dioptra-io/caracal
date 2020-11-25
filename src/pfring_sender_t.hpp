@@ -22,7 +22,7 @@ class pf_ring_sender_t : public Sender {
                    const Tins::NetworkInterface iface, const uint32_t pps,
                    const std::optional<fs::path> ofile);
   ~pf_ring_sender_t();
-  void send(Probe& probe, int n_packets);
+  void send(const Probe& probe, int n_packets) override;
 
  private:
   void dump_reference_time();

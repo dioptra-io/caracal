@@ -10,7 +10,7 @@ using std::chrono::steady_clock;
 
 class RateLimiter {
  public:
-  RateLimiter(unsigned int target_rate)
+  explicit RateLimiter(unsigned int target_rate)
       : m_target_rate(target_rate),
         m_current_rate(0),
         m_curr_tp(steady_clock::now()),

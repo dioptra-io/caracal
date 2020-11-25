@@ -22,7 +22,7 @@ class classic_sender_t : public Sender {
                    const Tins::NetworkInterface interface, const int pps,
                    const std::optional<fs::path> ofile);
   ~classic_sender_t();
-  void send(Probe& probe, int n_packets);
+  void send(const Probe& probe, int n_packets) override;
 
  private:
   void dump_reference_time();

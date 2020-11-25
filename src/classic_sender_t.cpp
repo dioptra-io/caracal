@@ -136,7 +136,7 @@ classic_sender_t::classic_sender_t(uint8_t family, const std::string protocol,
   }
 }
 
-void classic_sender_t::send(Probe &probe, int n_packets) {
+void classic_sender_t::send(const Probe &probe, int n_packets) {
   uint32_t time_interval = 5;
 
   // Temp
@@ -163,13 +163,6 @@ void classic_sender_t::send(Probe &probe, int n_packets) {
   if ((m_now.tv_sec - m_start.tv_sec) >= time_interval) {
     // TODO: Dump ref. time.
     dump_reference_time();
-  }
-
-  std::size_t transport_header_size = 0;
-  if (m_proto == IPPROTO_UDP) {
-    transport_header_size = sizeof(udphdr);
-  } else if (m_proto == IPPROTO_TCP) {
-    transport_header_size = sizeof(tcphdr);
   }
 
   // The payload len is the ttl + 2, the +2 is to be able to fully

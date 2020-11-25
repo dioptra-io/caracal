@@ -10,12 +10,6 @@ uint32_t tsdiff(struct timeval *end, struct timeval *begin) {
   return diff;
 }
 
-uint32_t tsdiffus(struct timeval *end, struct timeval *begin) {
-  uint32_t diff = (end->tv_sec - begin->tv_sec) * 1000000;
-  diff += (end->tv_usec - begin->tv_usec);
-  return diff;
-}
-
 uint32_t elapsed(timeval *now, timeval *start) {
   gettimeofday(now, NULL);
   //    if (config->coarse)
