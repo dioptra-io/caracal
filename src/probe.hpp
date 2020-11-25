@@ -28,14 +28,14 @@ struct Probe {
   uint16_t dst_port;
   uint8_t ttl;
 
-  bool operator==(const Probe& other) const {
+  bool operator==(const Probe &other) const {
     return (dst_addr.s_addr == other.dst_addr.s_addr) &&
            (src_port == other.src_port) && (dst_port == other.dst_port) &&
            (ttl == other.ttl);
   }
 
   // TODO: stringstream/istream ref. instead?
-  static Probe from_csv(const std::string& line) {
+  static Probe from_csv(const std::string &line) {
     Probe probe;
     int index = 0;
     std::istringstream lstream{line};
@@ -43,9 +43,15 @@ struct Probe {
     while (std::getline(lstream, token, ',')) {
       switch (index) {
         case 0:
-          token = remove_leading_zeros(token);
-          if (!inet_pton(AF_INET, token.c_str(), &probe.dst_addr)) {
-            throw std::runtime_error("Invalid token: " + token);
+          if (std::find(token.begin(), token.end(), '.') == token.end()) {
+            // uint32
+            probe.dst_addr.s_addr = htonl(std::stoul(token));
+          } else {
+            // Dotted notation
+            token = remove_leading_zeros(token);
+            if (!inet_pton(AF_INET, token.c_str(), &probe.dst_addr)) {
+              throw std::runtime_error("Invalid token: " + token);
+            }
           }
           break;
         case 1:
@@ -81,7 +87,7 @@ struct Probe {
   }
 };
 
-inline std::ostream& operator<<(std::ostream& os, Probe const& v) {
+inline std::ostream &operator<<(std::ostream &os, Probe const &v) {
   os << v.src_port << ":" << v.human_dst_addr() << ":" << v.dst_port << "@"
      << uint(v.ttl);
   return os;
