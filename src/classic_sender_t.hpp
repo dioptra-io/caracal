@@ -12,16 +12,11 @@
 
 #include "probe.hpp"
 #include "rate_limiter.hpp"
+#include "sender.hpp"
 
 namespace fs = std::filesystem;
 
-/* class Sender { */
-// public:
-// virtual ~Sender() = 0;
-// virtual void send(Probe& probe, int n_packets) = 0;
-/* }; */
-
-class classic_sender_t {
+class classic_sender_t : public Sender {
  public:
   classic_sender_t(uint8_t family, const std::string protocol,
                    const Tins::NetworkInterface interface, const int pps,

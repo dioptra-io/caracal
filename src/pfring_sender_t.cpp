@@ -70,8 +70,8 @@ pf_ring_sender_t::pf_ring_sender_t(int family, const std::string protocol,
   pfring_set_socket_mode(m_pf_ring, send_only_mode);
 
   if (pfring_enable_ring(m_pf_ring) != 0) {
-    printf("Unable to enable ring :-(\n");
     pfring_close(m_pf_ring);
+    throw std::runtime_error("Unable to enable PF_RING");
   }
 
   uint32_t uint_src_addr = 0;

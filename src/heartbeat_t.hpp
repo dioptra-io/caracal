@@ -43,13 +43,22 @@ void send_heartbeat(const HeartbeatConfig config) {
                     config.sniffer_buffer_size, 33434};
   sniffer.start();
 
+  Sender* sender = nullptr;
+
 #ifdef WITH_PF_RING
-  pf_ring_sender_t sender{AF_INET, config.protocol, config.interface,
+  try {
+    sender = new pf_ring_sender_t {AF_INET, config.protocol, config.interface,
                           config.probing_rate, config.start_time_log_file};
-#else
-  classic_sender_t sender{AF_INET, config.protocol, config.interface,
-                          config.probing_rate, config.start_time_log_file};
+  } catch (const std::runtime_error& e) {
+    BOOST_LOG_TRIVIAL(warning) << e.what();
+  }
 #endif
+
+  if (sender == nullptr) {
+      BOOST_LOG_TRIVIAL(info) << "PF_RING not available, using classical sender...";
+    sender = new classic_sender_t {AF_INET, config.protocol, config.interface,
+                          config.probing_rate, config.start_time_log_file};
+  }
 
   auto probes_sent = 0;
   auto start_time = steady_clock::now();
@@ -106,7 +115,7 @@ void send_heartbeat(const HeartbeatConfig config) {
 
   for (auto probe : probes) {
     BOOST_LOG_TRIVIAL(trace) << "Sending probe " << probe;
-    sender.send(probe, config.n_packets);
+    sender->send(probe, config.n_packets);
     probes_sent++;
   }
 
@@ -120,4 +129,7 @@ void send_heartbeat(const HeartbeatConfig config) {
 
   // Log final statistics
   log_stats();
+
+  // TODO: Ensure that the sender is deleted if there is an exception.
+  delete sender;
 }
