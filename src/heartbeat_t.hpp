@@ -115,6 +115,22 @@ void send_heartbeat(const HeartbeatConfig& config) {
         return p.ttl <= 32;
       })
     | ranges::views::filter([&](const Probe& p) {
+        if (config.filter_min_ttl && (p.ttl < config.filter_min_ttl.value())) {
+          return false;
+        }
+        if (config.filter_max_ttl && (p.ttl > config.filter_max_ttl.value())) {
+          return false;
+        }
+        // TODO: Cleanup this.
+        if (config.filter_min_ip && (p.dst_addr.s_addr < uint32_t(config.filter_min_ip.value()))) {
+          return false;
+        }
+        if (config.filter_max_ip && (p.dst_addr.s_addr > uint32_t(config.filter_max_ip.value()))) {
+          return false;
+        }
+        return true;
+      })
+    | ranges::views::filter([&](const Probe& p) {
         // Do not send probes to specified prefixes.
         return prefix_filter_trie.get(p.dst_addr.s_addr) == nullptr;
       })

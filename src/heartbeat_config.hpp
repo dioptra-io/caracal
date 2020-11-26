@@ -24,6 +24,10 @@ struct HeartbeatConfig {
   const Tins::NetworkInterface interface;
   const optional<fs::path> bgp_filter_file;
   const optional<fs::path> prefix_filter_file;
+  const optional<Tins::IPv4Address> filter_min_ip;
+  const optional<Tins::IPv4Address> filter_max_ip;
+  const optional<int> filter_min_ttl;
+  const optional<int> filter_max_ttl;
 };
 
 class HeartbeatConfigBuilder {
@@ -153,7 +157,11 @@ class HeartbeatConfigBuilder {
                            m_protocol.value(),
                            interface,
                            m_bgp_filter_file,
-                           m_prefix_filter_file};
+                           m_prefix_filter_file,
+                           m_filter_min_ip,
+                           m_filter_max_ip,
+                           m_filter_min_ttl,
+                           m_filter_max_ttl};
   }
 
  private:
