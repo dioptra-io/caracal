@@ -28,16 +28,16 @@ struct HeartbeatConfig {
 
 class HeartbeatConfigBuilder {
  public:
-  void set_input_file(const fs::path p) {
+  void set_input_file(const fs::path& p) {
     if (!fs::exists(p)) {
       throw std::invalid_argument(p.string() + " does not exists");
     }
     m_input_file = p;
   }
 
-  void set_output_file(const fs::path p) { m_output_file = p; }
+  void set_output_file(const fs::path& p) { m_output_file = p; }
 
-  void set_start_time_log_file(const fs::path p) { m_start_time_log_file = p; }
+  void set_start_time_log_file(const fs::path& p) { m_start_time_log_file = p; }
 
   void set_probing_rate(const int rate) {
     if (rate <= 0) {
@@ -46,7 +46,7 @@ class HeartbeatConfigBuilder {
     m_probing_rate = rate;
   }
 
-  void set_protocol(const string s) {
+  void set_protocol(const string& s) {
     if (s == "udp" || s == "tcp") {
       m_protocol = s;
     } else {
@@ -54,7 +54,7 @@ class HeartbeatConfigBuilder {
     }
   }
 
-  void set_interface(const string s) { m_interface = s; }
+  void set_interface(const string& s) { m_interface = s; }
 
   void set_sniffer_buffer_size(const int size) {
     if (size <= 0) {
@@ -77,25 +77,25 @@ class HeartbeatConfigBuilder {
     m_n_packets = count;
   }
 
-  void set_bgp_filter_file(const fs::path p) {
+  void set_bgp_filter_file(const fs::path& p) {
     if (!fs::exists(p)) {
       throw std::invalid_argument(p.string() + " does not exists");
     }
     m_bgp_filter_file = p;
   }
 
-  void set_prefix_filter_file(const fs::path p) {
+  void set_prefix_filter_file(const fs::path& p) {
     if (!fs::exists(p)) {
       throw std::invalid_argument(p.string() + " does not exists");
     }
     m_prefix_filter_file = p;
   }
 
-  void set_filter_min_ip(const string s) {
+  void set_filter_min_ip(const string& s) {
     m_filter_min_ip = Tins::IPv4Address{s};
   }
 
-  void set_filter_max_ip(const string s) {
+  void set_filter_max_ip(const string& s) {
     m_filter_max_ip = Tins::IPv4Address{s};
   }
 

@@ -18,10 +18,11 @@
 
 namespace fs = std::filesystem;
 
-using namespace Tins;
-using namespace utils;
+using utils::compact_ip_hdr;
+using utils::tcphdr;
+using utils::udphdr;
 
-pf_ring_sender_t::pf_ring_sender_t(int family, const std::string protocol,
+pf_ring_sender_t::pf_ring_sender_t(int family, const std::string &protocol,
                                    const Tins::NetworkInterface iface,
                                    const uint32_t pps,
                                    const std::optional<fs::path> ofile)

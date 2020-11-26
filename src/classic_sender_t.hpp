@@ -18,7 +18,7 @@ namespace fs = std::filesystem;
 
 class classic_sender_t : public Sender {
  public:
-  classic_sender_t(uint8_t family, const std::string protocol,
+  classic_sender_t(uint8_t family, const std::string& protocol,
                    const Tins::NetworkInterface interface, const int pps,
                    const std::optional<fs::path> ofile);
   ~classic_sender_t();

@@ -13,7 +13,7 @@ namespace expr = boost::log::expressions;
 namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
 
-void configure_logging(const std::string log_level) {
+void configure_logging(const std::string& log_level) {
   logging::add_common_attributes();
   logging::add_console_log(
       std::cerr,

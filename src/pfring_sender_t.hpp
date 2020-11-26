@@ -18,7 +18,7 @@ namespace fs = std::filesystem;
 
 class pf_ring_sender_t : public Sender {
  public:
-  pf_ring_sender_t(int family, const std::string protocol,
+  pf_ring_sender_t(int family, const std::string& protocol,
                    const Tins::NetworkInterface iface, const uint32_t pps,
                    const std::optional<fs::path> ofile);
   ~pf_ring_sender_t();

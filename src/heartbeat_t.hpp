@@ -3,6 +3,7 @@
 
 #include <boost/log/trivial.hpp>
 #include <chrono>
+#include <memory>
 #include <patricia.hpp>
 #include <range/v3/all.hpp>
 
@@ -20,7 +21,7 @@ using std::chrono::microseconds;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 
-void send_heartbeat(const HeartbeatConfig config) {
+void send_heartbeat(const HeartbeatConfig& config) {
   BOOST_LOG_TRIVIAL(info) << config;
 
   // Test the rate limiter
@@ -55,22 +56,22 @@ void send_heartbeat(const HeartbeatConfig config) {
   sniffer.start();
 
   // Sender
-  Sender* sender = nullptr;
+  std::unique_ptr<Sender> sender;
 #ifdef WITH_PF_RING
   try {
-    sender =
-        new pf_ring_sender_t{AF_INET, config.protocol, config.interface,
-                             config.probing_rate, config.start_time_log_file};
+    sender = std::make_unique<pf_ring_sender_t>(
+        AF_INET, config.protocol, config.interface, config.probing_rate,
+        config.start_time_log_file);
   } catch (const std::runtime_error& e) {
     BOOST_LOG_TRIVIAL(warning) << e.what();
   }
 #endif
-  if (sender == nullptr) {
+  if (!sender) {
     BOOST_LOG_TRIVIAL(info)
         << "PF_RING not available, using classical sender...";
-    sender =
-        new classic_sender_t{AF_INET, config.protocol, config.interface,
-                             config.probing_rate, config.start_time_log_file};
+    sender = std::make_unique<pf_ring_sender_t>(
+        AF_INET, config.protocol, config.interface, config.probing_rate,
+        config.start_time_log_file);
   }
 
   auto probes_sent = 0;
@@ -142,7 +143,4 @@ void send_heartbeat(const HeartbeatConfig config) {
 
   // Log final statistics
   log_stats();
-
-  // TODO: Ensure that the sender is deleted if there is an exception.
-  delete sender;
 }

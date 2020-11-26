@@ -12,6 +12,11 @@ class RandomPermutationIterator
  public:
   RandomPermutationIterator() : m_perm(nullptr), m_value(PERM_END) {}
 
+  // TODO: Implement the copy constructor needed by boost::iterator_facade,
+  // otherwise we risk to double free.
+  // RandomPermutationIterator(const RandomPermutationIterator& other) {
+  // };
+
   explicit RandomPermutationIterator(uint32_t range) {
     // TODO: Seeding.
     uint8_t key[16] = {static_cast<uint8_t>(rand() % 256)};

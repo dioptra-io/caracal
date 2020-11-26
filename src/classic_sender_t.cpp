@@ -29,7 +29,7 @@ using utils::compact_ip_hdr;
 using utils::tcphdr;
 using utils::udphdr;
 
-classic_sender_t::classic_sender_t(uint8_t family, const std::string protocol,
+classic_sender_t::classic_sender_t(uint8_t family, const std::string &protocol,
                                    const Tins::NetworkInterface interface,
                                    const int pps,
                                    const std::optional<fs::path> ofile)
