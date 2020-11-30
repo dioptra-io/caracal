@@ -69,7 +69,7 @@ void send_heartbeat(const HeartbeatConfig& config) {
   if (!sender) {
     BOOST_LOG_TRIVIAL(info)
         << "PF_RING not available, using classical sender...";
-    sender = std::make_unique<pf_ring_sender_t>(
+    sender = std::make_unique<classic_sender_t>(
         AF_INET, config.protocol, config.interface, config.probing_rate,
         config.start_time_log_file);
   }
