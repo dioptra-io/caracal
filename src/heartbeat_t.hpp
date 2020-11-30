@@ -36,13 +36,20 @@ void send_heartbeat(const HeartbeatConfig& config) {
   }
 
   // Filter tries, only v4 at the moment
-  Patricia prefix_filter_trie{32};
+  Patricia prefix_excl_trie{32};
+  Patricia prefix_incl_trie{32};
   Patricia bgp_filter_trie{32};
 
-  if (config.prefix_filter_file) {
+  if (config.prefix_excl_file) {
     BOOST_LOG_TRIVIAL(info) << "Loading excluded prefixes...";
-    prefix_filter_trie.populateBlock(AF_INET,
-                                     config.prefix_filter_file.value().c_str());
+    prefix_excl_trie.populateBlock(AF_INET,
+                                   config.prefix_excl_file.value().c_str());
+  }
+
+  if (config.prefix_incl_file) {
+    BOOST_LOG_TRIVIAL(info) << "Loading included prefixes...";
+    prefix_incl_trie.populateBlock(AF_INET,
+                                   config.prefix_incl_file.value().c_str());
   }
 
   if (config.bgp_filter_file) {
@@ -102,7 +109,6 @@ void send_heartbeat(const HeartbeatConfig& config) {
   }
 
   // TODO: Cleanup
-  // TODO: min/max IP/TTL
   // TODO: Log when filtered (custom filter view)?
   // BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << probe;
   // clang-format off
@@ -128,13 +134,15 @@ void send_heartbeat(const HeartbeatConfig& config) {
         if (config.filter_max_ip && (p.dst_addr.s_addr > uint32_t(config.filter_max_ip.value()))) {
           return false;
         }
-        return true;
-      })
-    | ranges::views::filter([&](const Probe& p) {
-        // Do not send probes to specified prefixes.
-        return prefix_filter_trie.get(p.dst_addr.s_addr) == nullptr;
-      })
-    | ranges::views::filter([&](const Probe& p) {
+        // Do not send probes to excluded prefixes (blacklist).
+        if (config.prefix_excl_file && (prefix_excl_trie.get(p.dst_addr.s_addr) != nullptr)) {
+            return false;
+        }
+        // Do not send probes to *not* included prefixes.
+        // i.e. send probes only to included prefixes (whitelist).
+        if (config.prefix_incl_file && (prefix_incl_trie.get(p.dst_addr.s_addr) == nullptr)) {
+            return false;
+        }
         // Do not send probes to un-routed destinations.
         if (config.bgp_filter_file && (bgp_filter_trie.get(p.dst_addr.s_addr) == nullptr)) {
           return false;

@@ -23,7 +23,8 @@ struct HeartbeatConfig {
   const string protocol;
   const Tins::NetworkInterface interface;
   const optional<fs::path> bgp_filter_file;
-  const optional<fs::path> prefix_filter_file;
+  const optional<fs::path> prefix_excl_file;
+  const optional<fs::path> prefix_incl_file;
   const optional<Tins::IPv4Address> filter_min_ip;
   const optional<Tins::IPv4Address> filter_max_ip;
   const optional<int> filter_min_ttl;
@@ -88,11 +89,18 @@ class HeartbeatConfigBuilder {
     m_bgp_filter_file = p;
   }
 
-  void set_prefix_filter_file(const fs::path& p) {
+  void set_prefix_excl_file(const fs::path& p) {
     if (!fs::exists(p)) {
       throw std::invalid_argument(p.string() + " does not exists");
     }
-    m_prefix_filter_file = p;
+    m_prefix_excl_file = p;
+  }
+
+  void set_prefix_incl_file(const fs::path& p) {
+    if (!fs::exists(p)) {
+      throw std::invalid_argument(p.string() + " does not exists");
+    }
+    m_prefix_incl_file = p;
   }
 
   void set_filter_min_ip(const string& s) {
@@ -157,7 +165,8 @@ class HeartbeatConfigBuilder {
                            m_protocol.value(),
                            interface,
                            m_bgp_filter_file,
-                           m_prefix_filter_file,
+                           m_prefix_excl_file,
+                           m_prefix_incl_file,
                            m_filter_min_ip,
                            m_filter_max_ip,
                            m_filter_min_ttl,
@@ -175,7 +184,8 @@ class HeartbeatConfigBuilder {
   optional<int> m_max_probes;
   optional<int> m_n_packets;
   optional<fs::path> m_bgp_filter_file;
-  optional<fs::path> m_prefix_filter_file;
+  optional<fs::path> m_prefix_excl_file;
+  optional<fs::path> m_prefix_incl_file;
   optional<Tins::IPv4Address> m_filter_min_ip;
   optional<Tins::IPv4Address> m_filter_max_ip;
   optional<int> m_filter_min_ttl;
