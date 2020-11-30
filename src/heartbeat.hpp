@@ -115,7 +115,7 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
   // clang-format off
   auto probes = ranges::getlines(is)
     | ranges::views::transform(Probe::from_csv)
-    | ranges::views::take(config.max_probes.value_or(10000000))
+    | ranges::views::take(config.max_probes.value_or(1000000)) // TODO
     | ranges::views::filter([&](const Probe& p) {
         // Temporary safeguard, until we cleanup packets_utils.
         // "TTL >= 32 are not supported, the probe will not be sent: "
