@@ -135,12 +135,12 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
         if (config.filter_max_ip && (p.dst_addr.s_addr > uint32_t(config.filter_max_ip.value()))) {
           return false;
         }
-        // Do not send probes to excluded prefixes (blacklist).
+        // Do not send probes to excluded prefixes (deny list).
         if (config.prefix_excl_file && (prefix_excl_trie.get(p.dst_addr.s_addr) != nullptr)) {
             return false;
         }
         // Do not send probes to *not* included prefixes.
-        // i.e. send probes only to included prefixes (whitelist).
+        // i.e. send probes only to included prefixes (allow list).
         if (config.prefix_incl_file && (prefix_incl_trie.get(p.dst_addr.s_addr) == nullptr)) {
             return false;
         }
