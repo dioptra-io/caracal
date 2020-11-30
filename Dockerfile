@@ -15,10 +15,10 @@ RUN apt-get update && \
         gcovr \
         libboost-log1.71-dev \
         libboost-program-options1.71-dev \
+        libelf1 \
         libpcap0.8-dev \
         libtins-dev \
         pfring \
-        pfring-dkms \
         pkg-config \
         zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
