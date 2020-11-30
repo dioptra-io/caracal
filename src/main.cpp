@@ -4,8 +4,8 @@
 #include <filesystem>
 #include <iostream>
 
+#include "heartbeat.hpp"
 #include "heartbeat_config.hpp"
-#include "heartbeat_t.hpp"
 #include "logging.hpp"
 
 namespace fs = std::filesystem;

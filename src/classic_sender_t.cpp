@@ -1,11 +1,11 @@
 #include "classic_sender_t.hpp"
 
 #include <arpa/inet.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 
 #include <boost/log/trivial.hpp>
+#include <cerrno>
 #include <cmath>
 #include <iostream>
 // #include <netinet/udp.h> // udphdr
@@ -214,32 +214,14 @@ void classic_sender_t::send(const Probe &probe, int n_packets) {
     BOOST_LOG_TRIVIAL(trace)
         << "Sending packet #" << i + 1 << " to " << m_dst_addr;
 
-    auto tries = 0;
-    auto rc = 0;
-    while (rc <= 0) {
-      if (tries == 10000) {
-        BOOST_LOG_TRIVIAL(warning) << "Buffer full, dropping probe...";
-        break;
-      }
-      rc = sendto(m_socket, m_buffer, buf_size, 0,
-                  (const sockaddr *)&m_dst_addr, sizeof(m_dst_addr));
-      if (rc <= 0) {
-        // Buffer full, retry
-        BOOST_LOG_TRIVIAL(trace)
-            << "Buffer full, retrying... (" << tries << "/" << 10000 << ")";
-        ++tries;
-        // TODO: Wait here?
-        //                in_addr ip_addr;
-        //                ip_addr.s_addr = ip_header->ip_dst;
-        //                std::cout << "Could not send packet, error code: " <<
-        //                strerror(errno) <<  "\n"; std::cout << "The IP
-        //                destination address is " <<
-        //                inet_ntoa(m_dst_addr.sin_addr) << "\n";
-      } else {
-        // Control the probing rate with active waiting to be precise
-        m_rl.wait();
-      }
+    int rc = sendto(m_socket, m_buffer, buf_size, 0,
+                    (const sockaddr *)&m_dst_addr, sizeof(m_dst_addr));
+    if (rc < 0) {
+      BOOST_LOG_TRIVIAL(error) << "Could not send packet to " << m_dst_addr
+                               << ": " << strerror(errno);
     }
+    // Control the probing rate with active waiting to be precise
+    m_rl.wait();
   }
 
   // Reset the checksum for future computation.

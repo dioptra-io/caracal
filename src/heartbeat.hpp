@@ -6,6 +6,7 @@
 #include <memory>
 #include <patricia.hpp>
 #include <range/v3/all.hpp>
+#include <tuple>
 
 #include "classic_sender_t.hpp"
 #include "heartbeat_config.hpp"
@@ -21,7 +22,7 @@ using std::chrono::microseconds;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 
-void send_heartbeat(const HeartbeatConfig& config) {
+inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
   BOOST_LOG_TRIVIAL(info) << config;
 
   // Test the rate limiter
@@ -117,8 +118,8 @@ void send_heartbeat(const HeartbeatConfig& config) {
     | ranges::views::take(config.max_probes.value_or(10000000))
     | ranges::views::filter([&](const Probe& p) {
         // Temporary safeguard, until we cleanup packets_utils.
-        // "TTL > 32 are not supported, the probe will not be sent: "
-        return p.ttl <= 32;
+        // "TTL >= 32 are not supported, the probe will not be sent: "
+        return p.ttl < 32;
       })
     | ranges::views::filter([&](const Probe& p) {
         if (config.filter_min_ttl && (p.ttl < config.filter_min_ttl.value())) {
@@ -157,7 +158,6 @@ void send_heartbeat(const HeartbeatConfig& config) {
     probes_sent++;
   }
 
-  // Log preliminary statistics
   log_stats();
 
   BOOST_LOG_TRIVIAL(info) << "Waiting 5s to allow the sniffer to get the last "
@@ -165,6 +165,5 @@ void send_heartbeat(const HeartbeatConfig& config) {
   std::this_thread::sleep_for(std::chrono::milliseconds(5000));
   sniffer.stop();
 
-  // Log final statistics
-  log_stats();
+  return {probes_sent, sniffer.received_count()};
 }

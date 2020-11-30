@@ -55,7 +55,8 @@ target_include_directories(diamond-miner-prober PUBLIC "${PROJECT_BINARY_DIR}")
 if(WITH_PF_RING)
   find_package(PfRing REQUIRED)
   target_link_libraries(diamond-miner-prober PUBLIC PfRing::PfRing)
-  target_sources(diamond-miner-prober PUBLIC src/pfring_sender_t.cpp)
+  target_sources(diamond-miner-prober
+                 PUBLIC "${PROJECT_SOURCE_DIR}/src/pfring_sender_t.cpp")
 endif()
 
 # Tests
@@ -66,8 +67,9 @@ if(WITH_TESTS)
 
   add_executable(
     diamond-miner-prober-tests
-    src/tests.cpp src/sources/csv_test.cpp src/probe_test.cpp
-    src/random_permutation_test.cpp src/rate_limiter_test.cpp)
+    src/tests.cpp src/sources/csv_test.cpp src/heartbeat_test.cpp
+    src/probe_test.cpp src/random_permutation_test.cpp
+    src/rate_limiter_test.cpp)
   target_link_libraries(diamond-miner-prober-tests
                         PUBLIC Catch2::Catch2 diamond-miner-prober-lib)
   target_compile_features(diamond-miner-prober-tests PUBLIC cxx_std_17)
