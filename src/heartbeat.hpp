@@ -86,12 +86,9 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
   auto probes_sent = 0;
   auto start_time = steady_clock::now();
 
-  auto log_stats = [&](int min_seconds) {
+  auto log_stats = [&] {
     auto now = steady_clock::now();
     auto delta = duration_cast<microseconds>(now - start_time);
-    if (delta < seconds(min_seconds)) {
-      return;
-    }
     BOOST_LOG_TRIVIAL(info) << "Sent " << probes_sent << " probes ("
                             << probes_sent * config.n_packets << " packets) in "
                             << delta.count() / (1000.0 * 1000.0) << " seconds ("
@@ -168,10 +165,13 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
     BOOST_LOG_TRIVIAL(trace) << "Sending probe " << probe;
     sender->send(probe, config.n_packets);
     probes_sent++;
-    log_stats(5);
+    // Log every ~15 seconds.
+    if ((probes_sent % (15 * config.probing_rate)) == 0) {
+      log_stats();
+    }
   }
 
-  log_stats(0);
+  log_stats();
 
   BOOST_LOG_TRIVIAL(info) << "Waiting 5s to allow the sniffer to get the last "
                              "flying responses... Press CTRL+C to exit now.";
