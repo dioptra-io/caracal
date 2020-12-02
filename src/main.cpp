@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
     }
 
     if (vm.count("filter-max-ttl")) {
-      builder.set_filter_min_ttl(vm["filter-max-ttl"].as<int>());
+      builder.set_filter_max_ttl(vm["filter-max-ttl"].as<int>());
     }
 
     configure_logging(vm["log-level"].as<string>());
