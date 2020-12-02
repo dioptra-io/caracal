@@ -208,6 +208,18 @@ inline std::ostream& operator<<(std::ostream& os, HeartbeatConfig const& v) {
   os << ",\n\tprotocol=" << v.protocol;
   os << ",\n\tinterface=" << v.interface.name() << ":"
      << v.interface.ipv4_address();
+  if (v.filter_min_ip) {
+    os << "\n\tmin_ip=" << v.filter_min_ip.value();
+  }
+  if (v.filter_max_ip) {
+    os << "\n\tmax_ip=" << v.filter_max_ip.value();
+  }
+  if (v.filter_min_ttl) {
+    os << "\n\tmin_ttl=" << v.filter_min_ttl.value();
+  }
+  if (v.filter_max_ttl) {
+    os << "\n\tmax_ttl=" << v.filter_max_ttl.value();
+  }
   os << "\n}";
   return os;
 }

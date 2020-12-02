@@ -261,8 +261,8 @@ void pf_ring_sender_t::dump_reference_time() {
   double seconds_since_epoch =
       m_start.tv_sec + static_cast<double>(m_start.tv_usec) / 1000000;
 
-  BOOST_LOG_TRIVIAL(info) << std::fixed
-                          << "Start time set to: " << seconds_since_epoch
-                          << " seconds since epoch.";
+  // BOOST_LOG_TRIVIAL(info) << std::fixed
+  //                         << "Start time set to: " << seconds_since_epoch
+  //                         << " seconds since epoch.";
   m_start_time_log_file << std::fixed << seconds_since_epoch << std::endl;
 }

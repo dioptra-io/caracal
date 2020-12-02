@@ -109,9 +109,6 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
     std::ios::sync_with_stdio(false);
   }
 
-  // TODO: Cleanup
-  // TODO: Log when filtered (custom filter view)?
-  // BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << probe;
   // clang-format off
   auto probes = ranges::getlines(is)
     | ranges::views::transform(Probe::from_csv)
@@ -119,33 +116,44 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
     | ranges::views::filter([&](const Probe& p) {
         // Temporary safeguard, until we cleanup packets_utils.
         // "TTL >= 32 are not supported, the probe will not be sent: "
-        return p.ttl < 32;
+        if (p.ttl >= 32) {
+            BOOST_LOG_TRIVIAL(warning) << "Filtered probe " << p << " (TTL >= 32 are not supported)";
+            return false;
+        }
+        return true;
       })
     | ranges::views::filter([&](const Probe& p) {
         if (config.filter_min_ttl && (p.ttl < config.filter_min_ttl.value())) {
+          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL too low)";
           return false;
         }
         if (config.filter_max_ttl && (p.ttl > config.filter_max_ttl.value())) {
+          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL too high)";
           return false;
         }
         // TODO: Cleanup this.
         if (config.filter_min_ip && (p.dst_addr.s_addr < uint32_t(config.filter_min_ip.value()))) {
+          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (destination address too low)";
           return false;
         }
         if (config.filter_max_ip && (p.dst_addr.s_addr > uint32_t(config.filter_max_ip.value()))) {
+          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (destination address too high)";
           return false;
         }
         // Do not send probes to excluded prefixes (deny list).
         if (config.prefix_excl_file && (prefix_excl_trie.get(p.dst_addr.s_addr) != nullptr)) {
-            return false;
+          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (excluded prefix)";
+          return false;
         }
         // Do not send probes to *not* included prefixes.
         // i.e. send probes only to included prefixes (allow list).
         if (config.prefix_incl_file && (prefix_incl_trie.get(p.dst_addr.s_addr) == nullptr)) {
-            return false;
+          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (not included prefix)";
+          return false;
         }
         // Do not send probes to un-routed destinations.
         if (config.bgp_filter_file && (bgp_filter_trie.get(p.dst_addr.s_addr) == nullptr)) {
+          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (not routable prefix)";
           return false;
         }
         return true;
@@ -156,6 +164,7 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
     BOOST_LOG_TRIVIAL(trace) << "Sending probe " << probe;
     sender->send(probe, config.n_packets);
     probes_sent++;
+    // TODO: Periodicaly log stats.
   }
 
   log_stats();
