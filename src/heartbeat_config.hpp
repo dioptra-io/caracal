@@ -195,7 +195,7 @@ class HeartbeatConfigBuilder {
 inline std::ostream& operator<<(std::ostream& os, HeartbeatConfig const& v) {
   os << "HeartbeatConfig{";
   os << "\n\tinput_file=" << v.input_file.value_or("");
-  os << "\n\toutput_file=" << v.output_file;
+  os << ",\n\toutput_file=" << v.output_file;
   os << ",\n\tstart_time_log_file=" << v.start_time_log_file.value_or("");
   if (v.max_probes) {
     os << ",\n\tmax_probes=" << v.max_probes.value();
@@ -206,20 +206,20 @@ inline std::ostream& operator<<(std::ostream& os, HeartbeatConfig const& v) {
   os << ",\n\tprotocol=" << v.protocol;
   os << ",\n\tinterface=" << v.interface.name() << ":"
      << v.interface.ipv4_address();
-  os << "\n\tbgp_filter_file=" << v.bgp_filter_file.value_or("");
-  os << "\n\tprefix_excl_file=" << v.prefix_excl_file.value_or("");
-  os << "\n\tprefix_incl_file=" << v.prefix_incl_file.value_or("");
+  os << ",\n\tbgp_filter_file=" << v.bgp_filter_file.value_or("");
+  os << ",\n\tprefix_excl_file=" << v.prefix_excl_file.value_or("");
+  os << ",\n\tprefix_incl_file=" << v.prefix_incl_file.value_or("");
   if (v.filter_min_ip) {
-    os << "\n\tmin_ip=" << v.filter_min_ip.value();
+    os << ",\n\tmin_ip=" << v.filter_min_ip.value();
   }
   if (v.filter_max_ip) {
-    os << "\n\tmax_ip=" << v.filter_max_ip.value();
+    os << ",\n\tmax_ip=" << v.filter_max_ip.value();
   }
   if (v.filter_min_ttl) {
-    os << "\n\tmin_ttl=" << v.filter_min_ttl.value();
+    os << ",\n\tmin_ttl=" << v.filter_min_ttl.value();
   }
   if (v.filter_max_ttl) {
-    os << "\n\tmax_ttl=" << v.filter_max_ttl.value();
+    os << ",\n\tmax_ttl=" << v.filter_max_ttl.value();
   }
   os << "\n}";
   return os;

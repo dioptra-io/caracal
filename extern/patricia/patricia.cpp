@@ -1026,9 +1026,15 @@ int Patricia::matchingPrefix(const char *string) {
 int Patricia::parsePrefix(char *_line, std::string *net) {
     std::string line(_line);
     std::string::size_type first, last;
-    first = line.find_first_not_of(' ');
+    first = line.find_first_of("0123456789");
     last = line.find_last_not_of(' ');
+    last = line.find_last_of("0123456789");
     *net = line.substr(first,last);
+    *net = line.substr(first,last-first+1);
+    if (net->find_first_not_of("0123456789./") != std::string::npos) {
+        std::cerr << "Badly formed block prefix: [" << *net << "]" << std::endl;
+        exit(-1);
+    }
     return 1;
 }
 
