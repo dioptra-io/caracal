@@ -121,7 +121,7 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
         // Temporary safeguard, until we cleanup packets_utils.
         // "TTL >= 32 are not supported, the probe will not be sent: "
         if (p.ttl >= 32) {
-            BOOST_LOG_TRIVIAL(warning) << "Filtered probe " << p << " (TTL >= 32 are not supported)";
+            BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL >= 32 are not supported)";
             return false;
         }
         return true;
