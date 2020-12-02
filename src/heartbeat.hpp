@@ -20,6 +20,7 @@
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
+using std::chrono::seconds;
 using std::chrono::steady_clock;
 
 inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
@@ -85,9 +86,12 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
   auto probes_sent = 0;
   auto start_time = steady_clock::now();
 
-  auto log_stats = [&] {
+  auto log_stats = [&](int min_seconds) {
     auto now = steady_clock::now();
     auto delta = duration_cast<microseconds>(now - start_time);
+    if (delta < seconds(min_seconds)) {
+      return;
+    }
     BOOST_LOG_TRIVIAL(info) << "Sent " << probes_sent << " probes ("
                             << probes_sent * config.n_packets << " packets) in "
                             << delta.count() / (1000.0 * 1000.0) << " seconds ("
@@ -112,7 +116,7 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
   // clang-format off
   auto probes = ranges::getlines(is)
     | ranges::views::transform(Probe::from_csv)
-    | ranges::views::take(config.max_probes.value_or(1000000)) // TODO
+    | ranges::views::take(config.max_probes.value_or(100000000000)) // TODO: More than 100B?
     | ranges::views::filter([&](const Probe& p) {
         // Temporary safeguard, until we cleanup packets_utils.
         // "TTL >= 32 are not supported, the probe will not be sent: "
@@ -164,10 +168,10 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
     BOOST_LOG_TRIVIAL(trace) << "Sending probe " << probe;
     sender->send(probe, config.n_packets);
     probes_sent++;
-    // TODO: Periodicaly log stats.
+    log_stats(5);
   }
 
-  log_stats();
+  log_stats(0);
 
   BOOST_LOG_TRIVIAL(info) << "Waiting 5s to allow the sniffer to get the last "
                              "flying responses... Press CTRL+C to exit now.";
