@@ -117,6 +117,10 @@ pf_ring_sender_t::pf_ring_sender_t(int family, const std::string &protocol,
     m_start_time_log_file.precision(17);
     std::cout.precision(17);
   }
+
+  gettimeofday(&m_now, NULL);
+  gettimeofday(&m_start, NULL);
+  dump_reference_time();
 }
 
 void pf_ring_sender_t::send(const Probe &probe, int n_packets) {
@@ -141,34 +145,7 @@ void pf_ring_sender_t::send(const Probe &probe, int n_packets) {
   //    m_ip_template.id(ttl);
   //    static_cast<UDP*> (m_ip_template.inner_pdu())->dport(flow_id);
 
-  // TODO
-  // if (m_n_packets_sent == 0) {
-  // gettimeofday(&m_start, NULL);
-  // // std::cout << "Start time set to: " << m_start.tv_sec << "." <<
-  // // m_start.tv_usec << " seconds since epoch." << "\n";
-  // m_start_time_log_file << m_start.tv_sec << "." << m_start.tv_usec
-  //                       << std::endl;
-  // }
-
   if ((m_now.tv_sec - m_start.tv_sec) >= time_interval) {
-    //        if (m_n_packets_sent > n_interval * time_interval *
-    //        packets_per_second_threshold){
-    //            std::cout << "Error rate is above the limit" << std::endl;
-    //            std::cout << m_n_packets_sent << " packets sent." <<
-    //            std::endl; std::cout << n_interval * time_interval *
-    //            packets_per_second_threshold << " theoretical packets sent."
-    //            <<  std::endl; if (m_n_packets_sent > 1.5 * n_interval *
-    //            time_interval * packets_per_second_threshold){
-    //                exit(1);
-    //            }
-    //        }
-    //        std::cout << m_n_packets_sent << std::endl;
-    //        std::cout << getticks() << " ticks." << std::endl;
-    //        std::cout << m_n_packets_sent << " packets sent." <<  std::endl;
-    //        std::cout << n_interval * time_interval *
-    //        packets_per_second_threshold << " theoretical packets sent." <<
-    //        std::endl;
-    //        ++n_interval;
     dump_reference_time();
   }
 
@@ -260,9 +237,8 @@ void pf_ring_sender_t::dump_reference_time() {
   gettimeofday(&m_start, NULL);
   double seconds_since_epoch =
       m_start.tv_sec + static_cast<double>(m_start.tv_usec) / 1000000;
-
-  // BOOST_LOG_TRIVIAL(info) << std::fixed
-  //                         << "Start time set to: " << seconds_since_epoch
-  //                         << " seconds since epoch.";
+  BOOST_LOG_TRIVIAL(trace) << std::fixed
+                           << "Start time set to: " << seconds_since_epoch
+                           << " seconds since epoch.";
   m_start_time_log_file << std::fixed << seconds_since_epoch << std::endl;
 }

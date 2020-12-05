@@ -36,7 +36,7 @@ class RateLimiter {
   static bool test(unsigned int target_rate) {
     RateLimiter rl{target_rate};
     auto start = steady_clock::now();
-    for (int i = 0; i < target_rate; i++) {
+    for (unsigned int i = 0; i < target_rate; i++) {
       rl.wait();
     }
     auto delta = duration_cast<milliseconds>(steady_clock::now() - start);

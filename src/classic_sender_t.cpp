@@ -134,6 +134,10 @@ classic_sender_t::classic_sender_t(uint8_t family, const std::string &protocol,
     m_start_time_log_file.precision(17);
     std::cout.precision(17);
   }
+
+  gettimeofday(&m_now, NULL);
+  gettimeofday(&m_start, NULL);
+  dump_reference_time();
 }
 
 void classic_sender_t::send(const Probe &probe, int n_packets) {
@@ -156,12 +160,8 @@ void classic_sender_t::send(const Probe &probe, int n_packets) {
   //    m_ip_template.id(ttl);
   //    static_cast<UDP*> (m_ip_template.inner_pdu())->dport(flow_id);
 
-  // TODO: Dump ref. time.
-  dump_reference_time();
-
   // Reset the timestamp if m_now is passed a certain window
   if ((m_now.tv_sec - m_start.tv_sec) >= time_interval) {
-    // TODO: Dump ref. time.
     dump_reference_time();
   }
 
@@ -238,9 +238,8 @@ void classic_sender_t::dump_reference_time() {
   gettimeofday(&m_start, NULL);
   double seconds_since_epoch =
       m_start.tv_sec + static_cast<double>(m_start.tv_usec) / 1000000;
-
-  // BOOST_LOG_TRIVIAL(debug) << std::fixed
-  //                          << "Start time set to: " << seconds_since_epoch
-  //                          << " seconds since epoch.";
+  BOOST_LOG_TRIVIAL(trace) << std::fixed
+                           << "Start time set to: " << seconds_since_epoch
+                           << " seconds since epoch.";
   m_start_time_log_file << std::fixed << seconds_since_epoch << std::endl;
 }

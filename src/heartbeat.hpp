@@ -83,7 +83,7 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
         config.start_time_log_file);
   }
 
-  auto probes_sent = 0;
+  unsigned long long int probes_sent = 0;
   auto start_time = steady_clock::now();
 
   auto log_stats = [&] {
