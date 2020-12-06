@@ -5,7 +5,7 @@
 #include <chrono>
 #include <memory>
 #include <patricia.hpp>
-#include <range/v3/all.hpp>
+// #include <range/v3/all.hpp>
 #include <tuple>
 
 #include "classic_sender_t.hpp"
@@ -111,66 +111,80 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
     std::ios::sync_with_stdio(false);
   }
 
-  // clang-format off
-  auto probes = ranges::getlines(is)
-    | ranges::views::transform(Probe::from_csv)
-    | ranges::views::take(config.max_probes.value_or(100000000000)) // TODO: More than 100B?
-    | ranges::views::filter([&](const Probe& p) {
-        // TODO: Limit side-effects in this pipeline...
-        probes_read++;
-        // Temporary safeguard, until we cleanup packets_utils.
-        // "TTL >= 32 are not supported, the probe will not be sent: "
-        if (p.ttl >= 32) {
-            BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL >= 32 are not supported)";
-            return false;
-        }
-        return true;
-      })
-    | ranges::views::filter([&](const Probe& p) {
-        if (config.filter_min_ttl && (p.ttl < config.filter_min_ttl.value())) {
-          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL too low)";
-          return false;
-        }
-        if (config.filter_max_ttl && (p.ttl > config.filter_max_ttl.value())) {
-          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL too high)";
-          return false;
-        }
-        // TODO: Cleanup this.
-        if (config.filter_min_ip && (p.dst_addr.s_addr < uint32_t(config.filter_min_ip.value()))) {
-          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (destination address too low)";
-          return false;
-        }
-        if (config.filter_max_ip && (p.dst_addr.s_addr > uint32_t(config.filter_max_ip.value()))) {
-          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (destination address too high)";
-          return false;
-        }
-        // Do not send probes to excluded prefixes (deny list).
-        if (config.prefix_excl_file && (prefix_excl_trie.get(p.dst_addr.s_addr) != nullptr)) {
-          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (excluded prefix)";
-          return false;
-        }
-        // Do not send probes to *not* included prefixes.
-        // i.e. send probes only to included prefixes (allow list).
-        if (config.prefix_incl_file && (prefix_incl_trie.get(p.dst_addr.s_addr) == nullptr)) {
-          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (not included prefix)";
-          return false;
-        }
-        // Do not send probes to un-routed destinations.
-        if (config.bgp_filter_file && (bgp_filter_trie.get(p.dst_addr.s_addr) == nullptr)) {
-          BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (not routable prefix)";
-          return false;
-        }
-        return true;
-      });
-  // clang-format on
+  std::string line;
 
-  for (auto probe : probes) {
-    BOOST_LOG_TRIVIAL(trace) << "Sending probe " << probe;
-    sender->send(probe, config.n_packets);
+  while (std::getline(is, line)) {
+    Probe p = Probe::from_csv(line);
+    probes_read++;
+
+    // Temporary safeguard, until we cleanup packets_utils.
+    if (p.ttl >= 32) {
+      BOOST_LOG_TRIVIAL(trace)
+          << "Filtered probe " << p << " (TTL >= 32 are not supported)";
+      continue;
+    }
+
+    // TTL filter
+    if (config.filter_min_ttl && (p.ttl < config.filter_min_ttl.value())) {
+      BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL too low)";
+      continue;
+    }
+    if (config.filter_max_ttl && (p.ttl > config.filter_max_ttl.value())) {
+      BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL too high)";
+      continue;
+    }
+
+    // IP filter
+    // TODO: Cleanup this.
+    if (config.filter_min_ip &&
+        (p.dst_addr.s_addr < uint32_t(config.filter_min_ip.value()))) {
+      BOOST_LOG_TRIVIAL(trace)
+          << "Filtered probe " << p << " (destination address too low)";
+      continue;
+    }
+    if (config.filter_max_ip &&
+        (p.dst_addr.s_addr > uint32_t(config.filter_max_ip.value()))) {
+      BOOST_LOG_TRIVIAL(trace)
+          << "Filtered probe " << p << " (destination address too high)";
+      continue;
+    }
+
+    // Prefix filter
+    // Do not send probes to excluded prefixes (deny list).
+    if (config.prefix_excl_file &&
+        (prefix_excl_trie.get(p.dst_addr.s_addr) != nullptr)) {
+      BOOST_LOG_TRIVIAL(trace)
+          << "Filtered probe " << p << " (excluded prefix)";
+      continue;
+    }
+    // Do not send probes to *not* included prefixes.
+    // i.e. send probes only to included prefixes (allow list).
+    if (config.prefix_incl_file &&
+        (prefix_incl_trie.get(p.dst_addr.s_addr) == nullptr)) {
+      BOOST_LOG_TRIVIAL(trace)
+          << "Filtered probe " << p << " (not included prefix)";
+      continue;
+    }
+    // Do not send probes to un-routed destinations.
+    if (config.bgp_filter_file &&
+        (bgp_filter_trie.get(p.dst_addr.s_addr) == nullptr)) {
+      BOOST_LOG_TRIVIAL(trace)
+          << "Filtered probe " << p << " (not routable prefix)";
+      continue;
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "Sending probe " << p;
+    sender->send(p, config.n_packets);
     probes_sent++;
-    // Log every ~15 seconds.
-    if ((probes_sent % (15 * config.probing_rate)) == 0) {
+
+    // Log every ~10 seconds.
+    if ((probes_sent % (10 * config.probing_rate)) == 0) {
       log_stats();
+    }
+
+    if (config.max_probes && (probes_sent >= config.max_probes.value())) {
+      BOOST_LOG_TRIVIAL(trace) << "max_probes reached, exiting...";
+      break;
     }
   }
 
