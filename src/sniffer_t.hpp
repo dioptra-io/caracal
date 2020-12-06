@@ -6,8 +6,14 @@
 #include <filesystem>
 #include <string>
 #include <thread>
+#include <unordered_set>
 
 namespace fs = std::filesystem;
+
+struct SnifferStatistics {
+  std::unordered_set<uint32_t> icmp_messages;
+  unsigned long long int received_count;
+};
 
 class sniffer_t {
  public:
@@ -16,10 +22,11 @@ class sniffer_t {
   void start();
   void stop();
   int received_count() const;
+  int icmp_distinct_count() const;
 
  private:
   Tins::Sniffer m_sniffer;
   Tins::PacketWriter m_packet_writer;
   std::thread m_thread;
-  std::atomic<int> m_received_count;
+  SnifferStatistics m_statistics;
 };

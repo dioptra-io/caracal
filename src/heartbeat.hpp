@@ -83,21 +83,22 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
         config.start_time_log_file);
   }
 
+  unsigned long long int probes_read = 0;
   unsigned long long int probes_sent = 0;
   auto start_time = steady_clock::now();
 
   auto log_stats = [&] {
     auto now = steady_clock::now();
     auto delta = duration_cast<microseconds>(now - start_time);
-    BOOST_LOG_TRIVIAL(info) << "Sent " << probes_sent << " probes ("
-                            << probes_sent * config.n_packets << " packets) in "
-                            << delta.count() / (1000.0 * 1000.0) << " seconds ("
-                            << (probes_sent * config.n_packets) /
-                                   (delta.count() / (1000.0 * 1000.0))
-                            << " packets/s)";
-
     BOOST_LOG_TRIVIAL(info)
-        << "Received " << sniffer.received_count() << " packets";
+        << "probes_read=" << probes_read << " probes_sent=" << probes_sent
+        << " packets_sent=" << probes_sent * config.n_packets
+        << " packets_rate="
+        << (probes_sent * config.n_packets) /
+               (delta.count() / (1000.0 * 1000.0));
+    BOOST_LOG_TRIVIAL(info)
+        << "total_received=" << sniffer.received_count()
+        << " icmp_distinct=" << sniffer.icmp_distinct_count();
   };
 
   std::ifstream input_file;
@@ -115,6 +116,8 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
     | ranges::views::transform(Probe::from_csv)
     | ranges::views::take(config.max_probes.value_or(100000000000)) // TODO: More than 100B?
     | ranges::views::filter([&](const Probe& p) {
+        // TODO: Limit side-effects in this pipeline...
+        probes_read++;
         // Temporary safeguard, until we cleanup packets_utils.
         // "TTL >= 32 are not supported, the probe will not be sent: "
         if (p.ttl >= 32) {
