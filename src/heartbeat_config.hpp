@@ -154,7 +154,6 @@ class HeartbeatConfigBuilder {
     }
 
     // TODO: Destination port parameter?
-    // TODO: min/max IP/TTL
     return HeartbeatConfig{m_input_file,
                            m_output_file.value(),
                            m_start_time_log_file,

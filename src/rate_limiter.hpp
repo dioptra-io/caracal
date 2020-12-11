@@ -8,6 +8,8 @@ using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
 using std::chrono::steady_clock;
 
+// TODO: Less intensive wait() using nanosleep?
+
 class RateLimiter {
  public:
   explicit RateLimiter(unsigned int target_rate)

@@ -27,7 +27,7 @@ TEST_CASE("RateLimiter") {
     });
     // NOTE: We use `.count()` to allow Catch2 to show
     // the values if the assertion fails.
-    REQUIRE(delta.count() >= milliseconds{500}.count());
+    REQUIRE(delta.count() >= milliseconds{450}.count());
     REQUIRE(delta.count() <= milliseconds{1000}.count());
   }
 
@@ -37,7 +37,7 @@ TEST_CASE("RateLimiter") {
         rl.wait();
       }
     });
-    REQUIRE(delta.count() >= milliseconds{1500}.count());
+    REQUIRE(delta.count() >= milliseconds{1250}.count());
     REQUIRE(delta.count() <= milliseconds{2000}.count());
   }
 }
