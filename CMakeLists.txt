@@ -6,7 +6,6 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
 find_package(Boost REQUIRED COMPONENTS log log_setup program_options)
 find_package(Catch2 REQUIRED)
-find_package(Cperm REQUIRED)
 find_package(Patricia REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(RangeV3 REQUIRED)
@@ -28,7 +27,6 @@ target_link_libraries(
   diamond-miner-prober-lib
   PUBLIC Boost::log
          Boost::log_setup
-         Cperm::Cperm
          Patricia::Patricia
          PkgConfig::Tins
          RangeV3::RangeV3
@@ -67,9 +65,8 @@ if(WITH_TESTS)
 
   add_executable(
     diamond-miner-prober-tests
-    src/tests.cpp src/sources/csv_test.cpp src/heartbeat_test.cpp
-    src/probe_test.cpp src/random_permutation_test.cpp
-    src/rate_limiter_test.cpp)
+    src/tests.cpp src/heartbeat_test.cpp src/packet_parser_test.cpp
+    src/probe_test.cpp src/rate_limiter_test.cpp src/timestamp_test.cpp)
   target_link_libraries(diamond-miner-prober-tests
                         PUBLIC Catch2::Catch2 diamond-miner-prober-lib)
   target_compile_features(diamond-miner-prober-tests PUBLIC cxx_std_17)
