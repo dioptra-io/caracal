@@ -359,6 +359,7 @@ Clear_Patricia (patricia_tree_t *patricia)
             else {
                 assert (Xrn->data == NULL);
             }
+            free (Xrn->user1);
             free (Xrn);
             patricia->num_active_node--;
 

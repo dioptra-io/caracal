@@ -140,6 +140,10 @@ public:
 
     };
 
+    ~Patricia() {
+        Destroy_Patricia(tree);
+    }
+
 
     template <typename Type> patricia_node_t *add_ref(const char *string, Type *val) {
         prefix_t *prefix = ascii2prefix(AF_INET, string);
