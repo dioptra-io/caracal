@@ -231,7 +231,7 @@ void classic_sender_t::send(const Probe &probe, int n_packets) {
 
 classic_sender_t::~classic_sender_t() {
   m_start_time_log_file.close();
-  delete m_buffer;
+  free(m_buffer);
 }
 
 void classic_sender_t::dump_reference_time() {
