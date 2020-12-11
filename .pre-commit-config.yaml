@@ -6,10 +6,10 @@ repos:
   hooks:
     - id: clang-format
       args: ["--style=Google"]
-    # - id: cpplint
-    #   args: ["--filter=-build/c++11,-build/include_order,-legal/copyright,-readability/todo,-whitespace/line_length"]
-    # - id: cppcheck
-    #   args: ["-DWITH_PF_RING"]
+    - id: cpplint
+      args: ["--filter=-build/c++11,-build/include_order,-legal/copyright,-readability/todo,-whitespace/line_length"]
+    - id: cppcheck
+      args: ["-DWITH_PF_RING"]
 
 - repo: https://github.com/cheshirekow/cmake-format-precommit
   rev: v0.6.13
@@ -26,3 +26,4 @@ repos:
     - id: end-of-file-fixer
     - id: check-yaml
     - id: check-added-large-files
+      exclude: ^data/*
