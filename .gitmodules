@@ -1,6 +1,3 @@
 [submodule "extern/Catch2"]
 	path = extern/Catch2
 	url = https://github.com/catchorg/Catch2.git
-[submodule "extern/range-v3"]
-	path = extern/range-v3
-	url = https://github.com/ericniebler/range-v3.git

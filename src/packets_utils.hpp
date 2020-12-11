@@ -1,53 +1,212 @@
 #pragma once
 
-#include <tins/hw_address.h>
+#include <net/ethernet.h>
+#include <netinet/ip.h>
 
-#include <cstddef>  // std::size_t
-#include <cstdint>
-#include <string>
+#include <iostream>
 
-class packets_utils {
- public:
-  /*
-   * Ethernet functions
-   */
-  static void init_ethernet_header(uint8_t *buffer, int family,
-                                   const Tins::HWAddress<6> &hw_source,
-                                   const Tins::HWAddress<6> &hw_gateway);
-  /*
-   * IP functions
-   */
-  static void init_ip_header(uint8_t *buffer, uint8_t ip_proto,
-                             uint32_t uint_src_addr);
-  static void complete_ip_header(uint8_t *ip_buffer, uint32_t destination,
-                                 uint8_t ttl, uint8_t proto,
-                                 uint16_t payload_len);
-  static void adjust_payload_len(uint8_t *ip_buffer, uint16_t checksum,
-                                 uint8_t proto);
+#include "network_utils_t.hpp"
+#include "timestamp.hpp"
 
-  /*
-   * UDP functions
-   */
-  static void init_udp_header(uint8_t *transport_buffer, uint16_t payload_len);
-  static void add_udp_length(uint8_t *transport_buffer,
-                             uint16_t payload_length);
-  static void add_udp_ports(uint8_t *transport_buffer, uint16_t sport,
-                            uint16_t dport);
+using Tins::HWAddress;
+using utils::compact_ip_hdr;
+using utils::in_cksum;
+using utils::one_s_complement_bits32_sum_to_16;
+using utils::pseudo_header;
+using utils::pseudo_header_udp;
+using utils::sum;
+using utils::tcphdr;
+using utils::udphdr;
+using utils::wrapsum;
 
-  static void add_transport_checksum(uint8_t *transport_buffer,
-                                     uint8_t *ip_buffer, uint8_t proto,
-                                     char *payload, uint16_t payload_len);
+namespace packets_utils {
 
-  static void add_udp_timestamp(uint8_t *transport_buffer, uint8_t *ip_buffer,
-                                std::size_t payload_len, timeval &start,
-                                timeval &now);
+inline void init_ethernet_header(uint8_t *buffer, int family,
+                                 const HWAddress<6> &hw_source,
+                                 const HWAddress<6> &hw_gateway) {
+  auto l2_len = sizeof(ether_header);
+  ether_header *ethernet_header = reinterpret_cast<ether_header *>(buffer);
 
-  /*
-   * TCP functions
-   */
-  static void init_tcp_header(uint8_t *transport_buffer);
-  static void add_tcp_ports(uint8_t *transport_buffer, uint16_t sport,
-                            uint16_t dport);
-  static void add_tcp_timestamp(uint8_t *transport_buffer, timeval &start,
-                                timeval &now, uint8_t ttl);
-};
+  for (std::size_t i = 0; i < hw_gateway.size(); ++i) {
+    ethernet_header->ether_dhost[i] = hw_gateway[i];
+    ethernet_header->ether_shost[i] = hw_source[i];
+  }
+
+  std::cout << "Mac source set to " << hw_source << "\n";
+  std::cout << "Mac destination set to " << hw_gateway << "\n";
+
+  if (family == AF_INET6) {
+    buffer[l2_len - 2] = 0x86;
+    buffer[l2_len - 1] = 0xDD;
+  } else if (family == AF_INET) {
+    buffer[l2_len - 2] = 0x08;
+    buffer[l2_len - 1] = 0x00;
+  }
+}
+
+inline void init_ip_header(uint8_t *buffer, uint8_t ip_proto,
+                           uint32_t uint_src_addr) {
+  compact_ip_hdr *ip_header = reinterpret_cast<compact_ip_hdr *>(buffer);
+  ip_header->ip_hl = 5;
+  ip_header->ip_v = 4;
+  ip_header->ip_tos = 0;
+
+  //    ip_header->ip_off = htons(0);
+  //    m_ip_hdr.ip_id = htons(54321);
+  //    m_ip_hdr.ip_ttl = 64; // hops
+  ip_header->ip_p = ip_proto;  // Transport protocol
+
+  ip_header->ip_src = uint_src_addr;
+}
+
+inline void init_tcp_header(uint8_t *transport_buffer) {
+  tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
+
+  tcp_header->th_ack = 0;
+  tcp_header->th_off = 5;
+  // Do not send TCP SYN because of SYN Flood, do not put any TCP flags
+  //    tcp_header->th_flags |= TH_SYN;
+  //    tcp_header->th_flags |= TH_ACK;
+  tcp_header->th_x2 = 0;
+  tcp_header->th_flags = 0;
+  tcp_header->th_win = htons(50);
+  //    tcp_header->th_chksum = 0; // Fill later
+  tcp_header->th_urp = 0;
+}
+
+inline void complete_ip_header(uint8_t *ip_buffer, uint32_t destination,
+                               uint8_t ttl, uint8_t proto,
+                               uint16_t payload_len) {
+  compact_ip_hdr *ip_header = reinterpret_cast<compact_ip_hdr *>(ip_buffer);
+  ip_header->ip_dst = destination;
+  ip_header->ip_ttl = ttl;
+  ip_header->ip_id = htons(ttl);
+
+  // Encode 16 last bits of the IP address in IP checksum to avoid NATs
+  //    uint16_t lsb_16_destination = n_last_bits(ntohl(destination), 16);
+  //    ip_header->ip_sum = lsb_16_destination;
+  //    adjust_payload_len(ip_buffer, lsb_16_destination, proto);
+
+  // Compute the payload length so that it has the good checksum.
+  if (proto == IPPROTO_UDP) {
+#ifdef __APPLE__
+
+    ip_header->ip_len = sizeof(ip) + sizeof(udphdr) + payload_len;
+#else
+    ip_header->ip_len = htons(sizeof(ip) + sizeof(udphdr) + payload_len);
+#endif
+  } else if (proto == IPPROTO_TCP) {
+#ifdef __APPLE__
+
+    ip_header->ip_len = sizeof(ip) + sizeof(tcphdr) + payload_len;
+#else
+    ip_header->ip_len = htons(sizeof(ip) + sizeof(tcphdr) + payload_len);
+#endif
+  }
+
+  // Reset the checksum before computation
+  ip_header->ip_sum = 0;
+
+  // Value of the checksum in big endian
+  ip_header->ip_sum =
+      wrapsum(in_cksum((unsigned char *)ip_header, sizeof(*ip_header), 0));
+}
+
+inline void add_udp_ports(uint8_t *transport_buffer, uint16_t sport,
+                          uint16_t dport) {
+  udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
+
+  udp_header->uh_sport = htons(sport);
+  udp_header->uh_dport = htons(dport);
+}
+
+inline void add_transport_checksum(uint8_t *transport_buffer,
+                                   uint8_t *ip_buffer, uint8_t proto,
+                                   char *payload, uint16_t payload_len) {
+  compact_ip_hdr *ip_header = reinterpret_cast<compact_ip_hdr *>(ip_buffer);
+  // Calculate the checksum for integrity
+  // Now the UDP checksum using the pseudo header
+  pseudo_header psh;
+  psh.source_address = ip_header->ip_src;
+  psh.dest_address = ip_header->ip_dst;
+  psh.placeholder = 0;
+  psh.protocol = proto;
+
+  if (proto == IPPROTO_UDP) {
+    udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
+    // Set this field later
+    udp_header->uh_sum = 0;
+    psh.transport_length = htons(sizeof(struct udphdr) + payload_len);
+    // Implementation to avoid memcpy system call
+    uint32_t pseudo_header_sum_16 =
+        sum(reinterpret_cast<uint16_t *>(&psh), sizeof(pseudo_header));
+    uint32_t udp_header_sum_16 =
+        sum(reinterpret_cast<uint16_t *>(udp_header), sizeof(udphdr));
+    uint32_t payload_sum_16 =
+        sum(reinterpret_cast<uint16_t *>(payload), payload_len);
+    //    udp_header->uh_sum = csum(reinterpret_cast<uint16_t *>(pseudogram) ,
+    //    psize);
+    udp_header->uh_sum = one_s_complement_bits32_sum_to_16(
+        pseudo_header_sum_16 + udp_header_sum_16 + payload_sum_16);
+
+    if (udp_header->uh_sum == 0) {
+      udp_header->uh_sum = 0xFFFF;
+    }
+
+  } else if (proto == IPPROTO_TCP) {
+    tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
+    tcp_header->th_sum = 0;
+    psh.transport_length = htons(sizeof(struct tcphdr) + payload_len);
+    // Implementation to avoid memcpy system call
+    uint32_t pseudo_header_sum_16 =
+        sum(reinterpret_cast<uint16_t *>(&psh), sizeof(pseudo_header));
+    uint32_t tcp_header_sum_16 =
+        sum(reinterpret_cast<uint16_t *>(tcp_header), sizeof(tcphdr));
+    uint32_t payload_sum_16 =
+        sum(reinterpret_cast<uint16_t *>(payload), payload_len);
+    //    udp_header->uh_sum = csum(reinterpret_cast<uint16_t *>(pseudogram) ,
+    //    psize);
+    tcp_header->th_sum = one_s_complement_bits32_sum_to_16(
+        pseudo_header_sum_16 + tcp_header_sum_16 + payload_sum_16);
+  }
+
+  //    int psize = sizeof(struct pseudo_header) + sizeof(struct udphdr) +
+  //    m_payload.size(); char pseudogram[psize];
+  //
+  //    memcpy(pseudogram , (char*) &psh , sizeof (struct pseudo_header));
+  //    memcpy(pseudogram + sizeof(struct pseudo_header) , udp_header ,
+  //    sizeof(struct udphdr) + m_payload.size());
+}
+
+inline void add_tcp_ports(uint8_t *transport_buffer, const uint16_t sport,
+                          const uint16_t dport) {
+  tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
+  tcp_header->th_sport = htons(sport);
+  tcp_header->th_dport = htons(dport);
+}
+
+inline void add_tcp_timestamp(uint8_t *transport_buffer,
+                              const uint64_t timestamp, const uint8_t ttl) {
+  tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
+  // The sequence number is 27 bits of diff time + 5 bits of ttl
+  uint32_t msb_ttl = static_cast<uint32_t>(ttl) << 27;
+  uint32_t seq_no = encode_timestamp(timestamp) + msb_ttl;
+  tcp_header->th_seq = htonl(seq_no);
+}
+
+inline void add_udp_length(uint8_t *transport_buffer,
+                           const uint16_t payload_length) {
+  udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
+  udp_header->len = htons(sizeof(udphdr) + payload_length);
+  // +2 because 2 bytes are minimum to be able to fully tweak the checksum
+}
+
+inline void add_udp_timestamp(uint8_t *transport_buffer,
+                              const uint64_t timestamp) {
+  udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
+  // TODO: Encode timestamp.
+  // udp_header->uh_sum = encode_timestamp(timestamp);
+  udp_header->uh_sum = 0;
+}
+
+}  // namespace packets_utils

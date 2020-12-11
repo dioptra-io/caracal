@@ -32,7 +32,7 @@ TEST_CASE("send_heartbeat") {
   HeartbeatConfigBuilder builder;
   builder.set_interface("lo");
   builder.set_input_file("zzz_input.csv");
-  builder.set_output_file("zzz_output.pcap");
+  builder.set_output_file_pcap("zzz_output.pcap");
   builder.set_prefix_excl_file("zzz_excl.csv");
   builder.set_prefix_incl_file("zzz_incl.csv");
   builder.set_filter_min_ip("0.0.0.0");

@@ -5,7 +5,7 @@
 #include <chrono>
 #include <memory>
 #include <patricia.hpp>
-// #include <range/v3/all.hpp>
+#include <string>
 #include <tuple>
 
 #include "classic_sender_t.hpp"
@@ -60,8 +60,8 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
   }
 
   // Sniffer
-  sniffer_t sniffer{config.interface, config.output_file,
-                    config.sniffer_buffer_size, 33434};
+  sniffer_t sniffer{config.interface, config.output_file_csv,
+                    config.output_file_pcap, config.sniffer_buffer_size, 33434};
   sniffer.start();
 
   // Sender
@@ -69,8 +69,7 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
 #ifdef WITH_PF_RING
   try {
     sender = std::make_unique<pf_ring_sender_t>(
-        AF_INET, config.protocol, config.interface, config.probing_rate,
-        config.start_time_log_file);
+        AF_INET, config.protocol, config.interface, config.probing_rate);
   } catch (const std::runtime_error& e) {
     BOOST_LOG_TRIVIAL(warning) << e.what();
   }
@@ -79,26 +78,26 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
     BOOST_LOG_TRIVIAL(info)
         << "PF_RING not available, using classical sender...";
     sender = std::make_unique<classic_sender_t>(
-        AF_INET, config.protocol, config.interface, config.probing_rate,
-        config.start_time_log_file);
+        AF_INET, config.protocol, config.interface, config.probing_rate);
   }
 
-  unsigned long long int probes_read = 0;
-  unsigned long long int probes_sent = 0;
+  uint64_t probes_read = 0;
+  uint64_t probes_sent = 0;
   auto start_time = steady_clock::now();
 
   auto log_stats = [&] {
     auto now = steady_clock::now();
     auto delta = duration_cast<microseconds>(now - start_time);
+    auto stats = sniffer.statistics();
     BOOST_LOG_TRIVIAL(info)
         << "probes_read=" << probes_read << " probes_sent=" << probes_sent
         << " packets_sent=" << probes_sent * config.n_packets
         << " packets_rate="
         << (probes_sent * config.n_packets) /
                (delta.count() / (1000.0 * 1000.0));
-    BOOST_LOG_TRIVIAL(info)
-        << "total_received=" << sniffer.received_count()
-        << " icmp_distinct=" << sniffer.icmp_distinct_count();
+    BOOST_LOG_TRIVIAL(info) << "total_received=" << stats.received_count
+                            << " icmp_distinct=" << stats.icmp_messages.size();
+    // TODO: distinct src_ip != inner_dst_ip;
   };
 
   std::ifstream input_file;
@@ -195,5 +194,5 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
   std::this_thread::sleep_for(std::chrono::milliseconds(5000));
   sniffer.stop();
 
-  return {probes_sent, sniffer.received_count()};
+  return {probes_sent, sniffer.statistics().received_count};
 }

@@ -39,7 +39,7 @@ RUN mkdir -p /tmp/build/debug && \
 
 RUN mkdir -p /tmp/build/release && \
     cd /tmp/build/release && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DWITH_PF_RING=ON ../.. && \
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_PF_RING=ON ../.. && \
     cmake --build . --parallel 8
 
 # Main

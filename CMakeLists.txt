@@ -8,7 +8,6 @@ find_package(Boost REQUIRED COMPONENTS log log_setup program_options)
 find_package(Catch2 REQUIRED)
 find_package(Patricia REQUIRED)
 find_package(PkgConfig REQUIRED)
-find_package(RangeV3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 pkg_check_modules(Tins REQUIRED IMPORTED_TARGET libtins)
@@ -19,19 +18,13 @@ configure_file(src/dminer_config.h.in dminer_config.h)
 
 # Library
 add_library(
-  diamond-miner-prober-lib
-  src/classic_sender_t.cpp src/network_utils_t.cpp src/packets_utils.cpp
-  src/parameters_utils_t.cpp src/sniffer_t.cpp src/timing_utils.cpp)
+  diamond-miner-prober-lib src/classic_sender_t.cpp src/network_utils_t.cpp
+                           src/parameters_utils_t.cpp src/sniffer_t.cpp)
 
 target_link_libraries(
   diamond-miner-prober-lib
-  PUBLIC Boost::log
-         Boost::log_setup
-         Patricia::Patricia
-         PkgConfig::Tins
-         RangeV3::RangeV3
-         Threads::Threads
-         ZLIB::ZLIB)
+  PUBLIC Boost::log Boost::log_setup Patricia::Patricia PkgConfig::Tins
+         Threads::Threads ZLIB::ZLIB)
 
 target_compile_features(diamond-miner-prober-lib PUBLIC cxx_std_17)
 target_compile_options(diamond-miner-prober-lib PUBLIC -DBOOST_LOG_DYN_LINK)

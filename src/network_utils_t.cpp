@@ -30,7 +30,7 @@ uint16_t one_s_complement_bits32_sum_to_16(uint32_t sum) {
   sum = (sum >> 16) + (sum & 0xFFFF);
   // Keep only the 16 last bits.
   sum += (sum >> 16);
-  return (unsigned short)(~sum);
+  return (uint16_t)(~sum);
 }
 
 uint32_t sum(uint16_t *buf, int nwords) {
@@ -57,7 +57,7 @@ uint32_t in_cksum(unsigned char *buf, unsigned nbytes, uint32_t sum) {
   uint32_t i;
 
   for (i = 0; i < (nbytes & ~1U); i += 2) {
-    sum += (u_int16_t)ntohs(*((u_int16_t *)(buf + i)));
+    sum += (uint16_t)ntohs(*(reinterpret_cast<uint16_t *>(buf + i)));
 
     if (sum > 0xFFFF) sum -= 0xFFFF;
   }

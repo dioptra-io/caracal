@@ -4,6 +4,6 @@
 
 class Sender {
  public:
-  virtual void send(const Probe& probe, int n_packets) = 0;
+  virtual void send(const Probe& probe, const int n_packets) = 0;
   virtual ~Sender() {}
 };

@@ -31,15 +31,15 @@ int main(int argc, char** argv) {
   general.add_options()
     ("help,h", "Show this message")
     ("input-file,i", po::value<string>()->value_name("file"), "File containing the probes to send")
-    ("output-file,o", po::value<string>()->value_name("file"), "File to which the captured replies will be written")
+    ("output-file-csv,o", po::value<string>()->value_name("file"), "File to which the captured replies will be written")
+    ("output-file-pcap", po::value<string>()->value_name("file"), "File to which the captured replies will be written")
     ("protocol,p", po::value<string>()->value_name("protocol")->default_value("udp"), "Protocol to use for probing (udp, tcp)")
     ("probing-rate,r", po::value<int>()->value_name("pps")->default_value(100), "Probing rate in packets per second")
     ("interface,z", po::value<string>()->value_name("interface"), "Interface from which to send the packets")
     ("sniffer-buffer-size,B", po::value<int>()->value_name("bytes")->default_value(2000000), "Size of the sniffer buffer (equivalent of -B option in tcpdump)")
     ("log-level,L", po::value<string>()->value_name("level")->default_value("info"), "Minimum log level (trace, debug, info, warning, error, fatal)")
     ("max-probes,P", po::value<int>()->value_name("count"), "Maximum number of probes to send (unlimited by default)")
-    ("n-packets,N", po::value<int>()->value_name("count")->default_value(1), "Number of packets to send per probe")
-    ("start-time-log-file,S", po::value<string>()->value_name("file"), "Logging file to record the starting time of the tool. Needed if record-timestamp is set.");
+    ("n-packets,N", po::value<int>()->value_name("count")->default_value(1), "Number of packets to send per probe");
 
   filters.add_options()
     ("filter-from-bgp-file", po::value<string>()->value_name("file"), "Do not send probes to un-routed destinations")
@@ -71,9 +71,14 @@ int main(int argc, char** argv) {
       builder.set_input_file(path);
     }
 
-    if (vm.count("output-file")) {
-      fs::path path{vm["output-file"].as<string>()};
-      builder.set_output_file(path);
+    if (vm.count("output-file-csv")) {
+      fs::path path{vm["output-file-csv"].as<string>()};
+      builder.set_output_file_csv(path);
+    }
+
+    if (vm.count("output-file-pcap")) {
+      fs::path path{vm["output-file-pcap"].as<string>()};
+      builder.set_output_file_pcap(path);
     }
 
     if (vm.count("protocol")) {
@@ -98,11 +103,6 @@ int main(int argc, char** argv) {
 
     if (vm.count("n-packets")) {
       builder.set_n_packets(vm["n-packets"].as<int>());
-    }
-
-    if (vm.count("start-time-log-file")) {
-      fs::path path{vm["start-time-log-file"].as<string>()};
-      builder.set_start_time_log_file(path);
     }
 
     if (vm.count("filter-from-bgp-file")) {

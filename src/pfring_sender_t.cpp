@@ -7,6 +7,7 @@
 
 #include <boost/log/trivial.hpp>
 #include <cerrno>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
 #include <optional>
@@ -15,22 +16,20 @@
 #include "packets_utils.hpp"
 #include "parameters_utils_t.hpp"
 #include "probe.hpp"
+#include "timestamp.hpp"
 
 namespace fs = std::filesystem;
 
+using std::chrono::system_clock;
 using utils::compact_ip_hdr;
 using utils::tcphdr;
 using utils::udphdr;
 
-pf_ring_sender_t::pf_ring_sender_t(int family, const std::string &protocol,
+pf_ring_sender_t::pf_ring_sender_t(const int family,
+                                   const std::string &protocol,
                                    const Tins::NetworkInterface iface,
-                                   const uint32_t pps,
-                                   const std::optional<fs::path> ofile)
-    : m_family{family},
-      m_payload("fr"),
-      m_rl(pps)
-//, m_payload("kevin.vermeulen@sorbonne-universite.fr")
-{
+                                   const uint32_t pps)
+    : m_family{family}, m_payload("fr"), m_rl(pps) {
   m_proto = -1;
   if (protocol == "udp") {
     m_proto = IPPROTO_UDP;
@@ -57,10 +56,11 @@ pf_ring_sender_t::pf_ring_sender_t(int family, const std::string &protocol,
   } else {
     u_int32_t version;
 
-    pfring_set_application_name(m_pf_ring, "pfsend");
+    char name[] = "pfsend";
+    pfring_set_application_name(m_pf_ring, name);
     pfring_version(m_pf_ring, &version);
 
-    printf("Using PF_RING v.%d.%d.%d\n", (version & 0xFFFF0000) >> 16,
+    printf("Using PF_RING v%d.%d.%d\n", (version & 0xFFFF0000) >> 16,
            (version & 0x0000FF00) >> 8, version & 0x000000FF);
   }
 
@@ -111,16 +111,6 @@ pf_ring_sender_t::pf_ring_sender_t(int family, const std::string &protocol,
     packets_utils::init_tcp_header(m_buffer + sizeof(ether_header) +
                                    sizeof(compact_ip_hdr));
   }
-
-  if (ofile) {
-    m_start_time_log_file.open(ofile.value());
-    m_start_time_log_file.precision(17);
-    std::cout.precision(17);
-  }
-
-  gettimeofday(&m_now, NULL);
-  gettimeofday(&m_start, NULL);
-  dump_reference_time();
 }
 
 void pf_ring_sender_t::send(const Probe &probe, int n_packets) {
@@ -130,8 +120,6 @@ void pf_ring_sender_t::send(const Probe &probe, int n_packets) {
   uint16_t sport = probe.src_port;
   uint16_t dport = probe.dst_port;
 
-  static uint32_t n_interval = 0;
-  uint32_t time_interval = 5;
   //    uint32_t monitoring_interval = 1;
   //    uint32_t packets_per_second_threshold = 100000;
   //    sockaddr_in m_dst_addr;
@@ -145,12 +133,10 @@ void pf_ring_sender_t::send(const Probe &probe, int n_packets) {
   //    m_ip_template.id(ttl);
   //    static_cast<UDP*> (m_ip_template.inner_pdu())->dport(flow_id);
 
-  if ((m_now.tv_sec - m_start.tv_sec) >= time_interval) {
-    dump_reference_time();
-  }
-
   packets_utils::complete_ip_header(m_buffer + sizeof(ether_header),
                                     destination.s_addr, ttl, m_proto, ttl + 2);
+
+  uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
 
   uint16_t buf_size = 0;
   if (m_proto == IPPROTO_UDP) {
@@ -162,19 +148,13 @@ void pf_ring_sender_t::send(const Probe &probe, int n_packets) {
     packets_utils::add_udp_length(m_buffer + sizeof(ether_header) + sizeof(ip),
                                   payload_length);
     packets_utils::add_udp_timestamp(
-        m_buffer + sizeof(ether_header) + sizeof(ip),
-        m_buffer + sizeof(ether_header), payload_length, m_start, m_now);
-    //        packets_utils::add_transport_checksum(m_buffer + sizeof(ip),
-    //        m_buffer, m_proto,
-    //                                              const_cast<char
-    //                                              *>(m_payload.c_str()),
-    //                                              static_cast<uint16_t>(m_payload.size()));
+        m_buffer + sizeof(ether_header) + sizeof(ip), timestamp);
     buf_size = sizeof(ether_header) + sizeof(compact_ip_hdr) + udp_length;
   } else if (m_proto == IPPROTO_TCP) {
     packets_utils::add_tcp_ports(m_buffer + sizeof(ether_header) + sizeof(ip),
                                  sport, dport);
     packets_utils::add_tcp_timestamp(
-        m_buffer + sizeof(ether_header) + sizeof(ip), m_start, m_now, ttl);
+        m_buffer + sizeof(ether_header) + sizeof(ip), timestamp, ttl);
     packets_utils::add_transport_checksum(
         m_buffer + sizeof(ether_header) + sizeof(ip),
         m_buffer + sizeof(ether_header), m_proto,
@@ -198,7 +178,8 @@ void pf_ring_sender_t::send(const Probe &probe, int n_packets) {
   for (int i = 0; i < n_packets; ++i) {
     auto rc = 0;
     while (rc <= 0) {
-      rc = pfring_send(m_pf_ring, (char *)m_buffer, buf_size, 0);
+      rc = pfring_send(m_pf_ring, reinterpret_cast<char *>(m_buffer), buf_size,
+                       0);
       if (rc <= 0) {
         // Buffer full, retry
         //                in_addr ip_addr;
@@ -224,21 +205,11 @@ void pf_ring_sender_t::send(const Probe &probe, int n_packets) {
 
   // Reset the checksum for future computation.
   compact_ip_hdr *ip_header =
-      (compact_ip_hdr *)(m_buffer + sizeof(ether_header));
+      reinterpret_cast<compact_ip_hdr *>(m_buffer + sizeof(ether_header));
   ip_header->ip_sum = 0;
 }
 
 pf_ring_sender_t::~pf_ring_sender_t() {
   delete[] m_buffer;
   pfring_close(m_pf_ring);
-}
-
-void pf_ring_sender_t::dump_reference_time() {
-  gettimeofday(&m_start, NULL);
-  double seconds_since_epoch =
-      m_start.tv_sec + static_cast<double>(m_start.tv_usec) / 1000000;
-  BOOST_LOG_TRIVIAL(trace) << std::fixed
-                           << "Start time set to: " << seconds_since_epoch
-                           << " seconds since epoch.";
-  m_start_time_log_file << std::fixed << seconds_since_epoch << std::endl;
 }

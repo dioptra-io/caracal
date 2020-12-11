@@ -20,4 +20,7 @@ TEST_CASE("timestamp") {
     auto dec = decode_timestamp(131069 + i, encode_timestamp(131069));
     REQUIRE(dec == 131069);
   }
+
+  // TODO: Test when the current clock is below the encoded clock.
+  // TODO: Test RTT recovery (sorted time from measurement time).
 }

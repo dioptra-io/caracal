@@ -14,9 +14,9 @@ namespace fs = std::filesystem;
 
 struct HeartbeatConfig {
   const optional<fs::path> input_file;
-  const fs::path output_file;
-  const optional<fs::path> start_time_log_file;
-  const optional<unsigned long long int> max_probes;
+  const optional<fs::path> output_file_csv;
+  const optional<fs::path> output_file_pcap;
+  const optional<uint64_t> max_probes;
   const int n_packets;
   const int probing_rate;
   const int sniffer_buffer_size;
@@ -40,9 +40,9 @@ class HeartbeatConfigBuilder {
     m_input_file = p;
   }
 
-  void set_output_file(const fs::path& p) { m_output_file = p; }
+  void set_output_file_csv(const fs::path& p) { m_output_file_csv = p; }
 
-  void set_start_time_log_file(const fs::path& p) { m_start_time_log_file = p; }
+  void set_output_file_pcap(const fs::path& p) { m_output_file_pcap = p; }
 
   void set_probing_rate(const int rate) {
     if (rate <= 0) {
@@ -68,7 +68,7 @@ class HeartbeatConfigBuilder {
     m_sniffer_buffer_size = size;
   }
 
-  void set_max_probes(const unsigned long long int count) {
+  void set_max_probes(const uint64_t count) {
     if (count <= 0) {
       throw std::domain_error("max_probes must be > 0");
     }
@@ -126,10 +126,6 @@ class HeartbeatConfigBuilder {
   }
 
   HeartbeatConfig build() const {
-    if (!m_output_file) {
-      throw std::invalid_argument("No output file provided");
-    }
-
     if (!m_protocol) {
       throw std::invalid_argument("No protocol specified");
     }
@@ -155,8 +151,8 @@ class HeartbeatConfigBuilder {
 
     // TODO: Destination port parameter?
     return HeartbeatConfig{m_input_file,
-                           m_output_file.value(),
-                           m_start_time_log_file,
+                           m_output_file_csv,
+                           m_output_file_pcap,
                            m_max_probes,
                            m_n_packets.value(),
                            m_probing_rate.value(),
@@ -174,13 +170,13 @@ class HeartbeatConfigBuilder {
 
  private:
   optional<fs::path> m_input_file;
-  optional<fs::path> m_output_file;
-  optional<fs::path> m_start_time_log_file;
+  optional<fs::path> m_output_file_csv;
+  optional<fs::path> m_output_file_pcap;
   optional<int> m_probing_rate;
   optional<string> m_protocol;
   optional<string> m_interface;
   optional<int> m_sniffer_buffer_size;
-  optional<unsigned long long int> m_max_probes;
+  optional<uint64_t> m_max_probes;
   optional<int> m_n_packets;
   optional<fs::path> m_bgp_filter_file;
   optional<fs::path> m_prefix_excl_file;
@@ -194,8 +190,8 @@ class HeartbeatConfigBuilder {
 inline std::ostream& operator<<(std::ostream& os, HeartbeatConfig const& v) {
   os << "HeartbeatConfig{";
   os << "\n\tinput_file=" << v.input_file.value_or("");
-  os << ",\n\toutput_file=" << v.output_file;
-  os << ",\n\tstart_time_log_file=" << v.start_time_log_file.value_or("");
+  os << ",\n\toutput_file_csv=" << v.output_file_csv.value_or("");
+  os << ",\n\toutput_file_pcap=" << v.output_file_pcap.value_or("");
   if (v.max_probes) {
     os << ",\n\tmax_probes=" << v.max_probes.value();
   }

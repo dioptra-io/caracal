@@ -2,31 +2,36 @@
 
 #include <tins/tins.h>
 
-#include <atomic>
 #include <filesystem>
+#include <fstream>
+#include <optional>
 #include <string>
 #include <thread>
 #include <unordered_set>
 
 namespace fs = std::filesystem;
 
+using std::optional;
+
 struct SnifferStatistics {
+  uint64_t received_count;
   std::unordered_set<uint32_t> icmp_messages;
-  unsigned long long int received_count;
 };
 
 class sniffer_t {
  public:
-  sniffer_t(const Tins::NetworkInterface interface, const fs::path ofile,
-            const int buffer_size, const uint16_t destination_port);
+  sniffer_t(const Tins::NetworkInterface interface,
+            const optional<fs::path> output_file_csv,
+            const optional<fs::path> output_file_pcap, const int buffer_size,
+            const uint16_t destination_port);
   void start();
   void stop();
-  int received_count() const;
-  int icmp_distinct_count() const;
+  const SnifferStatistics& statistics() const;
 
  private:
   Tins::Sniffer m_sniffer;
-  Tins::PacketWriter m_packet_writer;
-  std::thread m_thread;
   SnifferStatistics m_statistics;
+  std::ofstream m_output_csv;
+  std::optional<Tins::PacketWriter> m_output_pcap;
+  std::thread m_thread;
 };

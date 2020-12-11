@@ -2,19 +2,15 @@
 
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <unistd.h>
-
-#include <boost/log/trivial.hpp>
-#include <cerrno>
-#include <cmath>
-#include <iostream>
-// #include <netinet/udp.h> // udphdr
-#include <netinet/ip.h>  // ip
-// #include <netinet/tcp.h> // tcphdr
+#include <netinet/ip.h>
 #include <sys/time.h>
 #include <tins/tins.h>
 
+#include <boost/log/trivial.hpp>
+#include <cerrno>
+#include <chrono>
 #include <filesystem>
+#include <iostream>
 #include <optional>
 
 #include "network_utils_t.hpp"
@@ -22,17 +18,19 @@
 #include "parameters_utils_t.hpp"
 #include "pretty.hpp"
 #include "probe.hpp"
+#include "timestamp.hpp"
 
 namespace fs = std::filesystem;
 
+using std::chrono::system_clock;
 using utils::compact_ip_hdr;
 using utils::tcphdr;
 using utils::udphdr;
 
-classic_sender_t::classic_sender_t(uint8_t family, const std::string &protocol,
+classic_sender_t::classic_sender_t(const uint8_t family,
+                                   const std::string &protocol,
                                    const Tins::NetworkInterface interface,
-                                   const int pps,
-                                   const std::optional<fs::path> ofile)
+                                   const int pps)
     : m_socket(socket(family, SOCK_RAW, IPPROTO_RAW)),
       m_family(family),
       m_payload("AA"),
@@ -53,8 +51,8 @@ classic_sender_t::classic_sender_t(uint8_t family, const std::string &protocol,
     throw std::system_error(errno, std::generic_category(), "setsockopt");
   }
 
-  if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) ==
-      -1) {
+  if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR,
+                 reinterpret_cast<const char *>(&on), sizeof(on)) == -1) {
     BOOST_LOG_TRIVIAL(fatal)
         << "Error while calling setsockopt, try to run as root";
     throw std::system_error(errno, std::generic_category(),
@@ -123,28 +121,10 @@ classic_sender_t::classic_sender_t(uint8_t family, const std::string &protocol,
   } else if (m_proto == IPPROTO_TCP) {
     packets_utils::init_tcp_header(m_buffer + sizeof(compact_ip_hdr));
   }
-
-  // Set the payload later
-  //    char * data = nullptr;
-  //    data = reinterpret_cast<char *>(m_buffer + sizeof(compact_ip_hdr) +
-  //    transport_header_size); std::cout << m_payload << std::endl;
-  //    std::strncpy(data , m_payload.c_str(), m_payload.size());
-
-  if (ofile) {
-    m_start_time_log_file.open(ofile.value());
-    m_start_time_log_file.precision(17);
-    std::cout.precision(17);
-  }
-
-  gettimeofday(&m_now, NULL);
-  gettimeofday(&m_start, NULL);
-  dump_reference_time();
 }
 
 void classic_sender_t::send(const Probe &probe, int n_packets) {
-  uint32_t time_interval = 5;
-
-  // Temp
+  // TODO: Temp
   in_addr destination = probe.dst_addr;
   uint8_t ttl = probe.ttl;
   uint16_t sport = probe.src_port;
@@ -156,22 +136,12 @@ void classic_sender_t::send(const Probe &probe, int n_packets) {
   m_dst_addr.sin_addr = destination;
   m_dst_addr.sin_port = htons(dport);
 
-  //    m_ip_template.dst_addr(IPv4Address(destination));
-  //    m_ip_template.ttl(ttl);
-  //    m_ip_template.id(ttl);
-  //    static_cast<UDP*> (m_ip_template.inner_pdu())->dport(flow_id);
-
-  // Reset the timestamp if m_now is passed a certain window
-  if ((m_now.tv_sec - m_start.tv_sec) >= time_interval) {
-    dump_reference_time();
-  }
-
   // The payload len is the ttl + 2, the +2 is to be able to fully
   // tweak the checksum for the timestamp
   packets_utils::complete_ip_header(m_buffer, destination.s_addr, ttl, m_proto,
                                     ttl + 2);
 
-  // Compute payload len to
+  uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
 
   uint16_t buf_size = 0;
   if (m_proto == IPPROTO_UDP) {
@@ -180,19 +150,12 @@ void classic_sender_t::send(const Probe &probe, int n_packets) {
 
     packets_utils::add_udp_ports(m_buffer + sizeof(ip), sport, dport);
     packets_utils::add_udp_length(m_buffer + sizeof(ip), payload_length);
-    packets_utils::add_udp_timestamp(m_buffer + sizeof(ip), m_buffer,
-                                     payload_length, m_start, m_now);
-    //        packets_utils::add_transport_checksum(m_buffer + sizeof(ip),
-    //        m_buffer, m_proto,
-    //                                              const_cast<char
-    //                                              *>(m_payload.c_str()),
-    //                                              static_cast<uint16_t>(m_payload.size()));
+    packets_utils::add_udp_timestamp(m_buffer + sizeof(ip), timestamp);
     buf_size = sizeof(compact_ip_hdr) + udp_length;
 
   } else if (m_proto == IPPROTO_TCP) {
     packets_utils::add_tcp_ports(m_buffer + sizeof(ip), sport, dport);
-    packets_utils::add_tcp_timestamp(m_buffer + sizeof(ip), m_start, m_now,
-                                     ttl);
+    packets_utils::add_tcp_timestamp(m_buffer + sizeof(ip), timestamp, ttl);
     packets_utils::add_transport_checksum(
         m_buffer + sizeof(ip), m_buffer, m_proto,
         const_cast<char *>(m_payload.c_str()),
@@ -201,16 +164,8 @@ void classic_sender_t::send(const Probe &probe, int n_packets) {
     buf_size = sizeof(compact_ip_hdr) + sizeof(tcphdr) + m_payload.size();
   }
 
-  //    Tins::EthernetII test (m_buffer, sizeof(ether_header) + sizeof(ip) +
-  //    sizeof(udphdr) + m_payload.size()); std::cout << test.dst_addr() << ", "
-  //    << test.src_addr() << "\n"; auto ip_pdu = test.find_pdu<IP>(); std::cout
-  //    << ip_pdu->dst_addr() << ", " << ip_pdu->src_addr() << "\n";
-
-  //    PacketSender sender (NetworkInterface::default_interface());
-  //    sender.send(test);
-
-  // Send two packets so that we can spot the eventual per packet LB and
-  // anomalies.
+  // Optionnaly send two packets so that we can spot the eventual per packet LB
+  // and anomalies.
   for (int i = 0; i < n_packets; ++i) {
     BOOST_LOG_TRIVIAL(trace)
         << "Sending packet #" << i + 1 << " to " << m_dst_addr;
@@ -221,7 +176,7 @@ void classic_sender_t::send(const Probe &probe, int n_packets) {
       BOOST_LOG_TRIVIAL(error) << "Could not send packet to " << m_dst_addr
                                << ": " << strerror(errno);
     }
-    // Control the probing rate with active waiting to be precise
+    // Control the probing rate with active waiting to be precise.
     m_rl.wait();
   }
 
@@ -230,17 +185,4 @@ void classic_sender_t::send(const Probe &probe, int n_packets) {
   ip_header->ip_sum = 0;
 }
 
-classic_sender_t::~classic_sender_t() {
-  m_start_time_log_file.close();
-  delete[] m_buffer;
-}
-
-void classic_sender_t::dump_reference_time() {
-  gettimeofday(&m_start, NULL);
-  double seconds_since_epoch =
-      m_start.tv_sec + static_cast<double>(m_start.tv_usec) / 1000000;
-  BOOST_LOG_TRIVIAL(trace) << std::fixed
-                           << "Start time set to: " << seconds_since_epoch
-                           << " seconds since epoch.";
-  m_start_time_log_file << std::fixed << seconds_since_epoch << std::endl;
-}
+classic_sender_t::~classic_sender_t() { delete[] m_buffer; }
