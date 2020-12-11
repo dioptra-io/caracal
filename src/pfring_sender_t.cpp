@@ -96,7 +96,7 @@ pf_ring_sender_t::pf_ring_sender_t(int family, const std::string &protocol,
   // payload We will only send the number of needed bytes for payload.
   uint32_t buffer_size = sizeof(ether_header) + sizeof(compact_ip_hdr) +
                          transport_header_size + utils::max_ttl + 2;
-  m_buffer = reinterpret_cast<uint8_t *>(malloc(buffer_size));
+  m_buffer = new uint8_t[buffer_size];
   memset(m_buffer, 0, buffer_size);
   packets_utils::init_ethernet_header(m_buffer, family, hw_source, hw_gateway);
   packets_utils::init_ip_header(m_buffer + sizeof(ether_header), m_proto,
@@ -229,7 +229,7 @@ void pf_ring_sender_t::send(const Probe &probe, int n_packets) {
 }
 
 pf_ring_sender_t::~pf_ring_sender_t() {
-  delete m_buffer;
+  delete[] m_buffer;
   pfring_close(m_pf_ring);
 }
 

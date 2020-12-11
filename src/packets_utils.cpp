@@ -2,9 +2,7 @@
 
 #include <netinet/ip.h>  // ip
 
-#include <cmath>    // pow
-#include <cstdlib>  // malloc
-#include <cstring>  // memset
+#include <cmath>  // pow
 // #include <netinet/udp.h> // udphdr
 // #include <netinet/tcp.h> //tcphdr
 #include <assert.h>

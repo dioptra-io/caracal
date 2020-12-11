@@ -112,7 +112,8 @@ classic_sender_t::classic_sender_t(uint8_t family, const std::string &protocol,
   // payload We will only send the number of needed bytes for payload.
   uint32_t buffer_size =
       sizeof(compact_ip_hdr) + transport_header_size + utils::max_ttl + 2;
-  m_buffer = reinterpret_cast<uint8_t *>(malloc(buffer_size));
+
+  m_buffer = new uint8_t[buffer_size];
   memset(m_buffer, 0, buffer_size);
   packets_utils::init_ip_header(m_buffer, m_proto, uint_src_addr);
   if (m_proto == IPPROTO_UDP) {
@@ -231,7 +232,7 @@ void classic_sender_t::send(const Probe &probe, int n_packets) {
 
 classic_sender_t::~classic_sender_t() {
   m_start_time_log_file.close();
-  free(m_buffer);
+  delete[] m_buffer;
 }
 
 void classic_sender_t::dump_reference_time() {
