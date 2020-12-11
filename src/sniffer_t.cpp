@@ -40,7 +40,7 @@ sniffer_t::sniffer_t(const Tins::NetworkInterface interface,
   // m_sniffer.set_extract_raw_pdus(true);
 
   if (output_file_csv) {
-    m_output_csv.open(output_file_pcap.value());
+    m_output_csv.open(output_file_csv.value());
   }
 
   if (output_file_pcap) {
@@ -60,7 +60,7 @@ void sniffer_t::start() {
       BOOST_LOG_TRIVIAL(trace)
           << "Received ICMP message from " << reply.value().src_ip;
       m_statistics.icmp_messages.insert(reply.value().src_ip);
-      m_output_csv << reply.value().to_csv();
+      m_output_csv << reply.value().to_csv() << "\n";
     }
 
     if (m_output_pcap) {

@@ -32,6 +32,7 @@ TEST_CASE("send_heartbeat") {
   HeartbeatConfigBuilder builder;
   builder.set_interface("lo");
   builder.set_input_file("zzz_input.csv");
+  builder.set_output_file_csv("zzz_output.csv");
   builder.set_output_file_pcap("zzz_output.pcap");
   builder.set_prefix_excl_file("zzz_excl.csv");
   builder.set_prefix_incl_file("zzz_incl.csv");
@@ -87,5 +88,6 @@ TEST_CASE("send_heartbeat") {
   fs::remove("zzz_excl.csv");
   fs::remove("zzz_incl.csv");
   fs::remove("zzz_input.csv");
+  fs::remove("zzz_output.csv");
   fs::remove("zzz_output.pcap");
 }
