@@ -62,7 +62,9 @@ void sniffer_t::start() {
       BOOST_LOG_TRIVIAL(trace)
           << "Received ICMP message from " << reply.value().src_ip;
       m_statistics.icmp_messages.insert(reply.value().src_ip);
-      m_output_csv << reply.value().to_csv() << "," << m_meta_round.value_or("")
+      m_output_csv << reply.value().to_csv();
+      m_output_csv << "," << m_meta_round.value_or("1");
+      m_output_csv << ",1"
                    << "\n";
     }
 
