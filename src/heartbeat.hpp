@@ -77,15 +77,15 @@ inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
         AF_INET, config.protocol, config.interface, config.probing_rate);
   }
 
+  // Statistics
   HeartbeatStatistics stats;
-
   auto log_stats = [&] {
     BOOST_LOG_TRIVIAL(info) << "packets_rate=" << sender->current_rate();
     BOOST_LOG_TRIVIAL(info) << stats;
     BOOST_LOG_TRIVIAL(info) << sniffer.statistics();
-    // TODO: distinct src_ip != inner_dst_ip;
   };
 
+  // Input
   std::ifstream input_file;
   std::istream& is = config.input_file ? input_file : std::cin;
 
@@ -96,8 +96,8 @@ inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
     std::ios::sync_with_stdio(false);
   }
 
+  // Loop
   std::string line;
-
   while (std::getline(is, line)) {
     Probe p = Probe::from_csv(line);
     stats.read++;
