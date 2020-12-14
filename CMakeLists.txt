@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(diamond-miner-prober VERSION 0.1.8)
+project(diamond-miner-prober VERSION 0.1.9)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
