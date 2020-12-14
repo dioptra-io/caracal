@@ -60,8 +60,9 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
   }
 
   // Sniffer
-  sniffer_t sniffer{config.interface, config.output_file_csv,
-                    config.output_file_pcap, config.sniffer_buffer_size, 33434};
+  sniffer_t sniffer{config.interface,        config.output_file_csv,
+                    config.output_file_pcap, config.sniffer_buffer_size,
+                    config.meta_round,       33434};
   sniffer.start();
 
   // Sender
@@ -189,9 +190,10 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
 
   log_stats();
 
-  BOOST_LOG_TRIVIAL(info) << "Waiting 5s to allow the sniffer to get the last "
+  BOOST_LOG_TRIVIAL(info) << "Waiting " << config.sniffer_wait_time
+                          << "s to allow the sniffer to get the last "
                              "flying responses... Press CTRL+C to exit now.";
-  std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+  std::this_thread::sleep_for(std::chrono::seconds(config.sniffer_wait_time));
   sniffer.stop();
 
   return {probes_sent, sniffer.statistics().received_count};

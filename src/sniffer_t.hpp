@@ -23,6 +23,7 @@ class sniffer_t {
   sniffer_t(const Tins::NetworkInterface interface,
             const optional<fs::path> output_file_csv,
             const optional<fs::path> output_file_pcap, const int buffer_size,
+            const optional<std::string> meta_round,
             const uint16_t destination_port);
   void start();
   void stop();
@@ -30,8 +31,9 @@ class sniffer_t {
 
  private:
   Tins::Sniffer m_sniffer;
-  SnifferStatistics m_statistics;
   std::ofstream m_output_csv;
+  std::optional<std::string> m_meta_round;
   std::optional<Tins::PacketWriter> m_output_pcap;
   std::thread m_thread;
+  SnifferStatistics m_statistics;
 };

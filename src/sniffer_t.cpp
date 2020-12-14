@@ -24,8 +24,10 @@ using Tins::SnifferConfiguration;
 sniffer_t::sniffer_t(const Tins::NetworkInterface interface,
                      const optional<fs::path> output_file_csv,
                      const optional<fs::path> output_file_pcap,
-                     const int buffer_size, const uint16_t destination_port)
-    : m_sniffer{interface.name()}, m_statistics{} {
+                     const int buffer_size,
+                     const optional<std::string> meta_round,
+                     const uint16_t destination_port)
+    : m_sniffer{interface.name()}, m_meta_round{meta_round}, m_statistics{} {
   std::string filter =
       "icmp or (src port " + std::to_string(destination_port) + ")";
   BOOST_LOG_TRIVIAL(info) << "Sniffer filter: " << filter;
@@ -60,7 +62,8 @@ void sniffer_t::start() {
       BOOST_LOG_TRIVIAL(trace)
           << "Received ICMP message from " << reply.value().src_ip;
       m_statistics.icmp_messages.insert(reply.value().src_ip);
-      m_output_csv << reply.value().to_csv() << "\n";
+      m_output_csv << reply.value().to_csv() << "," << m_meta_round.value_or("")
+                   << "\n";
     }
 
     if (m_output_pcap) {

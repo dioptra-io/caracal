@@ -13,209 +13,155 @@ using std::string;
 namespace fs = std::filesystem;
 
 struct HeartbeatConfig {
-  const optional<fs::path> input_file;
-  const optional<fs::path> output_file_csv;
-  const optional<fs::path> output_file_pcap;
-  const optional<uint64_t> max_probes;
-  const int n_packets;
-  const int probing_rate;
-  const int sniffer_buffer_size;
-  const string protocol;
-  const Tins::NetworkInterface interface;
-  const optional<fs::path> bgp_filter_file;
-  const optional<fs::path> prefix_excl_file;
-  const optional<fs::path> prefix_incl_file;
-  const optional<Tins::IPv4Address> filter_min_ip;
-  const optional<Tins::IPv4Address> filter_max_ip;
-  const optional<int> filter_min_ttl;
-  const optional<int> filter_max_ttl;
-};
+  int n_packets = 1;
+  int probing_rate = 100;
+  int sniffer_buffer_size = 2000000;
+  int sniffer_wait_time = 5;
+  string protocol = "udp";
+  Tins::NetworkInterface interface =
+      Tins::NetworkInterface::default_interface();
+  optional<uint64_t> max_probes;
+  optional<fs::path> input_file;
+  optional<fs::path> output_file_csv;
+  optional<fs::path> output_file_pcap;
+  optional<fs::path> bgp_filter_file;
+  optional<fs::path> prefix_excl_file;
+  optional<fs::path> prefix_incl_file;
+  optional<Tins::IPv4Address> filter_min_ip;
+  optional<Tins::IPv4Address> filter_max_ip;
+  optional<int> filter_min_ttl;
+  optional<int> filter_max_ttl;
+  optional<string> meta_round;
 
-class HeartbeatConfigBuilder {
- public:
   void set_input_file(const fs::path& p) {
     if (!fs::exists(p)) {
       throw std::invalid_argument(p.string() + " does not exists");
     }
-    m_input_file = p;
+    input_file = p;
   }
 
-  void set_output_file_csv(const fs::path& p) { m_output_file_csv = p; }
+  void set_output_file_csv(const fs::path& p) { output_file_csv = p; }
 
-  void set_output_file_pcap(const fs::path& p) { m_output_file_pcap = p; }
+  void set_output_file_pcap(const fs::path& p) { output_file_pcap = p; }
 
   void set_probing_rate(const int rate) {
     if (rate <= 0) {
       throw std::domain_error("rate must be > 0");
     }
-    m_probing_rate = rate;
+    probing_rate = rate;
   }
 
   void set_protocol(const string& s) {
     if (s == "udp" || s == "tcp") {
-      m_protocol = s;
+      protocol = s;
     } else {
       throw std::invalid_argument(s + " is not a valid protocol");
     }
   }
 
-  void set_interface(const string& s) { m_interface = s; }
+  void set_interface(const string& s) { interface = s; }
 
   void set_sniffer_buffer_size(const int size) {
     if (size <= 0) {
       throw std::domain_error("sniffer_buffer_size must be > 0");
     }
-    m_sniffer_buffer_size = size;
+    sniffer_buffer_size = size;
+  }
+
+  void set_sniffer_wait_time(const int seconds) {
+    if (seconds < 0) {
+      throw std::domain_error("sniffer_wait_time must be >= 0");
+    }
+    sniffer_wait_time = seconds;
   }
 
   void set_max_probes(const uint64_t count) {
     if (count <= 0) {
       throw std::domain_error("max_probes must be > 0");
     }
-    m_max_probes = count;
+    max_probes = count;
   }
 
   void set_n_packets(const int count) {
     if (count <= 0) {
       throw std::domain_error("n_packets must be > 0");
     }
-    m_n_packets = count;
+    n_packets = count;
   }
 
   void set_bgp_filter_file(const fs::path& p) {
     if (!fs::exists(p)) {
       throw std::invalid_argument(p.string() + " does not exists");
     }
-    m_bgp_filter_file = p;
+    bgp_filter_file = p;
   }
 
   void set_prefix_excl_file(const fs::path& p) {
     if (!fs::exists(p)) {
       throw std::invalid_argument(p.string() + " does not exists");
     }
-    m_prefix_excl_file = p;
+    prefix_excl_file = p;
   }
 
   void set_prefix_incl_file(const fs::path& p) {
     if (!fs::exists(p)) {
       throw std::invalid_argument(p.string() + " does not exists");
     }
-    m_prefix_incl_file = p;
+    prefix_incl_file = p;
   }
 
   void set_filter_min_ip(const string& s) {
-    m_filter_min_ip = Tins::IPv4Address{s};
+    filter_min_ip = Tins::IPv4Address{s};
   }
 
   void set_filter_max_ip(const string& s) {
-    m_filter_max_ip = Tins::IPv4Address{s};
+    filter_max_ip = Tins::IPv4Address{s};
   }
 
   void set_filter_min_ttl(const int ttl) {
     if (ttl < 0) {
       throw std::domain_error("min_ttl must be > 0");
     }
-    m_filter_min_ttl = ttl;
+    filter_min_ttl = ttl;
   }
 
   void set_filter_max_ttl(const int ttl) {
     if (ttl < 0) {
       throw std::domain_error("max_ttl must be > 0");
     }
-    m_filter_max_ttl = ttl;
+    filter_max_ttl = ttl;
   }
 
-  HeartbeatConfig build() const {
-    if (!m_protocol) {
-      throw std::invalid_argument("No protocol specified");
-    }
-
-    if (!m_probing_rate) {
-      throw std::invalid_argument("No probing rate specified");
-    }
-
-    if (!m_sniffer_buffer_size) {
-      throw std::invalid_argument("No sniffer buffer size specified");
-    }
-
-    if (!m_n_packets) {
-      throw std::invalid_argument("No packet count specified");
-    }
-
-    Tins::NetworkInterface interface;
-    if (m_interface) {
-      interface = Tins::NetworkInterface{m_interface.value()};
-    } else {
-      interface = Tins::NetworkInterface::default_interface();
-    }
-
-    // TODO: Destination port parameter?
-    return HeartbeatConfig{m_input_file,
-                           m_output_file_csv,
-                           m_output_file_pcap,
-                           m_max_probes,
-                           m_n_packets.value(),
-                           m_probing_rate.value(),
-                           m_sniffer_buffer_size.value(),
-                           m_protocol.value(),
-                           interface,
-                           m_bgp_filter_file,
-                           m_prefix_excl_file,
-                           m_prefix_incl_file,
-                           m_filter_min_ip,
-                           m_filter_max_ip,
-                           m_filter_min_ttl,
-                           m_filter_max_ttl};
-  }
-
- private:
-  optional<fs::path> m_input_file;
-  optional<fs::path> m_output_file_csv;
-  optional<fs::path> m_output_file_pcap;
-  optional<int> m_probing_rate;
-  optional<string> m_protocol;
-  optional<string> m_interface;
-  optional<int> m_sniffer_buffer_size;
-  optional<uint64_t> m_max_probes;
-  optional<int> m_n_packets;
-  optional<fs::path> m_bgp_filter_file;
-  optional<fs::path> m_prefix_excl_file;
-  optional<fs::path> m_prefix_incl_file;
-  optional<Tins::IPv4Address> m_filter_min_ip;
-  optional<Tins::IPv4Address> m_filter_max_ip;
-  optional<int> m_filter_min_ttl;
-  optional<int> m_filter_max_ttl;
+  void set_meta_round(const string& round) { meta_round = round; }
 };
 
 inline std::ostream& operator<<(std::ostream& os, HeartbeatConfig const& v) {
+  auto print_if_value = [&os](const string& name, const auto opt) {
+    if (opt) {
+      os << ",\n\t" << name << "=" << opt.value();
+    }
+  };
+
   os << "HeartbeatConfig{";
-  os << "\n\tinput_file=" << v.input_file.value_or("");
-  os << ",\n\toutput_file_csv=" << v.output_file_csv.value_or("");
-  os << ",\n\toutput_file_pcap=" << v.output_file_pcap.value_or("");
-  if (v.max_probes) {
-    os << ",\n\tmax_probes=" << v.max_probes.value();
-  }
-  os << ",\n\tn_packets=" << v.n_packets;
+  os << "\n\tn_packets=" << v.n_packets;
   os << ",\n\tprobing_rate=" << v.probing_rate;
   os << ",\n\tsniffer_buffer_size=" << v.sniffer_buffer_size;
+  os << ",\n\tsniffer_wait_time=" << v.sniffer_wait_time;
   os << ",\n\tprotocol=" << v.protocol;
   os << ",\n\tinterface=" << v.interface.name() << ":"
      << v.interface.ipv4_address();
-  os << ",\n\tbgp_filter_file=" << v.bgp_filter_file.value_or("");
-  os << ",\n\tprefix_excl_file=" << v.prefix_excl_file.value_or("");
-  os << ",\n\tprefix_incl_file=" << v.prefix_incl_file.value_or("");
-  if (v.filter_min_ip) {
-    os << ",\n\tmin_ip=" << v.filter_min_ip.value();
-  }
-  if (v.filter_max_ip) {
-    os << ",\n\tmax_ip=" << v.filter_max_ip.value();
-  }
-  if (v.filter_min_ttl) {
-    os << ",\n\tmin_ttl=" << v.filter_min_ttl.value();
-  }
-  if (v.filter_max_ttl) {
-    os << ",\n\tmax_ttl=" << v.filter_max_ttl.value();
-  }
+  print_if_value("input_file", v.input_file);
+  print_if_value("output_file_csv", v.output_file_csv);
+  print_if_value("output_file_pcap", v.output_file_pcap);
+  print_if_value("max_probes", v.max_probes);
+  print_if_value("bgp_filter_file", v.bgp_filter_file);
+  print_if_value("prefix_excl_file", v.prefix_excl_file);
+  print_if_value("prefix_incl_file", v.prefix_incl_file);
+  print_if_value("min_ip", v.filter_min_ip);
+  print_if_value("max_ip", v.filter_max_ip);
+  print_if_value("min_ttl", v.filter_min_ttl);
+  print_if_value("max_ttl", v.filter_max_ttl);
+  print_if_value("round", v.meta_round);
   os << "\n}";
   return os;
 }

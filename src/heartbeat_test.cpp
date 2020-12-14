@@ -27,27 +27,27 @@ TEST_CASE("send_heartbeat") {
   ofs << "127.0.0.0/16\n";
   ofs.close();
 
-  // TODO: Test min/max TTL.
-
-  HeartbeatConfigBuilder builder;
-  builder.set_interface("lo");
-  builder.set_input_file("zzz_input.csv");
-  builder.set_output_file_csv("zzz_output.csv");
-  builder.set_output_file_pcap("zzz_output.pcap");
-  builder.set_prefix_excl_file("zzz_excl.csv");
-  builder.set_prefix_incl_file("zzz_incl.csv");
-  builder.set_filter_min_ip("0.0.0.0");
-  builder.set_filter_max_ip("255.255.255.255");
-  builder.set_filter_min_ttl(1);
-  builder.set_filter_max_ttl(6);
-  builder.set_probing_rate(100);
-  builder.set_sniffer_buffer_size(20000);
-  builder.set_protocol("udp");
-  builder.set_n_packets(3);
+  HeartbeatConfig config;
+  config.set_interface("lo");
+  config.set_input_file("zzz_input.csv");
+  config.set_output_file_csv("zzz_output.csv");
+  config.set_output_file_pcap("zzz_output.pcap");
+  config.set_prefix_excl_file("zzz_excl.csv");
+  config.set_prefix_incl_file("zzz_incl.csv");
+  config.set_filter_min_ip("0.0.0.0");
+  config.set_filter_max_ip("255.255.255.255");
+  config.set_filter_min_ttl(1);
+  config.set_filter_max_ttl(6);
+  config.set_probing_rate(100);
+  config.set_sniffer_buffer_size(20000);
+  config.set_sniffer_wait_time(1);
+  config.set_protocol("udp");
+  config.set_n_packets(3);
+  config.set_meta_round("1");
 
   SECTION("Base case") {
     // We should receive port unreachable messages.
-    auto [probes_sent, received_count] = send_heartbeat(builder.build());
+    auto [probes_sent, received_count] = send_heartbeat(config);
     REQUIRE(probes_sent == 2);
     REQUIRE(received_count == 6);
   }
@@ -58,7 +58,7 @@ TEST_CASE("send_heartbeat") {
     ofs << "127.0.0.0/16";
     ofs.close();
 
-    auto [probes_sent, received_count] = send_heartbeat(builder.build());
+    auto [probes_sent, received_count] = send_heartbeat(config);
     REQUIRE(probes_sent == 2);
     REQUIRE(received_count == 6);
   }
@@ -69,7 +69,7 @@ TEST_CASE("send_heartbeat") {
     ofs << "";
     ofs.close();
 
-    auto [probes_sent, received_count] = send_heartbeat(builder.build());
+    auto [probes_sent, received_count] = send_heartbeat(config);
     REQUIRE(probes_sent == 3);
     REQUIRE(received_count == 9);
   }
@@ -80,7 +80,7 @@ TEST_CASE("send_heartbeat") {
     ofs << "";
     ofs.close();
 
-    auto [probes_sent, received_count] = send_heartbeat(builder.build());
+    auto [probes_sent, received_count] = send_heartbeat(config);
     REQUIRE(probes_sent == 0);
     REQUIRE(received_count == 0);
   }
