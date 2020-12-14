@@ -7,16 +7,12 @@
 #include <optional>
 #include <string>
 #include <thread>
-#include <unordered_set>
+
+#include "statistics.hpp"
 
 namespace fs = std::filesystem;
 
 using std::optional;
-
-struct SnifferStatistics {
-  uint64_t received_count;
-  std::unordered_set<uint32_t> icmp_messages;
-};
 
 class sniffer_t {
  public:

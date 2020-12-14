@@ -14,6 +14,7 @@ class classic_sender_t : public Sender {
   classic_sender_t(const uint8_t family, const std::string& protocol,
                    const Tins::NetworkInterface interface, const int pps);
   ~classic_sender_t();
+  double current_rate() const override;
   void send(const Probe& probe, const int n_packets) override;
 
  private:

@@ -21,6 +21,7 @@ class pf_ring_sender_t : public Sender {
   pf_ring_sender_t(const int family, const std::string& protocol,
                    const Tins::NetworkInterface iface, const uint32_t pps);
   ~pf_ring_sender_t();
+  double current_rate() const override;
   void send(const Probe& probe, int n_packets) override;
 
  private:

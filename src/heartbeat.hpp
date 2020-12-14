@@ -1,5 +1,4 @@
 #pragma once
-#include <arpa/inet.h>
 
 #include <boost/log/trivial.hpp>
 #include <chrono>
@@ -12,18 +11,14 @@
 #include "heartbeat_config.hpp"
 #include "probe.hpp"
 #include "sniffer_t.hpp"
+#include "statistics.hpp"
 
 #ifdef WITH_PF_RING
 #include "pfring_sender_t.hpp"
 #endif
 
-using std::chrono::duration_cast;
-using std::chrono::microseconds;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
-using std::chrono::steady_clock;
-
-inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
+inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
+    const HeartbeatConfig& config) {
   BOOST_LOG_TRIVIAL(info) << config;
 
   // Test the rate limiter
@@ -82,22 +77,12 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
         AF_INET, config.protocol, config.interface, config.probing_rate);
   }
 
-  uint64_t probes_read = 0;
-  uint64_t probes_sent = 0;
-  auto start_time = steady_clock::now();
+  HeartbeatStatistics stats;
 
   auto log_stats = [&] {
-    auto now = steady_clock::now();
-    auto delta = duration_cast<microseconds>(now - start_time);
-    auto stats = sniffer.statistics();
-    BOOST_LOG_TRIVIAL(info)
-        << "probes_read=" << probes_read << " probes_sent=" << probes_sent
-        << " packets_sent=" << probes_sent * config.n_packets
-        << " packets_rate="
-        << (probes_sent * config.n_packets) /
-               (delta.count() / (1000.0 * 1000.0));
-    BOOST_LOG_TRIVIAL(info) << "total_received=" << stats.received_count
-                            << " icmp_distinct=" << stats.icmp_messages.size();
+    BOOST_LOG_TRIVIAL(info) << "packets_rate=" << sender->current_rate();
+    BOOST_LOG_TRIVIAL(info) << stats;
+    BOOST_LOG_TRIVIAL(info) << sniffer.statistics();
     // TODO: distinct src_ip != inner_dst_ip;
   };
 
@@ -115,22 +100,25 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
 
   while (std::getline(is, line)) {
     Probe p = Probe::from_csv(line);
-    probes_read++;
+    stats.read++;
 
     // Temporary safeguard, until we cleanup packets_utils.
     if (p.ttl >= 32) {
       BOOST_LOG_TRIVIAL(trace)
           << "Filtered probe " << p << " (TTL >= 32 are not supported)";
+      stats.filtered_hi_ttl++;
       continue;
     }
 
     // TTL filter
     if (config.filter_min_ttl && (p.ttl < config.filter_min_ttl.value())) {
       BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL too low)";
+      stats.filtered_lo_ttl++;
       continue;
     }
     if (config.filter_max_ttl && (p.ttl > config.filter_max_ttl.value())) {
       BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL too high)";
+      stats.filtered_hi_ttl++;
       continue;
     }
 
@@ -140,12 +128,14 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
         (p.dst_addr.s_addr < uint32_t(config.filter_min_ip.value()))) {
       BOOST_LOG_TRIVIAL(trace)
           << "Filtered probe " << p << " (destination address too low)";
+      stats.filtered_lo_ip++;
       continue;
     }
     if (config.filter_max_ip &&
         (p.dst_addr.s_addr > uint32_t(config.filter_max_ip.value()))) {
       BOOST_LOG_TRIVIAL(trace)
           << "Filtered probe " << p << " (destination address too high)";
+      stats.filtered_hi_ip++;
       continue;
     }
 
@@ -155,6 +145,7 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
         (prefix_excl_trie.get(p.dst_addr.s_addr) != nullptr)) {
       BOOST_LOG_TRIVIAL(trace)
           << "Filtered probe " << p << " (excluded prefix)";
+      stats.filtered_prefix_excl++;
       continue;
     }
     // Do not send probes to *not* included prefixes.
@@ -163,6 +154,7 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
         (prefix_incl_trie.get(p.dst_addr.s_addr) == nullptr)) {
       BOOST_LOG_TRIVIAL(trace)
           << "Filtered probe " << p << " (not included prefix)";
+      stats.filtered_prefix_not_incl++;
       continue;
     }
     // Do not send probes to un-routed destinations.
@@ -170,19 +162,21 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
         (bgp_filter_trie.get(p.dst_addr.s_addr) == nullptr)) {
       BOOST_LOG_TRIVIAL(trace)
           << "Filtered probe " << p << " (not routable prefix)";
+      stats.filtered_prefix_not_routable++;
       continue;
     }
 
     BOOST_LOG_TRIVIAL(trace) << "Sending probe " << p;
     sender->send(p, config.n_packets);
-    probes_sent++;
+    stats.sent++;
 
     // Log every ~10 seconds.
-    if ((probes_sent % (10 * config.probing_rate)) == 0) {
+    uint64_t rate = uint64_t(sender->current_rate());
+    if ((rate > 0) && (stats.sent % (10 * rate) == 0)) {
       log_stats();
     }
 
-    if (config.max_probes && (probes_sent >= config.max_probes.value())) {
+    if (config.max_probes && (stats.sent >= config.max_probes.value())) {
       BOOST_LOG_TRIVIAL(trace) << "max_probes reached, exiting...";
       break;
     }
@@ -196,5 +190,5 @@ inline std::tuple<int, int> send_heartbeat(const HeartbeatConfig& config) {
   std::this_thread::sleep_for(std::chrono::seconds(config.sniffer_wait_time));
   sniffer.stop();
 
-  return {probes_sent, sniffer.statistics().received_count};
+  return {stats, sniffer.statistics()};
 }

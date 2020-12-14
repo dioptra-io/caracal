@@ -185,4 +185,6 @@ void classic_sender_t::send(const Probe &probe, int n_packets) {
   ip_header->ip_sum = 0;
 }
 
+double classic_sender_t::current_rate() const { return m_rl.current_rate(); }
+
 classic_sender_t::~classic_sender_t() { delete[] m_buffer; }

@@ -47,9 +47,17 @@ TEST_CASE("send_heartbeat") {
 
   SECTION("Base case") {
     // We should receive port unreachable messages.
-    auto [probes_sent, received_count] = send_heartbeat(config);
-    REQUIRE(probes_sent == 2);
-    REQUIRE(received_count == 6);
+    auto [stats, sniffer_stats] = send_heartbeat(config);
+    REQUIRE(stats.read == 5);
+    REQUIRE(stats.sent == 2);
+    REQUIRE(stats.filtered_lo_ip == 0);
+    REQUIRE(stats.filtered_hi_ip == 0);
+    REQUIRE(stats.filtered_lo_ttl == 0);
+    REQUIRE(stats.filtered_hi_ttl == 1);
+    REQUIRE(stats.filtered_prefix_excl == 1);
+    REQUIRE(stats.filtered_prefix_not_incl == 1);
+    REQUIRE(stats.filtered_prefix_not_routable == 0);
+    REQUIRE(sniffer_stats.received_count == 6);
   }
 
   SECTION("Include list with missing new line") {
@@ -58,9 +66,9 @@ TEST_CASE("send_heartbeat") {
     ofs << "127.0.0.0/16";
     ofs.close();
 
-    auto [probes_sent, received_count] = send_heartbeat(config);
-    REQUIRE(probes_sent == 2);
-    REQUIRE(received_count == 6);
+    auto [stats, sniffer_stats] = send_heartbeat(config);
+    REQUIRE(stats.sent == 2);
+    REQUIRE(sniffer_stats.received_count == 6);
   }
 
   SECTION("Empty exclude list") {
@@ -69,9 +77,9 @@ TEST_CASE("send_heartbeat") {
     ofs << "";
     ofs.close();
 
-    auto [probes_sent, received_count] = send_heartbeat(config);
-    REQUIRE(probes_sent == 3);
-    REQUIRE(received_count == 9);
+    auto [stats, sniffer_stats] = send_heartbeat(config);
+    REQUIRE(stats.sent == 3);
+    REQUIRE(sniffer_stats.received_count == 9);
   }
 
   SECTION("Empty include list") {
@@ -80,9 +88,9 @@ TEST_CASE("send_heartbeat") {
     ofs << "";
     ofs.close();
 
-    auto [probes_sent, received_count] = send_heartbeat(config);
-    REQUIRE(probes_sent == 0);
-    REQUIRE(received_count == 0);
+    auto [stats, sniffer_stats] = send_heartbeat(config);
+    REQUIRE(stats.sent == 0);
+    REQUIRE(sniffer_stats.received_count == 0);
   }
 
   fs::remove("zzz_excl.csv");
