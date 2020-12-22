@@ -17,21 +17,8 @@ milliseconds measure_time(F lambda) {
 }
 
 TEST_CASE("RateLimiter") {
-  RateLimiter rl{500};
-
-  SECTION("250 packets at 500pps should take at-least 0.5s") {
-    auto delta = measure_time([&rl]() {
-      for (auto i = 0; i < 250; i++) {
-        rl.wait();
-      }
-    });
-    // NOTE: We use `.count()` to allow Catch2 to show
-    // the values if the assertion fails.
-    REQUIRE(delta.count() >= milliseconds{450}.count());
-    REQUIRE(delta.count() <= milliseconds{1000}.count());
-  }
-
   SECTION("750 packets at 500pps should take at-least 1.5s") {
+    RateLimiter rl{500};
     auto delta = measure_time([&rl]() {
       for (auto i = 0; i < 750; i++) {
         rl.wait();
@@ -39,5 +26,18 @@ TEST_CASE("RateLimiter") {
     });
     REQUIRE(delta.count() >= milliseconds{1250}.count());
     REQUIRE(delta.count() <= milliseconds{2000}.count());
+  }
+
+  SECTION("50k packets at 100k pps should take at-least 0.5s") {
+    RateLimiter rl{100000};
+    auto delta = measure_time([&rl]() {
+      for (auto i = 0; i < 50000; i++) {
+        rl.wait();
+      }
+    });
+    // NOTE: We use `.count()` to allow Catch2 to show
+    // the values if the assertion fails.
+    REQUIRE(delta.count() >= milliseconds{450}.count());
+    REQUIRE(delta.count() <= milliseconds{1000}.count());
   }
 }
