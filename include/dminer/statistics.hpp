@@ -3,7 +3,7 @@
 #include <ostream>
 #include <unordered_set>
 
-struct HeartbeatStatistics {
+struct ProberStatistics {
   uint64_t read = 0;
   uint64_t sent = 0;
   uint64_t filtered_lo_ip = 0;
@@ -15,8 +15,7 @@ struct HeartbeatStatistics {
   uint64_t filtered_prefix_not_routable = 0;
 };
 
-inline std::ostream& operator<<(std::ostream& os,
-                                HeartbeatStatistics const& v) {
+inline std::ostream& operator<<(std::ostream& os, ProberStatistics const& v) {
   os << "probes_read=" << v.read;
   os << " probes_sent=" << v.sent;
   os << " filtered_low_ip=" << v.filtered_lo_ip;

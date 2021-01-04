@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
-#include <dminer/heartbeat.hpp>
-#include <dminer/heartbeat_config.hpp>
+#include <dminer/prober.hpp>
+#include <dminer/prober_config.hpp>
 #include <filesystem>
 #include <iostream>
 
@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 #define LOOPBACK "lo"
 #endif
 
-TEST_CASE("send_heartbeat") {
+TEST_CASE("send_probes") {
   std::ofstream ofs;
 
   ofs.open("zzz_input.csv");
@@ -31,7 +31,7 @@ TEST_CASE("send_heartbeat") {
   ofs << "127.0.0.0/16\n";
   ofs.close();
 
-  HeartbeatConfig config;
+  ProberConfig config;
   config.set_interface(LOOPBACK);
   config.set_input_file("zzz_input.csv");
   config.set_output_file_csv("zzz_output.csv");
@@ -51,16 +51,16 @@ TEST_CASE("send_heartbeat") {
 
   SECTION("Base case") {
     // We should receive port unreachable messages.
-    auto [stats, sniffer_stats] = send_heartbeat(config);
-    REQUIRE(stats.read == 5);
-    REQUIRE(stats.sent == 2);
-    REQUIRE(stats.filtered_lo_ip == 0);
-    REQUIRE(stats.filtered_hi_ip == 0);
-    REQUIRE(stats.filtered_lo_ttl == 0);
-    REQUIRE(stats.filtered_hi_ttl == 1);
-    REQUIRE(stats.filtered_prefix_excl == 1);
-    REQUIRE(stats.filtered_prefix_not_incl == 1);
-    REQUIRE(stats.filtered_prefix_not_routable == 0);
+    auto [prober_stats, sniffer_stats] = send_probes(config);
+    REQUIRE(prober_stats.read == 5);
+    REQUIRE(prober_stats.sent == 2);
+    REQUIRE(prober_stats.filtered_lo_ip == 0);
+    REQUIRE(prober_stats.filtered_hi_ip == 0);
+    REQUIRE(prober_stats.filtered_lo_ttl == 0);
+    REQUIRE(prober_stats.filtered_hi_ttl == 1);
+    REQUIRE(prober_stats.filtered_prefix_excl == 1);
+    REQUIRE(prober_stats.filtered_prefix_not_incl == 1);
+    REQUIRE(prober_stats.filtered_prefix_not_routable == 0);
     REQUIRE(sniffer_stats.received_count == 6);
   }
 
@@ -70,8 +70,8 @@ TEST_CASE("send_heartbeat") {
     ofs << "127.0.0.0/16";
     ofs.close();
 
-    auto [stats, sniffer_stats] = send_heartbeat(config);
-    REQUIRE(stats.sent == 2);
+    auto [prober_stats, sniffer_stats] = send_probes(config);
+    REQUIRE(prober_stats.sent == 2);
     REQUIRE(sniffer_stats.received_count == 6);
   }
 
@@ -81,8 +81,8 @@ TEST_CASE("send_heartbeat") {
     ofs << "";
     ofs.close();
 
-    auto [stats, sniffer_stats] = send_heartbeat(config);
-    REQUIRE(stats.sent == 3);
+    auto [prober_stats, sniffer_stats] = send_probes(config);
+    REQUIRE(prober_stats.sent == 3);
     REQUIRE(sniffer_stats.received_count == 9);
   }
 
@@ -92,8 +92,8 @@ TEST_CASE("send_heartbeat") {
     ofs << "";
     ofs.close();
 
-    auto [stats, sniffer_stats] = send_heartbeat(config);
-    REQUIRE(stats.sent == 0);
+    auto [prober_stats, sniffer_stats] = send_probes(config);
+    REQUIRE(prober_stats.sent == 0);
     REQUIRE(sniffer_stats.received_count == 0);
   }
 

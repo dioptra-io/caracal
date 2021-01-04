@@ -1,9 +1,9 @@
 #include <diamond-miner-config.h>
 
 #include <boost/program_options.hpp>
-#include <dminer/heartbeat.hpp>
-#include <dminer/heartbeat_config.hpp>
 #include <dminer/logging.hpp>
+#include <dminer/prober.hpp>
+#include <dminer/prober_config.hpp>
 #include <filesystem>
 #include <iostream>
 
@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
             << "." << DMINER_VERSION_PATCH;
   std::cout << std::endl;
 
-  HeartbeatConfig config;
+  ProberConfig config;
   po::options_description general("General options");
   po::options_description filters("Filters");
   po::options_description meta("Metadata");
@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
     }
 
     configure_logging(vm["log-level"].as<string>());
-    send_heartbeat(config);
+    send_probes(config);
   } catch (const std::invalid_argument& e) {
     std::cerr << "Error: " << e.what() << std::endl;
     return 1;

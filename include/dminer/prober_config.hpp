@@ -12,7 +12,7 @@ using std::string;
 
 namespace fs = std::filesystem;
 
-struct HeartbeatConfig {
+struct ProberConfig {
   int n_packets = 1;
   int probing_rate = 100;
   int sniffer_buffer_size = 2000000;
@@ -135,14 +135,14 @@ struct HeartbeatConfig {
   void set_meta_round(const string& round) { meta_round = round; }
 };
 
-inline std::ostream& operator<<(std::ostream& os, HeartbeatConfig const& v) {
+inline std::ostream& operator<<(std::ostream& os, ProberConfig const& v) {
   auto print_if_value = [&os](const string& name, const auto opt) {
     if (opt) {
       os << ",\n\t" << name << "=" << opt.value();
     }
   };
 
-  os << "HeartbeatConfig{";
+  os << "ProberConfig{";
   os << "\n\tn_packets=" << v.n_packets;
   os << ",\n\tprobing_rate=" << v.probing_rate;
   os << ",\n\tsniffer_buffer_size=" << v.sniffer_buffer_size;

@@ -7,14 +7,14 @@
 #include <string>
 #include <tuple>
 
-#include "heartbeat_config.hpp"
 #include "probe.hpp"
+#include "prober_config.hpp"
 #include "sender.hpp"
 #include "sniffer.hpp"
 #include "statistics.hpp"
 
-inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
-    const HeartbeatConfig& config) {
+inline std::tuple<ProberStatistics, SnifferStatistics> send_probes(
+    const ProberConfig& config) {
   BOOST_LOG_TRIVIAL(info) << config;
 
   // Test the rate limiter
@@ -61,7 +61,7 @@ inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
                 config.probing_rate};
 
   // Statistics
-  HeartbeatStatistics stats;
+  ProberStatistics stats;
   auto log_stats = [&] {
     BOOST_LOG_TRIVIAL(info) << "packets_rate=" << sender.current_rate();
     BOOST_LOG_TRIVIAL(info) << stats;
