@@ -1,4 +1,4 @@
-#include <dminer_config.h>
+#include <diamond-miner-config.h>
 
 #include <boost/program_options.hpp>
 #include <filesystem>
@@ -17,11 +17,6 @@ int main(int argc, char** argv) {
   std::cout << "diamond-miner-prober"
             << " v" << DMINER_VERSION_MAJOR << "." << DMINER_VERSION_MINOR
             << "." << DMINER_VERSION_PATCH;
-#ifdef WITH_PF_RING
-  std::cout << " (WITH_PF_RING=ON)";
-#else
-  std::cout << " (WITH_PF_RING=OFF)";
-#endif
   std::cout << std::endl;
 
   HeartbeatConfig config;

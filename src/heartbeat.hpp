@@ -7,15 +7,11 @@
 #include <string>
 #include <tuple>
 
-#include "classic_sender_t.hpp"
 #include "heartbeat_config.hpp"
 #include "probe.hpp"
+#include "sender.hpp"
 #include "sniffer_t.hpp"
 #include "statistics.hpp"
-
-#ifdef WITH_PF_RING
-#include "pfring_sender_t.hpp"
-#endif
 
 inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
     const HeartbeatConfig& config) {
@@ -61,26 +57,13 @@ inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
   sniffer.start();
 
   // Sender
-  std::unique_ptr<Sender> sender;
-#ifdef WITH_PF_RING
-  try {
-    sender = std::make_unique<pf_ring_sender_t>(
-        AF_INET, config.protocol, config.interface, config.probing_rate);
-  } catch (const std::runtime_error& e) {
-    BOOST_LOG_TRIVIAL(warning) << e.what();
-  }
-#endif
-  if (!sender) {
-    BOOST_LOG_TRIVIAL(info)
-        << "PF_RING not available, using classical sender...";
-    sender = std::make_unique<classic_sender_t>(
-        AF_INET, config.protocol, config.interface, config.probing_rate);
-  }
+  Sender sender{AF_INET, config.protocol, config.interface,
+                config.probing_rate};
 
   // Statistics
   HeartbeatStatistics stats;
   auto log_stats = [&] {
-    BOOST_LOG_TRIVIAL(info) << "packets_rate=" << sender->current_rate();
+    BOOST_LOG_TRIVIAL(info) << "packets_rate=" << sender.current_rate();
     BOOST_LOG_TRIVIAL(info) << stats;
     BOOST_LOG_TRIVIAL(info) << sniffer.statistics();
   };
@@ -167,11 +150,11 @@ inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
     }
 
     BOOST_LOG_TRIVIAL(trace) << "Sending probe " << p;
-    sender->send(p, config.n_packets);
+    sender.send(p, config.n_packets);
     stats.sent++;
 
     // Log every ~10 seconds.
-    uint64_t rate = uint64_t(sender->current_rate());
+    uint64_t rate = uint64_t(sender.current_rate());
     if ((rate > 0) && (stats.sent % (10 * rate) == 0)) {
       log_stats();
     }

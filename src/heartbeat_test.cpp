@@ -8,6 +8,12 @@
 
 namespace fs = std::filesystem;
 
+#ifdef __APPLE__
+#define LOOPBACK "lo0"
+#else
+#define LOOPBACK "lo"
+#endif
+
 TEST_CASE("send_heartbeat") {
   std::ofstream ofs;
 
@@ -28,7 +34,7 @@ TEST_CASE("send_heartbeat") {
   ofs.close();
 
   HeartbeatConfig config;
-  config.set_interface("lo");
+  config.set_interface(LOOPBACK);
   config.set_input_file("zzz_input.csv");
   config.set_output_file_csv("zzz_output.csv");
   config.set_output_file_pcap("zzz_output.pcap");

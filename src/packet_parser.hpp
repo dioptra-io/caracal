@@ -144,7 +144,7 @@ inline optional<TracerouteReply> parse_icmp4(const uint64_t timestamp,
                            size,
                            ttl,
                            icmp->code(),
-                           icmp->type(),
+                           static_cast<uint8_t>(icmp->type()),
                            inner_dst_ip,
                            inner_size,
                            inner_ttl,
@@ -168,10 +168,20 @@ inline optional<TracerouteReply> parse_icmp4(const uint64_t timestamp,
     // const uint16_t inner_seq = inner_tcp->seq() & ((1 << 27) - 1);
     // const double rtt = decode_difference(timestamp, inner_seq) / 10.0;
 
-    return TracerouteReply{
-        src_ip,         dst_ip,         size,       ttl,       icmp->code(),
-        icmp->type(),   inner_dst_ip,   inner_size, inner_ttl, IPPROTO_TCP,
-        inner_src_port, inner_dst_port, 0,          -1};
+    return TracerouteReply{src_ip,
+                           dst_ip,
+                           size,
+                           ttl,
+                           icmp->code(),
+                           static_cast<uint8_t>(icmp->type()),
+                           inner_dst_ip,
+                           inner_size,
+                           inner_ttl,
+                           IPPROTO_TCP,
+                           inner_src_port,
+                           inner_dst_port,
+                           0,
+                           -1};
   }
 
   return nullopt;

@@ -32,10 +32,10 @@ mkdir build && cd build
 # Debug build
 cmake .. && cmake --build .
 # Release build
-cmake -DCMAKE_BUILD_TYPE=Release -DWITH_PF_RING=ON .. && cmake --build .
+cmake -DCMAKE_BUILD_TYPE=Release && cmake --build .
 # (Optional) Installation
 cmake --install .
 ```
 
 ### TODO
-- add a license (caution: libcperm is under GPLv3)
+- add a license (caution: libcperm and patricia are under GPLv3)
