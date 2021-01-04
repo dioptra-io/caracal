@@ -31,6 +31,9 @@ using utils::udphdr;
 
 class Sender {
  public:
+  Sender(const Sender &) = delete;
+  Sender &operator=(const Sender &) = delete;
+
   Sender(const uint8_t family, const std::string &protocol,
          const Tins::NetworkInterface interface, const int pps)
       : m_socket(socket(family, SOCK_RAW, IPPROTO_RAW)),

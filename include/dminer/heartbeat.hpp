@@ -10,7 +10,7 @@
 #include "heartbeat_config.hpp"
 #include "probe.hpp"
 #include "sender.hpp"
-#include "sniffer_t.hpp"
+#include "sniffer.hpp"
 #include "statistics.hpp"
 
 inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
@@ -51,9 +51,9 @@ inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
   }
 
   // Sniffer
-  sniffer_t sniffer{config.interface,        config.output_file_csv,
-                    config.output_file_pcap, config.sniffer_buffer_size,
-                    config.meta_round,       33434};
+  Sniffer sniffer{config.interface,        config.output_file_csv,
+                  config.output_file_pcap, config.sniffer_buffer_size,
+                  config.meta_round,       33434};
   sniffer.start();
 
   // Sender

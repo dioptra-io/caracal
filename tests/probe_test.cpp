@@ -1,6 +1,5 @@
-#include "probe.hpp"
-
 #include <catch2/catch.hpp>
+#include <dminer/probe.hpp>
 
 TEST_CASE("Probe::from_csv") {
   Probe probe1 = Probe::from_csv("0.0.0.0,1,2,3");

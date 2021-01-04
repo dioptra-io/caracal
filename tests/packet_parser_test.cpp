@@ -1,8 +1,7 @@
-#include "packet_parser.hpp"
-
 #include <tins/tins.h>
 
 #include <catch2/catch.hpp>
+#include <dminer/packet_parser.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>

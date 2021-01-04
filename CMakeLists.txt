@@ -15,18 +15,16 @@ pkg_check_modules(Tins REQUIRED IMPORTED_TARGET libtins)
 option(WITH_TESTS "Build tests and enable coverage" OFF)
 configure_file(src/diamond-miner-config.h.in diamond-miner-config.h)
 
-# Library TODO: Make everything header and set as INTERFACE instead.
-add_library(diamond-miner src/network_utils_t.cpp src/parameters_utils_t.cpp
-                          src/sniffer_t.cpp)
+# Library
+add_library(diamond-miner INTERFACE)
+target_compile_features(diamond-miner INTERFACE cxx_std_17)
+target_compile_options(diamond-miner INTERFACE -DBOOST_LOG_DYN_LINK)
+target_include_directories(diamond-miner
+                           INTERFACE "${PROJECT_SOURCE_DIR}/include")
 
 target_link_libraries(
-  diamond-miner PUBLIC Boost::log Boost::log_setup Patricia::Patricia
-                       PkgConfig::Tins Threads::Threads ZLIB::ZLIB)
-
-target_compile_features(diamond-miner PUBLIC cxx_std_17)
-target_compile_options(diamond-miner PUBLIC -DBOOST_LOG_DYN_LINK)
-target_compile_options(diamond-miner PRIVATE -Wall -Wextra)
-target_include_directories(diamond-miner PUBLIC "${PROJECT_BINARY_DIR}")
+  diamond-miner INTERFACE Boost::log Boost::log_setup Patricia::Patricia
+                          PkgConfig::Tins Threads::Threads ZLIB::ZLIB)
 
 # Executable
 add_executable(diamond-miner-prober src/diamond-miner-prober.cpp)
@@ -45,14 +43,12 @@ if(WITH_TESTS)
   include(CodeCoverage)
   include(CTest)
 
-  add_executable(
-    diamond-miner-tests
-    src/diamond-miner-tests.cpp src/heartbeat_test.cpp
-    src/packet_parser_test.cpp src/probe_test.cpp src/rate_limiter_test.cpp
-    src/timestamp_test.cpp)
+  file(GLOB TESTS_SOURCES tests/*.cpp)
+  add_executable(diamond-miner-tests ${TESTS_SOURCES})
   target_link_libraries(diamond-miner-tests PUBLIC Catch2::Catch2 diamond-miner)
   target_compile_features(diamond-miner-tests PUBLIC cxx_std_17)
   target_compile_options(diamond-miner-tests PRIVATE -Wall -Wextra)
+
   catch_discover_tests(diamond-miner-tests)
 
   append_coverage_compiler_flags()
@@ -63,3 +59,4 @@ endif()
 
 # Install
 install(TARGETS diamond-miner-prober DESTINATION bin)
+# install(TARGETS diamond-miner-reader DESTINATION bin)

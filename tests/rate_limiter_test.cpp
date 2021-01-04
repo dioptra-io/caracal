@@ -1,7 +1,6 @@
-#include "rate_limiter.hpp"
-
 #include <catch2/catch.hpp>
 #include <chrono>
+#include <dminer/rate_limiter.hpp>
 #include <iostream>
 
 using std::chrono::duration_cast;

@@ -1,10 +1,8 @@
-#include "heartbeat.hpp"
-
 #include <catch2/catch.hpp>
+#include <dminer/heartbeat.hpp>
+#include <dminer/heartbeat_config.hpp>
 #include <filesystem>
 #include <iostream>
-
-#include "heartbeat_config.hpp"
 
 namespace fs = std::filesystem;
 

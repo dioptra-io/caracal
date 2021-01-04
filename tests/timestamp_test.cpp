@@ -1,7 +1,6 @@
-#include "timestamp.hpp"
-
 #include <catch2/catch.hpp>
 #include <chrono>
+#include <dminer/timestamp.hpp>
 #include <iostream>
 #include <thread>
 

@@ -145,13 +145,6 @@ struct pseudo_header_udp {
 //  "The checksum field is the 16 bit one's complement of the one's
 //  complement sum of all 16 bit words in the header.  For purposes of
 //  computing the checksum, the value of the checksum field is zero."
-/**
- * Compute the UDP/TCP checksum
- * @param buf
- * @param nwords
- * @return
- */
-uint16_t csum(uint16_t *buf, int nwords);
 
 /**
  * Compute the sum of 16 bits words.
@@ -159,19 +152,58 @@ uint16_t csum(uint16_t *buf, int nwords);
  * @param nwords
  * @return
  */
-uint32_t sum(uint16_t *buf, int nwords);
+inline uint32_t sum(uint16_t *buf, int nwords) {
+  uint32_t sum;
+
+  // Compute the sum
+  for (sum = 0; nwords > 0; nwords -= 2) {
+    sum += *buf++;
+  }
+
+  // If one 16-bits word remains left
+  if (nwords) {
+    sum = sum + *(unsigned char *)buf;
+  }
+
+  return sum;
+}
 
 /**
  * Compute one complement of 16-bit sum obtained from the 32-bit sum
  * @param sum
  * @return
  */
-uint16_t one_s_complement_bits32_sum_to_16(uint32_t sum);
+inline uint16_t one_s_complement_bits32_sum_to_16(uint32_t sum) {
+  // Fold 32-bits sum into 16 bit
+  sum = (sum >> 16) + (sum & 0xFFFF);
+  // Keep only the 16 last bits.
+  sum += (sum >> 16);
+  return (uint16_t)(~sum);
+}
 
-uint32_t in_cksum(unsigned char *buf, unsigned nbytes, uint32_t sum);
+/*
+ * Checksum routine for Internet Protocol family headers (C Version)
+ * Borrowed from DHCPd
+ */
+inline uint32_t in_cksum(unsigned char *buf, unsigned nbytes, uint32_t sum) {
+  uint32_t i;
 
-uint32_t wrapsum(uint32_t sum);
+  for (i = 0; i < (nbytes & ~1U); i += 2) {
+    sum += (uint16_t)ntohs(*(reinterpret_cast<uint16_t *>(buf + i)));
 
-uint32_t closest_prefix(uint32_t inf_born, uint32_t prefix_mask);
+    if (sum > 0xFFFF) sum -= 0xFFFF;
+  }
+
+  if (i < nbytes) {
+    sum += buf[i] << 8;
+    if (sum > 0xFFFF) sum -= 0xFFFF;
+  }
+  return sum;
+}
+
+inline uint32_t wrapsum(uint32_t sum) {
+  sum = ~sum & 0xFFFF;
+  return htons(sum);
+}
 
 }  // namespace utils

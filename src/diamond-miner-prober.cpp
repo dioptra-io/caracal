@@ -1,12 +1,11 @@
 #include <diamond-miner-config.h>
 
 #include <boost/program_options.hpp>
+#include <dminer/heartbeat.hpp>
+#include <dminer/heartbeat_config.hpp>
+#include <dminer/logging.hpp>
 #include <filesystem>
 #include <iostream>
-
-#include "heartbeat.hpp"
-#include "heartbeat_config.hpp"
-#include "logging.hpp"
 
 namespace fs = std::filesystem;
 namespace po = boost::program_options;

@@ -9,7 +9,6 @@ repos:
     - id: cpplint
       args: ["--filter=-build/c++11,-build/include_order,-legal/copyright,-readability/todo,-whitespace/line_length"]
     - id: cppcheck
-      args: ["-DWITH_PF_RING"]
 
 - repo: https://github.com/cheshirekow/cmake-format-precommit
   rev: v0.6.13
