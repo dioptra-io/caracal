@@ -58,8 +58,14 @@ if(WITH_TESTS)
 
   append_coverage_compiler_flags()
   setup_target_for_coverage_gcovr_xml(
-    NAME coverage EXECUTABLE diamond-miner-tests EXCLUDE
-    "${PROJECT_SOURCE_DIR}/extern/*")
+    NAME
+    coverage
+    EXECUTABLE
+    diamond-miner-tests
+    EXCLUDE
+    "${PROJECT_SOURCE_DIR}/extern/*"
+    "${PROJECT_SOURCE_DIR}/src/*"
+    "${PROJECT_SOURCE_DIR}/tests/*")
 endif()
 
 # Install
