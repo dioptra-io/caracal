@@ -52,6 +52,12 @@ class Sniffer {
     }
   }
 
+  ~Sniffer() {
+    // Cleanup resources in case the sniffer was not properly stopped.
+    // For example if an exception was raised on the main thread.
+    stop();
+  }
+
   void start() {
     BOOST_LOG_TRIVIAL(info) << "Starting sniffer...";
     // TODO: Benchmark utility of batching/batch size.
@@ -85,10 +91,11 @@ class Sniffer {
         std::thread([this, handler]() { m_sniffer.sniff_loop(handler); });
   }
 
-  void stop() {
-    BOOST_LOG_TRIVIAL(info) << "Stopping the sniffer..." << std::endl;
-    m_sniffer.stop_sniff();
-    m_thread.join();
+  void stop() noexcept {
+    if (m_thread.joinable()) {
+      m_sniffer.stop_sniff();
+      m_thread.join();
+    }
   }
 
   const SnifferStatistics& statistics() const { return m_statistics; }

@@ -33,7 +33,14 @@ target_link_libraries(
   diamond-miner-prober PUBLIC Boost::log Boost::log_setup
                               Boost::program_options diamond-miner)
 
-# Executable (Reader) TODO
+# Executable (Reader)
+add_executable(diamond-miner-reader src/diamond-miner-reader.cpp)
+target_compile_features(diamond-miner-reader PUBLIC cxx_std_17)
+target_compile_options(diamond-miner-reader PRIVATE -Wall -Wextra)
+target_include_directories(diamond-miner-reader PUBLIC "${PROJECT_BINARY_DIR}")
+target_link_libraries(
+  diamond-miner-reader PUBLIC Boost::log Boost::log_setup
+                              Boost::program_options diamond-miner)
 
 # Tests
 if(WITH_TESTS)
@@ -57,4 +64,4 @@ endif()
 
 # Install
 install(TARGETS diamond-miner-prober DESTINATION bin)
-# install(TARGETS diamond-miner-reader DESTINATION bin)
+install(TARGETS diamond-miner-reader DESTINATION bin)
