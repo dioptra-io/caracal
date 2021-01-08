@@ -35,7 +35,6 @@ struct Probe {
            (ttl == other.ttl);
   }
 
-  // TODO: stringstream/istream ref. instead?
   static Probe from_csv(const std::string &line) {
     Probe probe;
     int index = 0;
@@ -73,7 +72,6 @@ struct Probe {
     return probe;
   }
 
-  // TODO: stream ref. instead?
   std::string to_csv() const {
     std::ostringstream oss;
     oss << human_dst_addr() << "," << src_port << "," << dst_port << ","

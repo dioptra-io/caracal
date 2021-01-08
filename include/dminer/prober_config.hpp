@@ -13,10 +13,10 @@ using std::string;
 namespace fs = std::filesystem;
 
 struct ProberConfig {
-  int n_packets = 1;
-  int probing_rate = 100;
-  int sniffer_buffer_size = 2000000;
-  int sniffer_wait_time = 5;
+  uint64_t n_packets = 1;
+  uint64_t probing_rate = 100;
+  uint64_t sniffer_buffer_size = 2000000;
+  uint64_t sniffer_wait_time = 5;
   string protocol = "udp";
   Tins::NetworkInterface interface =
       Tins::NetworkInterface::default_interface();

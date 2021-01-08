@@ -1,208 +1,137 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <fcntl.h>
-#include <netinet/ip.h>
 #include <sys/time.h>
 #include <tins/tins.h>
 
 #include <boost/log/trivial.hpp>
-#include <cerrno>
 #include <chrono>
-#include <filesystem>
-#include <iostream>
-#include <optional>
 #include <string>
+#include <vector>
 
 #include "network_utils_t.hpp"
 #include "packets_utils.hpp"
-#include "parameters_utils_t.hpp"
 #include "pretty.hpp"
 #include "probe.hpp"
 #include "rate_limiter.hpp"
+#include "socket.hpp"
 #include "timestamp.hpp"
 
-namespace fs = std::filesystem;
-
+using std::array;
+using std::invalid_argument;
+using std::string;
+using std::system_error;
 using std::chrono::system_clock;
+using Tins::NetworkInterface;
 using utils::compact_ip_hdr;
 using utils::tcphdr;
 using utils::udphdr;
 
+// TODO: IPv6
 class Sender {
  public:
-  Sender(const Sender &) = delete;
-  Sender &operator=(const Sender &) = delete;
-
-  Sender(const uint8_t family, const std::string &protocol,
-         const Tins::NetworkInterface interface, const int pps)
-      : m_socket(socket(family, SOCK_RAW, IPPROTO_RAW)),
-        m_family(family),
-        m_payload("AA"),
-        m_rl(pps) {
-    m_proto = -1;
-    if (protocol == "udp") {
-      m_proto = IPPROTO_UDP;
-    } else if (protocol == "tcp") {
-      m_proto = IPPROTO_TCP;
+  Sender(const NetworkInterface &interface, const string &protocol,
+         const uint64_t pps)
+      : buffer_{0},
+        payload_{"AA"},
+        rl_{pps},
+        socket_{AF_INET, SOCK_RAW, IPPROTO_RAW} {
+    if (protocol == "tcp") {
+      protocol_ = IPPROTO_TCP;
+    } else if (protocol == "udp") {
+      protocol_ = IPPROTO_UDP;
     } else {
-      throw std::invalid_argument("Invalid protocol!");
+      throw invalid_argument("protocol must be tcp or udp.");
     }
 
-    const int on = 1;
-    if (setsockopt(m_socket, IPPROTO_IP, IP_HDRINCL, &on, sizeof(on)) != 0) {
-      BOOST_LOG_TRIVIAL(fatal)
-          << "Error while calling setsockopt, try to run as root";
-      throw std::system_error(errno, std::generic_category(), "setsockopt");
+    sockaddr_in src_addr;
+    src_addr.sin_addr.s_addr = uint32_t(interface.ipv4_address());
+    src_addr.sin_family = AF_INET;  // TODO: IPv6
+    src_addr.sin_port = 0;
+
+    socket_.set(IPPROTO_IP, IP_HDRINCL, true);
+    socket_.set(SOL_SOCKET, SO_REUSEADDR, true);
+    try {
+      socket_.set(SOL_SOCKET, SO_SNDBUF, 8388608);
+    } catch (const system_error &e) {
+      BOOST_LOG_TRIVIAL(warning)
+          << "Cannot increase send buffer size: " << e.what();
     }
+    socket_.bind(&src_addr);
 
-    if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR,
-                   reinterpret_cast<const char *>(&on), sizeof(on)) == -1) {
-      BOOST_LOG_TRIVIAL(fatal)
-          << "Error while calling setsockopt, try to run as root";
-      throw std::system_error(errno, std::generic_category(),
-                              "setsockopt(SO_REUSEADDR)");
-    }
-
-    socklen_t optlen;
-    int res, sendbuff;
-    optlen = sizeof(sendbuff);
-    res = getsockopt(m_socket, SOL_SOCKET, SO_SNDBUF, &sendbuff, &optlen);
-
-    if (res == -1) {
-      std::cout << "Error getsockopt one\n";
-    } else {
-      BOOST_LOG_TRIVIAL(info) << "send buffer size is " << sendbuff;
-    }
-
-    // Set buffer size
-    sendbuff *= 64;
-
-    res = setsockopt(m_socket, SOL_SOCKET, SO_SNDBUF, &sendbuff,
-                     sizeof(sendbuff));
-
-    if (res == -1) {
-      std::cout << "Error setsockopt \n";
-    } else {
-      BOOST_LOG_TRIVIAL(info) << "send buffer size setted to " << sendbuff;
-    }
-
-    uint32_t uint_src_addr = 0;
-    int error = inet_pton(AF_INET, interface.ipv4_address().to_string().c_str(),
-                          &uint_src_addr);
-    if (error != 1) {
-      perror("inet_pton");
-    }
-
-    // Socket stuff
-
-    m_src_addr.sin_family = family;
-    m_src_addr.sin_addr.s_addr = uint_src_addr;
-
-    if (bind(m_socket, (struct sockaddr *)&m_src_addr, sizeof(m_src_addr)) <
-        0) {
-      perror("bind");
-      exit(1);
-    }
-
-    // Raw packet stuff
-    std::size_t transport_header_size = 0;
-    if (m_proto == IPPROTO_UDP) {
-      transport_header_size = sizeof(udphdr);
-    } else if (m_proto == IPPROTO_TCP) {
-      transport_header_size = sizeof(tcphdr);
-    }
-    // Buffer size is size of the IP header + size of transport + size of
-    // maximum payload We will only send the number of needed bytes for payload.
-    uint32_t buffer_size =
-        sizeof(compact_ip_hdr) + transport_header_size + utils::max_ttl + 2;
-
-    m_buffer = new uint8_t[buffer_size];
-    memset(m_buffer, 0, buffer_size);
-    packets_utils::init_ip_header(m_buffer, m_proto, uint_src_addr);
-    if (m_proto == IPPROTO_UDP) {
-      // The length depending on the ttl, sets it later
-      //        packets_utils::init_udp_header(m_buffer +
-      //        sizeof(compact_ip_hdr),
-      //        static_cast<uint16_t>(m_payload.size()));
-    } else if (m_proto == IPPROTO_TCP) {
-      packets_utils::init_tcp_header(m_buffer + sizeof(compact_ip_hdr));
+    packets_utils::init_ip_header(buffer_.data(), protocol_,
+                                  src_addr.sin_addr.s_addr);
+    if (protocol_ == IPPROTO_TCP) {
+      packets_utils::init_tcp_header(buffer_.data() + sizeof(compact_ip_hdr));
+    } else if (protocol_ == IPPROTO_TCP) {
+      // The length depends on the TTL, we set it later.
     }
   }
 
-  ~Sender() { delete[] m_buffer; }
-
-  double current_rate() const { return m_rl.current_rate(); }
+  double current_rate() const { return rl_.current_rate(); }
 
   void send(const Probe &probe, int n_packets) {
-    // TODO: Temp
-    in_addr destination = probe.dst_addr;
-    uint8_t ttl = probe.ttl;
-    uint16_t sport = probe.src_port;
-    uint16_t dport = probe.dst_port;
-
-    sockaddr_in m_dst_addr;
-
-    m_dst_addr.sin_family = m_family;
-    m_dst_addr.sin_addr = destination;
-    m_dst_addr.sin_port = htons(dport);
+    sockaddr_in dst_addr;
+    dst_addr.sin_family = AF_INET;  // TODO: IPv6
+    dst_addr.sin_addr = probe.dst_addr;
+    dst_addr.sin_port = htons(probe.dst_port);
 
     // The payload len is the ttl + 2, the +2 is to be able to fully
     // tweak the checksum for the timestamp
-    packets_utils::complete_ip_header(m_buffer, destination.s_addr, ttl,
-                                      m_proto, ttl + 2);
+    packets_utils::complete_ip_header(buffer_.data(), dst_addr.sin_addr.s_addr,
+                                      probe.ttl, protocol_, probe.ttl + 2);
 
     uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
 
     uint16_t buf_size = 0;
-    if (m_proto == IPPROTO_UDP) {
-      uint16_t payload_length = ttl + 2;
+    if (protocol_ == IPPROTO_UDP) {
+      uint16_t payload_length = probe.ttl + 2;
       uint16_t udp_length = sizeof(udphdr) + payload_length;
 
-      packets_utils::add_udp_ports(m_buffer + sizeof(ip), sport, dport);
-      packets_utils::add_udp_length(m_buffer + sizeof(ip), payload_length);
-      packets_utils::add_udp_timestamp(m_buffer + sizeof(ip), timestamp);
+      packets_utils::add_udp_ports(buffer_.data() + sizeof(ip), probe.src_port,
+                                   probe.dst_port);
+      packets_utils::add_udp_length(buffer_.data() + sizeof(ip),
+                                    payload_length);
+      packets_utils::add_udp_timestamp(buffer_.data() + sizeof(ip), timestamp);
       buf_size = sizeof(compact_ip_hdr) + udp_length;
 
-    } else if (m_proto == IPPROTO_TCP) {
-      packets_utils::add_tcp_ports(m_buffer + sizeof(ip), sport, dport);
-      packets_utils::add_tcp_timestamp(m_buffer + sizeof(ip), timestamp, ttl);
+    } else if (protocol_ == IPPROTO_TCP) {
+      packets_utils::add_tcp_ports(buffer_.data() + sizeof(ip), probe.src_port,
+                                   probe.dst_port);
+      packets_utils::add_tcp_timestamp(buffer_.data() + sizeof(ip), timestamp,
+                                       probe.ttl);
       packets_utils::add_transport_checksum(
-          m_buffer + sizeof(ip), m_buffer, m_proto,
-          const_cast<char *>(m_payload.c_str()),
-          static_cast<uint16_t>(m_payload.size()));
+          buffer_.data() + sizeof(ip), buffer_.data(), protocol_,
+          const_cast<char *>(payload_.c_str()),
+          static_cast<uint16_t>(payload_.size()));
 
-      buf_size = sizeof(compact_ip_hdr) + sizeof(tcphdr) + m_payload.size();
+      buf_size = sizeof(compact_ip_hdr) + sizeof(tcphdr) + payload_.size();
     }
 
     // Optionnaly send two packets so that we can spot the eventual per packet
     // LB and anomalies.
     for (int i = 0; i < n_packets; ++i) {
       BOOST_LOG_TRIVIAL(trace)
-          << "Sending packet #" << i + 1 << " to " << m_dst_addr;
-
-      int rc = sendto(m_socket, m_buffer, buf_size, 0,
-                      (const sockaddr *)&m_dst_addr, sizeof(m_dst_addr));
-      if (rc < 0) {
-        BOOST_LOG_TRIVIAL(error) << "Could not send packet to " << m_dst_addr
-                                 << ": " << strerror(errno);
+          << "Sending packet #" << i + 1 << " to " << dst_addr;
+      try {
+        socket_.sendto(buffer_.data(), buf_size, 0, &dst_addr);
+      } catch (const std::system_error &e) {
+        BOOST_LOG_TRIVIAL(error)
+            << "Could not send packet to " << dst_addr << ": " << e.what();
       }
-      // Control the probing rate with active waiting to be precise.
-      m_rl.wait();
+      rl_.wait();
     }
 
     // Reset the checksum for future computation.
-    compact_ip_hdr *ip_header = reinterpret_cast<compact_ip_hdr *>(m_buffer);
+    compact_ip_hdr *ip_header =
+        reinterpret_cast<compact_ip_hdr *>(buffer_.data());
     ip_header->ip_sum = 0;
   }
 
  private:
-  int m_socket;
-  uint8_t m_family;
-  uint8_t m_proto;
-  uint8_t *m_buffer;
-  sockaddr_in m_src_addr;
-  std::string m_payload;
-
-  RateLimiter m_rl;
+  array<uint8_t, 65536> buffer_;
+  string payload_;
+  uint8_t protocol_;
+  RateLimiter rl_;
+  Socket socket_;
 };

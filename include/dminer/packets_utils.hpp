@@ -8,7 +8,6 @@
 #include "network_utils_t.hpp"
 #include "timestamp.hpp"
 
-using Tins::HWAddress;
 using utils::compact_ip_hdr;
 using utils::in_cksum;
 using utils::one_s_complement_bits32_sum_to_16;
@@ -20,29 +19,6 @@ using utils::udphdr;
 using utils::wrapsum;
 
 namespace packets_utils {
-
-inline void init_ethernet_header(uint8_t *buffer, int family,
-                                 const HWAddress<6> &hw_source,
-                                 const HWAddress<6> &hw_gateway) {
-  auto l2_len = sizeof(ether_header);
-  ether_header *ethernet_header = reinterpret_cast<ether_header *>(buffer);
-
-  for (std::size_t i = 0; i < hw_gateway.size(); ++i) {
-    ethernet_header->ether_dhost[i] = hw_gateway[i];
-    ethernet_header->ether_shost[i] = hw_source[i];
-  }
-
-  std::cout << "Mac source set to " << hw_source << "\n";
-  std::cout << "Mac destination set to " << hw_gateway << "\n";
-
-  if (family == AF_INET6) {
-    buffer[l2_len - 2] = 0x86;
-    buffer[l2_len - 1] = 0xDD;
-  } else if (family == AF_INET) {
-    buffer[l2_len - 2] = 0x08;
-    buffer[l2_len - 1] = 0x00;
-  }
-}
 
 inline void init_ip_header(uint8_t *buffer, uint8_t ip_proto,
                            uint32_t uint_src_addr) {

@@ -57,8 +57,7 @@ inline std::tuple<ProberStatistics, SnifferStatistics> send_probes(
   sniffer.start();
 
   // Sender
-  Sender sender{AF_INET, config.protocol, config.interface,
-                config.probing_rate};
+  Sender sender{config.interface, config.protocol, config.probing_rate};
 
   // Statistics
   ProberStatistics stats;
@@ -85,14 +84,6 @@ inline std::tuple<ProberStatistics, SnifferStatistics> send_probes(
     Probe p = Probe::from_csv(line);
     stats.read++;
 
-    // Temporary safeguard, until we cleanup packets_utils.
-    if (p.ttl >= 32) {
-      BOOST_LOG_TRIVIAL(trace)
-          << "Filtered probe " << p << " (TTL >= 32 are not supported)";
-      stats.filtered_hi_ttl++;
-      continue;
-    }
-
     // TTL filter
     if (config.filter_min_ttl && (p.ttl < config.filter_min_ttl.value())) {
       BOOST_LOG_TRIVIAL(trace) << "Filtered probe " << p << " (TTL too low)";
@@ -106,7 +97,6 @@ inline std::tuple<ProberStatistics, SnifferStatistics> send_probes(
     }
 
     // IP filter
-    // TODO: Cleanup this.
     if (config.filter_min_ip &&
         (p.dst_addr.s_addr < uint32_t(config.filter_min_ip.value()))) {
       BOOST_LOG_TRIVIAL(trace)
@@ -169,7 +159,7 @@ inline std::tuple<ProberStatistics, SnifferStatistics> send_probes(
 
   BOOST_LOG_TRIVIAL(info) << "Waiting " << config.sniffer_wait_time
                           << "s to allow the sniffer to get the last "
-                             "flying responses... Press CTRL+C to exit now.";
+                             "flying responses...";
   std::this_thread::sleep_for(std::chrono::seconds(config.sniffer_wait_time));
   sniffer.stop();
 

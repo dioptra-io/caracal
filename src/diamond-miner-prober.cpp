@@ -144,8 +144,8 @@ int main(int argc, char** argv) {
 
     configure_logging(vm["log-level"].as<string>());
     send_probes(config);
-  } catch (const std::invalid_argument& e) {
-    std::cerr << "Error: " << e.what() << std::endl;
+  } catch (const std::exception& e) {
+    std::cerr << "Exception: " << e.what() << std::endl;
     return 1;
   }
 

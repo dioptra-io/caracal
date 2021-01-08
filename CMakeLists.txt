@@ -16,26 +16,22 @@ configure_file(src/diamond-miner-config.h.in diamond-miner-config.h)
 
 # Library
 add_library(diamond-miner INTERFACE)
-
-target_link_libraries(
-  diamond-miner INTERFACE Boost::log Boost::log_setup Patricia::Patricia
-                          PkgConfig::Tins Threads::Threads)
-
 target_compile_features(diamond-miner INTERFACE cxx_std_17)
 target_compile_options(diamond-miner INTERFACE -DBOOST_LOG_DYN_LINK)
 target_include_directories(diamond-miner
                            INTERFACE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(
+  diamond-miner INTERFACE Boost::log Boost::log_setup Patricia::Patricia
+                          PkgConfig::Tins Threads::Threads)
 
 # Executable (Prober)
 add_executable(diamond-miner-prober src/diamond-miner-prober.cpp)
-
-target_link_libraries(
-  diamond-miner-prober PUBLIC Boost::log Boost::log_setup
-                              Boost::program_options diamond-miner)
-
 target_compile_features(diamond-miner-prober PUBLIC cxx_std_17)
 target_compile_options(diamond-miner-prober PRIVATE -Wall -Wextra)
 target_include_directories(diamond-miner-prober PUBLIC "${PROJECT_BINARY_DIR}")
+target_link_libraries(
+  diamond-miner-prober PUBLIC Boost::log Boost::log_setup
+                              Boost::program_options diamond-miner)
 
 # Executable (Reader) TODO
 

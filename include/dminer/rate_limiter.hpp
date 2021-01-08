@@ -12,7 +12,7 @@ using std::chrono::steady_clock;
 
 class RateLimiter {
  public:
-  explicit RateLimiter(unsigned int target_rate)
+  explicit RateLimiter(uint64_t target_rate)
       : m_sleep_precision{sleep_precision()},
         m_current_delta{0},
         m_curr_tp{steady_clock::now()},
@@ -62,7 +62,7 @@ class RateLimiter {
     return worst_case;
   }
 
-  static bool test(unsigned int target_rate) {
+  static bool test(uint64_t target_rate) {
     RateLimiter rl{target_rate};
     auto start = steady_clock::now();
     for (unsigned int i = 0; i < target_rate; i++) {
