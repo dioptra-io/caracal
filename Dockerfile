@@ -20,7 +20,6 @@ ADD . /tmp
 
 RUN mkdir -p /tmp/build/debug && \
     cd /tmp/build/debug && \
-    export CXXFLAGS="-fsanitize=address -fsanitize=undefined" && \
     cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=ON ../.. && \
     cmake --build . --parallel 8
 

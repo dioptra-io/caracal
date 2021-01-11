@@ -53,7 +53,7 @@ TEST_CASE("send_probes") {
     // We should receive port unreachable messages.
     auto [prober_stats, sniffer_stats] = send_probes(config);
     REQUIRE(prober_stats.read == 5);
-    REQUIRE(prober_stats.sent == 2);
+    REQUIRE(prober_stats.sent == 6);
     REQUIRE(prober_stats.filtered_lo_ip == 0);
     REQUIRE(prober_stats.filtered_hi_ip == 0);
     REQUIRE(prober_stats.filtered_lo_ttl == 0);
@@ -71,7 +71,7 @@ TEST_CASE("send_probes") {
     ofs.close();
 
     auto [prober_stats, sniffer_stats] = send_probes(config);
-    REQUIRE(prober_stats.sent == 2);
+    REQUIRE(prober_stats.sent == 6);
     REQUIRE(sniffer_stats.received_count == 6);
   }
 
@@ -82,7 +82,7 @@ TEST_CASE("send_probes") {
     ofs.close();
 
     auto [prober_stats, sniffer_stats] = send_probes(config);
-    REQUIRE(prober_stats.sent == 3);
+    REQUIRE(prober_stats.sent == 9);
     REQUIRE(sniffer_stats.received_count == 9);
   }
 

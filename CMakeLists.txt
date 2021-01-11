@@ -11,7 +11,7 @@ find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 pkg_check_modules(Tins REQUIRED IMPORTED_TARGET libtins)
 
-option(WITH_TESTS "Build tests and enable coverage" OFF)
+option(WITH_TESTS "Build tests and enable coverage/sanitizer" OFF)
 configure_file(src/diamond-miner-config.h.in diamond-miner-config.h)
 
 # Library
@@ -50,9 +50,12 @@ if(WITH_TESTS)
   target_link_libraries(diamond-miner-tests PRIVATE Catch2::Catch2
                                                     diamond-miner)
 
-  catch_discover_tests(diamond-miner-tests)
+  # Coverage/sanitizer global flags
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
+  set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined")
 
-  append_coverage_compiler_flags()
+  catch_discover_tests(diamond-miner-tests)
   setup_target_for_coverage_gcovr_xml(
     NAME
     coverage

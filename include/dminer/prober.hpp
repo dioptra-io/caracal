@@ -9,12 +9,14 @@
 
 #include "probe.hpp"
 #include "prober_config.hpp"
+#include "rate_limiter.hpp"
 #include "sender.hpp"
 #include "sniffer.hpp"
 #include "statistics.hpp"
 
-inline std::tuple<ProberStatistics, SnifferStatistics> send_probes(
-    const ProberConfig& config) {
+typedef std::tuple<ProberStatistics, SnifferStatistics> Statistics;
+
+inline Statistics send_probes(const ProberConfig& config) {
   BOOST_LOG_TRIVIAL(info) << config;
 
   // Test the rate limiter
@@ -57,12 +59,15 @@ inline std::tuple<ProberStatistics, SnifferStatistics> send_probes(
   sniffer.start();
 
   // Sender
-  Sender sender{config.interface, config.protocol, config.probing_rate};
+  Sender sender{config.interface, config.protocol};
+
+  // Rate limiter
+  RateLimiter rl{config.probing_rate};
 
   // Statistics
   ProberStatistics stats;
   auto log_stats = [&] {
-    BOOST_LOG_TRIVIAL(info) << "packets_rate=" << sender.current_rate();
+    BOOST_LOG_TRIVIAL(info) << "packets_rate=" << rl.current_rate();
     BOOST_LOG_TRIVIAL(info) << stats;
     BOOST_LOG_TRIVIAL(info) << sniffer.statistics();
   };
@@ -139,12 +144,22 @@ inline std::tuple<ProberStatistics, SnifferStatistics> send_probes(
       continue;
     }
 
-    BOOST_LOG_TRIVIAL(trace) << "Sending probe " << p;
-    sender.send(p, config.n_packets);
-    stats.sent++;
+    for (uint64_t i = 0; i < config.n_packets; i++) {
+      BOOST_LOG_TRIVIAL(trace)
+          << "Sending probe " << p << " (packet #" << i << ")";
+      try {
+        sender.send(p);
+        stats.sent++;
+      } catch (const std::system_error& e) {
+        BOOST_LOG_TRIVIAL(error)
+            << "Error while sending probe " << p << ": " << e.what();
+        stats.failed++;
+      }
+      rl.wait();
+    }
 
     // Log every ~10 seconds.
-    uint64_t rate = uint64_t(sender.current_rate());
+    uint64_t rate = uint64_t(rl.current_rate());
     if ((rate > 0) && (stats.sent % (10 * rate) == 0)) {
       log_stats();
     }

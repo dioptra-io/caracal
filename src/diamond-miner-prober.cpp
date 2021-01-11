@@ -1,5 +1,6 @@
 #include <diamond-miner-config.h>
 
+#include <boost/core/demangle.hpp>
 #include <boost/program_options.hpp>
 #include <dminer/logging.hpp>
 #include <dminer/prober.hpp>
@@ -145,7 +146,8 @@ int main(int argc, char** argv) {
     configure_logging(vm["log-level"].as<string>());
     send_probes(config);
   } catch (const std::exception& e) {
-    std::cerr << "Exception: " << e.what() << std::endl;
+    auto type = boost::core::demangle(typeid(e).name());
+    std::cerr << "Exception of type " << type << ": " << e.what() << std::endl;
     return 1;
   }
 
