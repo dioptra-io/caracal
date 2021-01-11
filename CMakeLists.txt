@@ -26,21 +26,17 @@ target_link_libraries(
 
 # Executable (Prober)
 add_executable(diamond-miner-prober src/diamond-miner-prober.cpp)
-target_compile_features(diamond-miner-prober PUBLIC cxx_std_17)
 target_compile_options(diamond-miner-prober PRIVATE -Wall -Wextra)
-target_include_directories(diamond-miner-prober PUBLIC "${PROJECT_BINARY_DIR}")
-target_link_libraries(
-  diamond-miner-prober PUBLIC Boost::log Boost::log_setup
-                              Boost::program_options diamond-miner)
+target_include_directories(diamond-miner-prober PRIVATE "${PROJECT_BINARY_DIR}")
+target_link_libraries(diamond-miner-prober PRIVATE Boost::program_options
+                                                   diamond-miner)
 
 # Executable (Reader)
 add_executable(diamond-miner-reader src/diamond-miner-reader.cpp)
-target_compile_features(diamond-miner-reader PUBLIC cxx_std_17)
 target_compile_options(diamond-miner-reader PRIVATE -Wall -Wextra)
-target_include_directories(diamond-miner-reader PUBLIC "${PROJECT_BINARY_DIR}")
-target_link_libraries(
-  diamond-miner-reader PUBLIC Boost::log Boost::log_setup
-                              Boost::program_options diamond-miner)
+target_include_directories(diamond-miner-reader PRIVATE "${PROJECT_BINARY_DIR}")
+target_link_libraries(diamond-miner-reader PRIVATE Boost::program_options
+                                                   diamond-miner)
 
 # Tests
 if(WITH_TESTS)
@@ -50,9 +46,9 @@ if(WITH_TESTS)
 
   file(GLOB TESTS_SOURCES tests/*.cpp)
   add_executable(diamond-miner-tests ${TESTS_SOURCES})
-  target_link_libraries(diamond-miner-tests PUBLIC Catch2::Catch2 diamond-miner)
-  target_compile_features(diamond-miner-tests PUBLIC cxx_std_17)
   target_compile_options(diamond-miner-tests PRIVATE -Wall -Wextra)
+  target_link_libraries(diamond-miner-tests PRIVATE Catch2::Catch2
+                                                    diamond-miner)
 
   catch_discover_tests(diamond-miner-tests)
 

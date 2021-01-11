@@ -12,6 +12,8 @@ docker run matthieugouel/diamond-miner-prober --help
 
 ### Building from source
 
+This program should compile on macOS, but it has been tuned for Linux, so do not expect to achieve a high throughput on macOS.
+
 ```bash
 # Ubuntu
 apt-get install build-essential cmake gcovr libboost-log-dev libboost-program-options-dev \
@@ -23,17 +25,9 @@ brew install boost cmake gcovr libtins pkg-config
 ```bash
 git clone --recursive git@github.com:dioptra-io/diamond-miner-prober.git
 cd diamond-miner-prober
-```
-
-```bash
 mkdir build && cd build
-# Debug build
 cmake .. && cmake --build .
-# Release build
-cmake -DCMAKE_BUILD_TYPE=Release && cmake --build .
-# (Optional) Installation
-cmake --install .
 ```
 
 ### TODO
-- add a license (caution: libcperm and patricia are under GPLv3)
+- add a license (caution: patricia is under GPLv3)
