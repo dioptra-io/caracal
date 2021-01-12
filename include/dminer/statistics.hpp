@@ -34,12 +34,14 @@ inline std::ostream& operator<<(std::ostream& os, ProberStatistics const& v) {
 
 struct SnifferStatistics {
   uint64_t received_count = 0;
+  uint64_t received_invalid_count = 0;
   std::unordered_set<uint32_t> icmp_messages_all;
   std::unordered_set<uint32_t> icmp_messages_path;
 };
 
 inline std::ostream& operator<<(std::ostream& os, SnifferStatistics const& v) {
   os << "packets_received=" << v.received_count;
+  os << " packets_received_invalid=" << v.received_invalid_count;
   os << " icmp_distinct_incl_dest=" << v.icmp_messages_all.size();
   os << " icmp_distinct_excl_dest=" << v.icmp_messages_path.size();
   return os;

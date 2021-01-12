@@ -69,8 +69,8 @@ class Sniffer {
 
       if (reply) {
         auto reply_ = reply.value();
-        BOOST_LOG_TRIVIAL(trace)
-            << "Received ICMP message from " << reply_.src_ip;
+        BOOST_LOG_TRIVIAL(trace) << "Received a reply from " << reply_.src_ip
+                                 << " (" << reply_.rtt << "ms)";
         m_statistics.icmp_messages_all.insert(reply_.src_ip);
         if (reply_.src_ip != reply_.inner_dst_ip) {
           m_statistics.icmp_messages_path.insert(reply_.src_ip);
@@ -79,6 +79,8 @@ class Sniffer {
         m_output_csv << "," << m_meta_round.value_or("1");
         m_output_csv << ",1"
                      << "\n";
+      } else {
+        m_statistics.received_invalid_count++;
       }
 
       if (m_output_pcap) {
