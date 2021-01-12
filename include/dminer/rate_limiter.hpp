@@ -10,6 +10,8 @@ using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
 using std::chrono::steady_clock;
 
+namespace dminer {
+
 class RateLimiter {
  public:
   explicit RateLimiter(uint64_t target_rate)
@@ -24,6 +26,8 @@ class RateLimiter {
   }
 
   void wait() {
+    // TODO: Use sleep first if possible, then spin.
+    // TODO: Monitor/report time spent between calls.
     // x2 to allow 50% time outside wait.
     if ((m_sleep_precision * 2) < m_target_delta) {
       wait_sleep();
@@ -79,3 +83,5 @@ class RateLimiter {
   steady_clock::time_point m_curr_tp;
   steady_clock::time_point m_last_tp;
 };
+
+}  // namespace dminer

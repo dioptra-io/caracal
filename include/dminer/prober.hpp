@@ -14,6 +14,8 @@
 #include "sniffer.hpp"
 #include "statistics.hpp"
 
+namespace dminer {
+
 typedef std::tuple<ProberStatistics, SnifferStatistics> Statistics;
 
 inline Statistics send_probes(const ProberConfig& config) {
@@ -180,3 +182,5 @@ inline Statistics send_probes(const ProberConfig& config) {
 
   return {stats, sniffer.statistics()};
 }
+
+}  // namespace dminer

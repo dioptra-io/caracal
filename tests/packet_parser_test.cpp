@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+using dminer::parse;
+
 namespace fs = std::filesystem;
 
 std::vector<std::string> read_lines(const std::string& file) {

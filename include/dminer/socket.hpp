@@ -7,8 +7,10 @@
 #include <system_error>
 #include <vector>
 
+namespace dminer {
+
 template <typename T>
-void assert_sockaddr_in(const T *addr) {
+void assert_sockaddr_in(const T *) {
   static_assert(std::is_same<T, sockaddr_in>::value ||
                     std::is_same<T, sockaddr_in6>::value,
                 "addr must be sockaddr_in or sockaddr_in6");
@@ -54,3 +56,5 @@ class Socket {
     return val;
   }
 };
+
+}  // namespace dminer

@@ -3,6 +3,8 @@
 #include <ostream>
 #include <unordered_set>
 
+namespace dminer {
+
 struct ProberStatistics {
   uint64_t read = 0;
   uint64_t sent = 0;
@@ -42,3 +44,5 @@ inline std::ostream& operator<<(std::ostream& os, SnifferStatistics const& v) {
   os << " icmp_distinct_excl_dest=" << v.icmp_messages_path.size();
   return os;
 }
+
+}  // namespace dminer

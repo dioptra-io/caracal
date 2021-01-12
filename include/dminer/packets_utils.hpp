@@ -8,6 +8,7 @@
 #include "network_utils_t.hpp"
 #include "timestamp.hpp"
 
+using dminer::encode_timestamp;
 using utils::compact_ip_hdr;
 using utils::in_cksum;
 using utils::one_s_complement_bits32_sum_to_16;
@@ -92,8 +93,9 @@ inline void add_udp_ports(uint8_t *transport_buffer, uint16_t sport,
                           uint16_t dport) {
   udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
 
-  udp_header->uh_sport = htons(sport);
-  udp_header->uh_dport = htons(dport);
+  // Network order values.
+  udp_header->uh_sport = sport;
+  udp_header->uh_dport = dport;
 }
 
 inline void add_transport_checksum(uint8_t *transport_buffer,
@@ -157,8 +159,9 @@ inline void add_transport_checksum(uint8_t *transport_buffer,
 inline void add_tcp_ports(uint8_t *transport_buffer, const uint16_t sport,
                           const uint16_t dport) {
   tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
-  tcp_header->th_sport = htons(sport);
-  tcp_header->th_dport = htons(dport);
+  // Network order values.
+  tcp_header->th_sport = sport;
+  tcp_header->th_dport = dport;
 }
 
 inline void add_tcp_timestamp(uint8_t *transport_buffer,
@@ -183,6 +186,26 @@ inline void add_udp_timestamp(uint8_t *transport_buffer,
   // TODO: Encode timestamp.
   // udp_header->uh_sum = encode_timestamp(timestamp);
   udp_header->uh_sum = 0;
+
+  // // Payload
+  // // (A) "Tweak bytes"
+  // // => Craft the first two bytes to ensure that our custom checksum is
+  // // valid.
+  // auto tweak_bytes = advance<uint16_t>(ptr);
+  // uint32_t original_checksum =
+  //     base_.pseudo_header_checksum(IPPROTO_UDP, payload_length);
+  // uint32_t target_checksum_le = ~ntohs(timestamp) & 0xFFFF;
+  // if (target_checksum_le < original_checksum) {
+  //   target_checksum_le += 0xFFFF;
+  // }
+  // *tweak_bytes = htons(target_checksum_le - original_checksum);
+  //
+  // // (B) Padding
+  // // => Pad with zeros since we encode the TTL in the payload length.
+  // auto padding = advance<uint8_t>(ptr);
+  // for (size_t i = 0; i < payload_length; i++) {
+  //   padding[i] = 0;
+  // }
 }
 
 }  // namespace packets_utils

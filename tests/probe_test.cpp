@@ -1,6 +1,8 @@
 #include <catch2/catch.hpp>
 #include <dminer/probe.hpp>
 
+using dminer::Probe;
+
 TEST_CASE("Probe::from_csv") {
   Probe probe1 = Probe::from_csv("0.0.0.0,1,2,3");
   REQUIRE(probe1.human_dst_addr() == "0.0.0.0");

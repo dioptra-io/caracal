@@ -29,34 +29,53 @@ using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 
-struct TracerouteReply {
-  // Reply attributes (IP)
-  uint32_t src_ip;
-  uint32_t dst_ip;
-  uint16_t size;
-  uint8_t ttl;
-  // Reply attributes (IP->ICMP)
-  // 0 if not an ICMP reply.
-  uint8_t icmp_code;
-  uint8_t icmp_type;
-  // Probe attributes (IP->ICMP->IP)
-  // The IP that was targeted by the probe.
-  // If we receive a reply from this IP, then src_ip == inner_dst_ip.
-  uint32_t inner_dst_ip;
-  uint16_t inner_size;
-  uint8_t inner_ttl;
-  uint8_t inner_proto;
-  // Probe attributes (IP->ICMP->IP->UDP/TCP)
-  uint16_t inner_src_port;
-  uint16_t inner_dst_port;
-  // 0 if not an UDP reply.
-  uint8_t inner_ttl_from_udp_len;
-  // Estimated attributes
-  double rtt;
+namespace dminer {
 
-  // The /24 destination prefix.
+/// A traceroute reply (all values are in host order, including the IP
+/// addresses).
+struct TracerouteReply {
+  /// @name Reply attributes (IP)
+  /// @{
+  uint32_t src_ip;  ///< The source IP of the reply packet.
+  uint32_t dst_ip;  ///< The destination IP of the reply packet.
+  uint16_t size;    ///< The size in bytes of the reply packet.
+  uint8_t ttl;      ///< The TTL of the reply packet.
+  /// @}
+
+  /// @name Reply attributes (IP → ICMP)
+  /// @{
+  uint8_t icmp_code;  ///< ICMP code (0 if not an ICMP reply)
+  uint8_t icmp_type;  ///< ICMP type (0 if not an ICMP reply)
+  /// @}
+
+  /// @name Probe attributes (IP → ICMP → IP)
+  /// @{
+  uint32_t inner_dst_ip;  ///< The IP that was targeted by the probe,
+                          ///< if we received a reply from this IP,
+                          ///< then \ref src_ip == \ref inner_dst_ip.
+  uint16_t inner_size;    ///< The size in bytes of the probe packet.
+  uint8_t inner_ttl;      ///< The TTL of the probe packet.
+  uint8_t inner_proto;    ///< The protocol of the probe packet.
+  /// @}
+
+  /// @name Probe attributes (IP → ICMP → IP → UDP/TCP)
+  /// @{
+  uint16_t inner_src_port;  ///< The source port of the probe packet.
+  uint16_t inner_dst_port;  ///< The destination port of the probe packet.
+  uint8_t
+      inner_ttl_from_udp_len;  ///< The TTL that was encoded in the UDP
+                               ///< probe packet length, 0 if not an UDP probe.
+  /// @}
+
+  /// @name Estimated attributes
+  /// @{
+  double rtt;  ///< The estimated round-trip time, in milliseconds.
+  /// @}
+
+  /// The /24 destination prefix, computed from \ref inner_dst_ip.
   uint32_t prefix() const { return (inner_dst_ip >> 8) << 8; }
 
+  /// Serialize the reply in the CSV format.
   std::string to_csv() const {
     std::ostringstream oss;
     oss.precision(1);
@@ -69,6 +88,7 @@ struct TracerouteReply {
   }
 };
 
+/// Parse an ICMPv4 reply.
 inline optional<TracerouteReply> parse_icmp4(const uint64_t timestamp,
                                              const IP* ip, const ICMP* icmp,
                                              const bool estimate_rtt) {
@@ -187,6 +207,7 @@ inline optional<TracerouteReply> parse_icmp4(const uint64_t timestamp,
   return nullopt;
 }
 
+/// Parse a TCP reply.
 inline optional<TracerouteReply> parse_tcp(const uint64_t timestamp,
                                            const IP* ip, const TCP* tcp,
                                            const bool estimate_rtt) {
@@ -204,6 +225,7 @@ inline optional<TracerouteReply> parse_tcp(const uint64_t timestamp,
   return nullopt;
 }
 
+/// Parse a reply packet.
 inline optional<TracerouteReply> parse(const Packet& packet,
                                        const bool estimate_rtt) {
   const uint64_t timestamp =
@@ -238,3 +260,5 @@ inline optional<TracerouteReply> parse(const Packet& packet,
 inline optional<TracerouteReply> parse(const Packet& packet) {
   return parse(packet, true);
 }
+
+}  // namespace dminer

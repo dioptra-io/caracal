@@ -4,6 +4,8 @@
 #include <cmath>
 #include <iostream>
 
+namespace dminer {
+
 typedef std::chrono::duration<uint64_t, std::ratio<1, 10000>> tenth_ms;
 
 inline uint16_t encode_timestamp(uint64_t timestamp) {
@@ -24,3 +26,5 @@ template <typename Duration, typename TimePoint>
 inline uint64_t to_timestamp(TimePoint tp) {
   return std::chrono::duration_cast<Duration>(tp.time_since_epoch()).count();
 }
+
+}  // namespace dminer

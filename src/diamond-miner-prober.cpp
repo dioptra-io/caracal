@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
             << "." << DMINER_VERSION_PATCH;
   std::cout << std::endl;
 
-  ProberConfig config;
+  dminer::ProberConfig config;
   po::options_description general("General options");
   po::options_description filters("Filters");
   po::options_description meta("Metadata");
@@ -143,8 +143,8 @@ int main(int argc, char** argv) {
       config.set_meta_round(vm["meta-round"].as<string>());
     }
 
-    configure_logging(vm["log-level"].as<string>());
-    send_probes(config);
+    dminer::configure_logging(vm["log-level"].as<string>());
+    dminer::send_probes(config);
   } catch (const std::exception& e) {
     auto type = boost::core::demangle(typeid(e).name());
     std::cerr << "Exception of type " << type << ": " << e.what() << std::endl;

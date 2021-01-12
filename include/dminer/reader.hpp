@@ -16,6 +16,8 @@ using Tins::Packet;
 
 namespace fs = std::filesystem;
 
+namespace dminer {
+
 SnifferStatistics read_packets(const fs::path &input_file,
                                const fs::path &output_file,
                                const std::string &round) {
@@ -48,3 +50,5 @@ SnifferStatistics read_packets(const fs::path &input_file,
   BOOST_LOG_TRIVIAL(info) << statistics;
   return statistics;
 }
+
+}  // namespace dminer

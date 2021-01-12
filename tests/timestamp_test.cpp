@@ -4,6 +4,12 @@
 #include <iostream>
 #include <thread>
 
+using dminer::decode_difference;
+using dminer::decode_timestamp;
+using dminer::encode_timestamp;
+using dminer::tenth_ms;
+using dminer::to_timestamp;
+
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;

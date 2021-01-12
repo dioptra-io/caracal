@@ -12,6 +12,8 @@ using std::string;
 
 namespace fs = std::filesystem;
 
+namespace dminer {
+
 struct ProberConfig {
   uint64_t n_packets = 1;
   uint64_t probing_rate = 100;
@@ -165,3 +167,5 @@ inline std::ostream& operator<<(std::ostream& os, ProberConfig const& v) {
   os << "\n}";
   return os;
 }
+
+}  // namespace dminer

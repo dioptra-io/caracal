@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string>
 
+namespace dminer {
+
 // Quick hack from https://stackoverflow.com/a/966497,
 // to make tests pass, since inet_pton returns an error
 // on Linux when the address contains leading zeros.
@@ -21,13 +23,13 @@ inline std::string remove_leading_zeros(std::string s) {
   return oss.str();
 }
 
+/// A traceroute probe specification.
 struct Probe {
-  // Network order (managed by inet_pton/ntop)
-  in_addr dst_addr;
-  // Host order
-  uint16_t src_port;
-  uint16_t dst_port;
-  uint8_t ttl;
+  // TODO: Use IPv6 address here (even for IPv4).
+  in_addr dst_addr;   ///< IPv6 or IPv4-mapped IPv6 address (network order)
+  uint16_t src_port;  ///< @brief Source port (network order)
+  uint16_t dst_port;  ///< @brief Destination port (network order)
+  uint8_t ttl;        ///< @brief Time-to-live
 
   bool operator==(const Probe &other) const {
     return (dst_addr.s_addr == other.dst_addr.s_addr) &&
@@ -55,10 +57,10 @@ struct Probe {
           }
           break;
         case 1:
-          probe.src_port = std::stoul(token);
+          probe.src_port = htons(std::stoul(token));
           break;
         case 2:
-          probe.dst_port = std::stoul(token);
+          probe.dst_port = htons(std::stoul(token));
           break;
         case 3:
           probe.ttl = std::stoul(token);
@@ -74,8 +76,8 @@ struct Probe {
 
   std::string to_csv() const {
     std::ostringstream oss;
-    oss << human_dst_addr() << "," << src_port << "," << dst_port << ","
-        << uint(ttl);
+    oss << human_dst_addr() << "," << ntohs(src_port) << "," << ntohs(dst_port)
+        << "," << uint(ttl);
     return oss.str();
   }
 
@@ -87,7 +89,9 @@ struct Probe {
 };
 
 inline std::ostream &operator<<(std::ostream &os, Probe const &v) {
-  os << v.src_port << ":" << v.human_dst_addr() << ":" << v.dst_port << "@"
-     << uint(v.ttl);
+  os << ntohs(v.src_port) << ":" << v.human_dst_addr() << ":"
+     << ntohs(v.dst_port) << "@" << uint(v.ttl);
   return os;
 }
+
+}  // namespace dminer

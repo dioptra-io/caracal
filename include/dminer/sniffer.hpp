@@ -21,6 +21,8 @@ using Tins::Packet;
 using Tins::PacketWriter;
 using Tins::SnifferConfiguration;
 
+namespace dminer {
+
 class Sniffer {
  public:
   Sniffer(const Tins::NetworkInterface interface,
@@ -108,3 +110,5 @@ class Sniffer {
   std::thread m_thread;
   SnifferStatistics m_statistics;
 };
+
+}  // namespace dminer

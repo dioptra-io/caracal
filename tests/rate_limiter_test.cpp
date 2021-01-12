@@ -3,6 +3,7 @@
 #include <dminer/rate_limiter.hpp>
 #include <iostream>
 
+using dminer::RateLimiter;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;

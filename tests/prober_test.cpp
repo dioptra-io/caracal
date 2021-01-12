@@ -6,6 +6,9 @@
 
 namespace fs = std::filesystem;
 
+using dminer::ProberConfig;
+using dminer::send_probes;
+
 #ifdef __APPLE__
 #define LOOPBACK "lo0"
 #else
