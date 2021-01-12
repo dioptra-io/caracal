@@ -94,8 +94,8 @@ inline void add_udp_ports(uint8_t *transport_buffer, uint16_t sport,
   udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
 
   // Network order values.
-  udp_header->uh_sport = sport;
-  udp_header->uh_dport = dport;
+  udp_header->uh_sport = htons(sport);
+  udp_header->uh_dport = htons(dport);
 }
 
 inline void add_transport_checksum(uint8_t *transport_buffer,
@@ -160,8 +160,8 @@ inline void add_tcp_ports(uint8_t *transport_buffer, const uint16_t sport,
                           const uint16_t dport) {
   tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
   // Network order values.
-  tcp_header->th_sport = sport;
-  tcp_header->th_dport = dport;
+  tcp_header->th_sport = htons(sport);
+  tcp_header->th_dport = htons(dport);
 }
 
 inline void add_tcp_timestamp(uint8_t *transport_buffer,

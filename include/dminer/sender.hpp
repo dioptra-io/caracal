@@ -67,10 +67,7 @@ class Sender {
   }
 
   void send(const Probe &probe) {
-    sockaddr_in dst_addr;
-    dst_addr.sin_family = AF_INET;  // TODO: IPv6
-    dst_addr.sin_addr = probe.dst_addr;
-    dst_addr.sin_port = probe.dst_port;
+    sockaddr_in dst_addr = probe.sockaddr();
 
     // The payload len is the ttl + 2, the +2 is to be able to fully
     // tweak the checksum for the timestamp
