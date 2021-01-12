@@ -5,7 +5,6 @@ repos:
   rev: master
   hooks:
     - id: clang-format
-      args: ["--style=Google"]
     - id: cpplint
       args: ["--filter=-build/c++11,-build/include_order,-legal/copyright,-readability/todo,-whitespace/line_length"]
     - id: cppcheck

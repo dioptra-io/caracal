@@ -7,7 +7,7 @@
 #include <fstream>
 #include <string>
 
-#include "packet_parser.hpp"
+#include "parser.hpp"
 #include "statistics.hpp"
 
 using Tins::DataLinkType;

@@ -10,7 +10,7 @@
 #include <thread>
 #include <vector>
 
-#include "packet_parser.hpp"
+#include "parser.hpp"
 #include "statistics.hpp"
 
 namespace fs = std::filesystem;

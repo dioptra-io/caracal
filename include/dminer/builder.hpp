@@ -15,7 +15,7 @@ extern "C" {
 
 using dminer::encode_timestamp;
 
-namespace packets_utils {
+namespace dminer::Builder {
 
 inline uint16_t checksum(uint8_t *ip_buffer, const uint16_t transport_length) {
   auto *ip_header = reinterpret_cast<iphdr *>(ip_buffer);
@@ -195,4 +195,4 @@ void fill_payload(uint8_t *transport_buffer, const uint16_t header_length,
   }
 }
 
-}  // namespace packets_utils
+}  // namespace dminer::Builder
