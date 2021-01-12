@@ -6,6 +6,7 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
 find_package(Boost REQUIRED COMPONENTS log log_setup program_options)
 find_package(Catch2 REQUIRED)
+find_package(NetUtils REQUIRED)
 find_package(Patricia REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
@@ -21,8 +22,8 @@ target_compile_options(diamond-miner INTERFACE -DBOOST_LOG_DYN_LINK)
 target_include_directories(diamond-miner
                            INTERFACE "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
-  diamond-miner INTERFACE Boost::log Boost::log_setup Patricia::Patricia
-                          PkgConfig::Tins Threads::Threads)
+  diamond-miner INTERFACE Boost::log Boost::log_setup NetUtils::NetUtils
+                          Patricia::Patricia PkgConfig::Tins Threads::Threads)
 
 # Executable (Prober)
 add_executable(diamond-miner-prober src/diamond-miner-prober.cpp)
