@@ -148,7 +148,7 @@ inline Statistics send_probes(const ProberConfig& config) {
 
     for (uint64_t i = 0; i < config.n_packets; i++) {
       BOOST_LOG_TRIVIAL(trace)
-          << "Sending probe " << p << " (packet #" << i << ")";
+          << "Sending probe " << p << " (packet #" << i + 1 << ")";
       try {
         sender.send(p);
         stats.sent++;

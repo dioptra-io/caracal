@@ -1,39 +1,44 @@
 #pragma once
 
-#include <net/ethernet.h>
 #include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
+
+extern "C" {
+#include <netutils/checksum.h>
+}
 
 #include <iostream>
 
-#include "network_utils_t.hpp"
 #include "timestamp.hpp"
 
 using dminer::encode_timestamp;
-using utils::compact_ip_hdr;
-using utils::in_cksum;
-using utils::one_s_complement_bits32_sum_to_16;
-using utils::pseudo_header;
-using utils::pseudo_header_udp;
-using utils::sum;
-using utils::tcphdr;
-using utils::udphdr;
-using utils::wrapsum;
 
 namespace packets_utils {
 
+inline uint16_t checksum(uint8_t *ip_buffer, const uint16_t transport_length) {
+  iphdr *ip_header = reinterpret_cast<iphdr *>(ip_buffer);
+  // (1) Sum the pseudo header.
+  uint32_t current = ipv4_pseudo_header_checksum(ip_header, transport_length);
+  // (2) Sum the transport header and the payload.
+  current = ip_checksum_add(current, ip_buffer + sizeof(ip), transport_length);
+  // (3) Fold and close the sum.
+  return ip_checksum_finish(current);
+}
+
 inline void init_ip_header(uint8_t *buffer, uint8_t ip_proto,
-                           uint32_t uint_src_addr) {
-  compact_ip_hdr *ip_header = reinterpret_cast<compact_ip_hdr *>(buffer);
+                           in_addr src_addr) {
+  ip *ip_header = reinterpret_cast<ip *>(buffer);
   ip_header->ip_hl = 5;
   ip_header->ip_v = 4;
   ip_header->ip_tos = 0;
-
   //    ip_header->ip_off = htons(0);
   //    m_ip_hdr.ip_id = htons(54321);
   //    m_ip_hdr.ip_ttl = 64; // hops
   ip_header->ip_p = ip_proto;  // Transport protocol
 
-  ip_header->ip_src = uint_src_addr;
+  ip_header->ip_src = src_addr;
 }
 
 inline void init_tcp_header(uint8_t *transport_buffer) {
@@ -51,115 +56,53 @@ inline void init_tcp_header(uint8_t *transport_buffer) {
   tcp_header->th_urp = 0;
 }
 
-inline void complete_ip_header(uint8_t *ip_buffer, uint32_t destination,
+inline void complete_ip_header(uint8_t *ip_buffer, in_addr dst_addr,
                                uint8_t ttl, uint8_t proto,
                                uint16_t payload_len) {
-  compact_ip_hdr *ip_header = reinterpret_cast<compact_ip_hdr *>(ip_buffer);
-  ip_header->ip_dst = destination;
+  ip *ip_header = reinterpret_cast<ip *>(ip_buffer);
+  ip_header->ip_dst = dst_addr;
   ip_header->ip_ttl = ttl;
   ip_header->ip_id = htons(ttl);
 
-  // Encode 16 last bits of the IP address in IP checksum to avoid NATs
-  //    uint16_t lsb_16_destination = n_last_bits(ntohl(destination), 16);
-  //    ip_header->ip_sum = lsb_16_destination;
-  //    adjust_payload_len(ip_buffer, lsb_16_destination, proto);
-
-  // Compute the payload length so that it has the good checksum.
   if (proto == IPPROTO_UDP) {
-#ifdef __APPLE__
-
-    ip_header->ip_len = sizeof(ip) + sizeof(udphdr) + payload_len;
-#else
     ip_header->ip_len = htons(sizeof(ip) + sizeof(udphdr) + payload_len);
-#endif
   } else if (proto == IPPROTO_TCP) {
-#ifdef __APPLE__
-
-    ip_header->ip_len = sizeof(ip) + sizeof(tcphdr) + payload_len;
-#else
     ip_header->ip_len = htons(sizeof(ip) + sizeof(tcphdr) + payload_len);
-#endif
+  } else if (proto == IPPROTO_ICMP) {
+    ip_header->ip_len = htons(sizeof(ip) + sizeof(icmphdr) + payload_len);
   }
 
-  // Reset the checksum before computation
-  ip_header->ip_sum = 0;
+#ifdef __APPLE__
+  ip_header->ip_len = htons(ip_header->ip_len);
+#endif
 
-  // Value of the checksum in big endian
-  ip_header->ip_sum =
-      wrapsum(in_cksum((unsigned char *)ip_header, sizeof(*ip_header), 0));
+  ip_header->ip_sum = 0;
+  ip_header->ip_sum = ip_checksum(ip_header, sizeof(ip));
 }
 
 inline void add_udp_ports(uint8_t *transport_buffer, uint16_t sport,
                           uint16_t dport) {
   udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
-
-  // Network order values.
   udp_header->uh_sport = htons(sport);
   udp_header->uh_dport = htons(dport);
 }
 
-inline void add_transport_checksum(uint8_t *transport_buffer,
-                                   uint8_t *ip_buffer, uint8_t proto,
-                                   char *payload, uint16_t payload_len) {
-  compact_ip_hdr *ip_header = reinterpret_cast<compact_ip_hdr *>(ip_buffer);
-  // Calculate the checksum for integrity
-  // Now the UDP checksum using the pseudo header
-  pseudo_header psh;
-  psh.source_address = ip_header->ip_src;
-  psh.dest_address = ip_header->ip_dst;
-  psh.placeholder = 0;
-  psh.protocol = proto;
-
-  if (proto == IPPROTO_UDP) {
-    udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
-    // Set this field later
-    udp_header->uh_sum = 0;
-    psh.transport_length = htons(sizeof(struct udphdr) + payload_len);
-    // Implementation to avoid memcpy system call
-    uint32_t pseudo_header_sum_16 =
-        sum(reinterpret_cast<uint16_t *>(&psh), sizeof(pseudo_header));
-    uint32_t udp_header_sum_16 =
-        sum(reinterpret_cast<uint16_t *>(udp_header), sizeof(udphdr));
-    uint32_t payload_sum_16 =
-        sum(reinterpret_cast<uint16_t *>(payload), payload_len);
-    //    udp_header->uh_sum = csum(reinterpret_cast<uint16_t *>(pseudogram) ,
-    //    psize);
-    udp_header->uh_sum = one_s_complement_bits32_sum_to_16(
-        pseudo_header_sum_16 + udp_header_sum_16 + payload_sum_16);
-
-    if (udp_header->uh_sum == 0) {
-      udp_header->uh_sum = 0xFFFF;
-    }
-
-  } else if (proto == IPPROTO_TCP) {
-    tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
+inline void add_transport_checksum(uint8_t *ip_buffer, uint8_t protocol,
+                                   uint16_t payload_len) {
+  if (protocol == IPPROTO_TCP) {
+    tcphdr *tcp_header = reinterpret_cast<tcphdr *>(ip_buffer + sizeof(ip));
     tcp_header->th_sum = 0;
-    psh.transport_length = htons(sizeof(struct tcphdr) + payload_len);
-    // Implementation to avoid memcpy system call
-    uint32_t pseudo_header_sum_16 =
-        sum(reinterpret_cast<uint16_t *>(&psh), sizeof(pseudo_header));
-    uint32_t tcp_header_sum_16 =
-        sum(reinterpret_cast<uint16_t *>(tcp_header), sizeof(tcphdr));
-    uint32_t payload_sum_16 =
-        sum(reinterpret_cast<uint16_t *>(payload), payload_len);
-    //    udp_header->uh_sum = csum(reinterpret_cast<uint16_t *>(pseudogram) ,
-    //    psize);
-    tcp_header->th_sum = one_s_complement_bits32_sum_to_16(
-        pseudo_header_sum_16 + tcp_header_sum_16 + payload_sum_16);
+    tcp_header->th_sum = checksum(ip_buffer, sizeof(tcphdr) + payload_len);
+  } else if (protocol == IPPROTO_UDP) {
+    udphdr *udp_header = reinterpret_cast<udphdr *>(ip_buffer + sizeof(ip));
+    udp_header->uh_sum = 0;
+    udp_header->uh_sum = checksum(ip_buffer, sizeof(udphdr) + payload_len);
   }
-
-  //    int psize = sizeof(struct pseudo_header) + sizeof(struct udphdr) +
-  //    m_payload.size(); char pseudogram[psize];
-  //
-  //    memcpy(pseudogram , (char*) &psh , sizeof (struct pseudo_header));
-  //    memcpy(pseudogram + sizeof(struct pseudo_header) , udp_header ,
-  //    sizeof(struct udphdr) + m_payload.size());
 }
 
 inline void add_tcp_ports(uint8_t *transport_buffer, const uint16_t sport,
                           const uint16_t dport) {
   tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
-  // Network order values.
   tcp_header->th_sport = htons(sport);
   tcp_header->th_dport = htons(dport);
 }
@@ -181,55 +124,77 @@ inline void add_udp_length(uint8_t *transport_buffer,
 }
 
 inline void add_udp_timestamp(uint8_t *ip_buffer, uint8_t *transport_buffer,
-                              const size_t payload_len, const uint64_t timestamp) {
+                              const size_t payload_len,
+                              const uint64_t timestamp) {
+  udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
+  udp_header->uh_sum = 0;
+  uint32_t wrong_checksum =
+      ~ntohs(checksum(ip_buffer, sizeof(udphdr) + payload_len)) & 0xFFFF;
 
-    udphdr *udp_header = reinterpret_cast<udphdr *> (transport_buffer);
-    compact_ip_hdr * ip_header = reinterpret_cast<compact_ip_hdr *>(ip_buffer);
+  // Encode the send time in the checksum
+  uint16_t target_checksum = static_cast<uint16_t>(encode_timestamp(timestamp));
+  if (target_checksum == 0) {
+    udp_header->uh_sum = 0;
+    return;
+  }
 
-    // Pseudo-header for checksum computation
-    pseudo_header_udp psh;
-    psh.source_address = ip_header->ip_src;
-    psh.dest_address = ip_header->ip_dst;
-    psh.placeholder = 0;
-    psh.transport_length = htons(sizeof(struct udphdr) + payload_len);
-    psh.protocol = IPPROTO_UDP;
-    psh.uh_sport = udp_header->uh_sport;
-    psh.uh_dport = udp_header->uh_dport;
-    psh.uh_ulen  = udp_header->uh_ulen;
-    psh.uh_sum   = 0;
+  uint32_t target_checksum_little_endian = ~ntohs(target_checksum) & 0xFFFF;
+  uint32_t payload = 0;
+  uint32_t c = target_checksum_little_endian;
+  if (c < wrong_checksum) {
+    c += 0xFFFF;
+  }
 
-    uint32_t pseudo_header_sum_16 = in_cksum(reinterpret_cast<uint8_t *>(&psh), sizeof(pseudo_header_udp), 0);
+  payload = c - wrong_checksum;
 
-    uint8_t * data = reinterpret_cast<uint8_t *>(transport_buffer + sizeof(udphdr));
-    for (size_t i = 0; i < payload_len; ++i){
-        data[i] = 0;
-    }
+  // First 2 bytes of payload make the checksum vary. Other bytes are just
+  // padding.
+  uint16_t *checksum_tweak_data =
+      reinterpret_cast<uint16_t *>(transport_buffer + sizeof(udphdr));
+  *checksum_tweak_data = htons(payload);
 
-    // Encode the send time in the checksum
-    uint16_t target_checksum = static_cast<uint16_t>(encode_timestamp(timestamp));
-    if (target_checksum == 0){
-        udp_header->uh_sum = 0;
-        return;
-    }
+  udp_header->uh_sum = target_checksum;
+}
 
-    uint32_t target_checksum_little_endian = ~ntohs(target_checksum) & 0xFFFF;
-    // Deconstruct the checksum
-    // Little endian checksum
-    uint32_t wrong_checksum = pseudo_header_sum_16;
+void complete_icmp_header(uint8_t *transport_buffer,
+                          const uint16_t target_checksum,
+                          const uint64_t timestamp) {
+  icmphdr *icmp_header = reinterpret_cast<icmphdr *>(transport_buffer);
+  icmp_header->type = 8;  // ICMP ECHO request
+  icmp_header->code = 0;  // ICMP ECHO request
+  icmp_header->checksum = 0;
+  icmp_header->un.echo.id = target_checksum;  // Redundant for checksum
+  icmp_header->un.echo.sequence =
+      encode_timestamp(timestamp);  // Has to encode timestamp
 
-    uint32_t payload = 0;
-    uint32_t c = target_checksum_little_endian;
-    if (c < wrong_checksum){
-        c += 0xFFFF;
-    }
+  uint32_t target_checksum_little_endian = ~ntohs(target_checksum) & 0xFFFF;
+  // Deconstruct the checksum
+  // Little endian checksum
+  uint32_t wrong_checksum =
+      ~ntohs(ip_checksum(icmp_header, sizeof(icmphdr))) & 0xFFFF;
 
-    payload = c - wrong_checksum;
+  uint32_t payload = 0;
+  uint32_t c = target_checksum_little_endian;
+  if (c < wrong_checksum) {
+    c += 0xFFFF;
+  }
+  payload = c - wrong_checksum;
 
-    // First 2 bytes of payload make the checksum vary. Other bytes are just padding.
-    uint16_t * checksum_tweak_data = reinterpret_cast<uint16_t *>(transport_buffer + sizeof(udphdr));
-    *checksum_tweak_data = htons(payload);
+  // First 2 bytes of payload make the checksum vary. Other bytes are just
+  // padding.
+  uint16_t *checksum_tweak_data =
+      reinterpret_cast<uint16_t *>(transport_buffer + sizeof(icmphdr));
+  *checksum_tweak_data = htons(payload);
 
-    udp_header->uh_sum = target_checksum;
+  icmp_header->checksum = target_checksum;
+}
+
+void fill_payload(uint8_t *transport_buffer, const uint16_t header_length,
+                  const uint16_t payload_length, const uint8_t payload_value) {
+  uint8_t *data = reinterpret_cast<uint8_t *>(transport_buffer + header_length);
+  for (uint16_t i = 0; i < payload_length; ++i) {
+    data[i] = payload_value;
+  }
 }
 
 }  // namespace packets_utils

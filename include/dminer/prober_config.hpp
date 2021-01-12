@@ -54,7 +54,7 @@ struct ProberConfig {
   }
 
   void set_protocol(const string& s) {
-    if (s == "udp" || s == "tcp") {
+    if (s == "icmp" || s == "tcp" || s == "udp") {
       protocol = s;
     } else {
       throw std::invalid_argument(s + " is not a valid protocol");

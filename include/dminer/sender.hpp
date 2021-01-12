@@ -1,14 +1,16 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <sys/time.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
 #include <tins/tins.h>
 
 #include <boost/log/trivial.hpp>
 #include <chrono>
 #include <string>
 
-#include "network_utils_t.hpp"
 #include "packets_utils.hpp"
 #include "pretty.hpp"
 #include "probe.hpp"
@@ -21,7 +23,9 @@ using packets_utils::add_transport_checksum;
 using packets_utils::add_udp_length;
 using packets_utils::add_udp_ports;
 using packets_utils::add_udp_timestamp;
+using packets_utils::complete_icmp_header;
 using packets_utils::complete_ip_header;
+using packets_utils::fill_payload;
 using packets_utils::init_ip_header;
 using packets_utils::init_tcp_header;
 using std::array;
@@ -30,16 +34,13 @@ using std::string;
 using std::system_error;
 using std::chrono::system_clock;
 using Tins::NetworkInterface;
-using utils::compact_ip_hdr;
-using utils::tcphdr;
-using utils::udphdr;
 
 namespace dminer {
 // TODO: IPv6
 class Sender {
  public:
   Sender(const NetworkInterface &interface, const string &protocol)
-      : buffer_{0}, payload_{"AA"}, socket_{AF_INET, SOCK_RAW, IPPROTO_RAW} {
+      : buffer_{0}, socket_{AF_INET, SOCK_RAW, IPPROTO_RAW} {
     if (protocol == "icmp") {
       protocol_ = IPPROTO_ICMP;
     } else if (protocol == "tcp") {
@@ -69,54 +70,50 @@ class Sender {
   void send(const Probe &probe) {
     sockaddr_in dst_addr = probe.sockaddr();
 
+    uint8_t *ip_buffer = buffer_.data();
+    uint8_t *transport_buffer = buffer_.data() + sizeof(ip);
+
+    uint16_t buf_size = 0;
     // The payload len is the ttl + 2, the +2 is to be able to fully
     // tweak the checksum for the timestamp
-    init_ip_header(buffer_.data(), protocol_, src_addr_.sin_addr.s_addr);
-    complete_ip_header(buffer_.data(), dst_addr.sin_addr.s_addr, probe.ttl,
-                       protocol_, probe.ttl + 2);
-
-    uint16_t buf_size = sizeof(compact_ip_hdr);
+    uint16_t payload_length = probe.ttl + 2;
     uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
+
+    init_ip_header(ip_buffer, protocol_, src_addr_.sin_addr);
+    complete_ip_header(ip_buffer, dst_addr.sin_addr, probe.ttl, protocol_,
+                       probe.ttl + 2);
 
     switch (protocol_) {
       case IPPROTO_ICMP:
+        buf_size = sizeof(ip) + sizeof(icmphdr) + payload_length;
+        fill_payload(transport_buffer, sizeof(icmphdr), payload_length, 0);
+        complete_icmp_header(transport_buffer, probe.src_port, timestamp);
         break;
 
       case IPPROTO_TCP:
-        buf_size += sizeof(tcphdr) + payload_.size();
-        // TODO: Get rid of custom headers in packet_utils?
-        init_tcp_header(buffer_.data() + sizeof(compact_ip_hdr));
-        add_tcp_ports(buffer_.data() + sizeof(ip), probe.src_port,
-                      probe.dst_port);
-        add_tcp_timestamp(buffer_.data() + sizeof(ip), timestamp, probe.ttl);
-        // TODO: Avoid const. cast here?
-        add_transport_checksum(buffer_.data() + sizeof(ip), buffer_.data(),
-                               protocol_, const_cast<char *>(payload_.c_str()),
-                               static_cast<uint16_t>(payload_.size()));
+        buf_size = sizeof(ip) + sizeof(tcphdr) + payload_length;
+        fill_payload(transport_buffer, sizeof(tcphdr), payload_length, 0);
+        init_tcp_header(transport_buffer);
+        add_tcp_ports(transport_buffer, probe.src_port, probe.dst_port);
+        add_tcp_timestamp(transport_buffer, timestamp, probe.ttl);
+        add_transport_checksum(ip_buffer, protocol_, payload_length);
         break;
 
       case IPPROTO_UDP:
-        uint16_t payload_length = probe.ttl + 2;
-        buf_size += sizeof(udphdr) + payload_length;
-        add_udp_ports(buffer_.data() + sizeof(ip), probe.src_port,
-                      probe.dst_port);
-        add_udp_length(buffer_.data() + sizeof(ip), payload_length);
-        add_udp_timestamp(buffer_.data(), buffer_.data() + sizeof(ip), payload_length, timestamp);
+        buf_size = sizeof(ip) + sizeof(udphdr) + payload_length;
+        fill_payload(transport_buffer, sizeof(udphdr), payload_length, 0);
+        add_udp_ports(transport_buffer, probe.src_port, probe.dst_port);
+        add_udp_length(transport_buffer, payload_length);
+        add_udp_timestamp(ip_buffer, transport_buffer, payload_length,
+                          timestamp);
         break;
     }
 
     socket_.sendto(buffer_.data(), buf_size, 0, &dst_addr);
-
-    // Reset the checksum for future computation.
-    // TODO: Do that in packet_utils checksum computation instead?
-    compact_ip_hdr *ip_header =
-        reinterpret_cast<compact_ip_hdr *>(buffer_.data());
-    ip_header->ip_sum = 0;
   }
 
  private:
   array<uint8_t, 65536> buffer_;
-  string payload_;  // Only used for TCP.
   uint8_t protocol_;
   Socket socket_;
   sockaddr_in src_addr_;
