@@ -36,7 +36,7 @@ using std::chrono::system_clock;
 using Tins::NetworkInterface;
 
 namespace dminer {
-// TODO: IPv6
+// TODO: Sender buffer size CLI option.
 class Sender {
  public:
   Sender(const NetworkInterface &interface, const string &protocol)
@@ -74,14 +74,13 @@ class Sender {
     uint8_t *transport_buffer = buffer_.data() + sizeof(ip);
 
     uint16_t buf_size = 0;
-    // The payload len is the ttl + 2, the +2 is to be able to fully
-    // tweak the checksum for the timestamp
+    // We reserve two bytes in the payload to tweak the checksum.
     uint16_t payload_length = probe.ttl + 2;
     uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
 
     init_ip_header(ip_buffer, protocol_, src_addr_.sin_addr);
     complete_ip_header(ip_buffer, dst_addr.sin_addr, probe.ttl, protocol_,
-                       probe.ttl + 2);
+                       payload_length);
 
     switch (protocol_) {
       case IPPROTO_ICMP:
@@ -117,8 +116,5 @@ class Sender {
   uint8_t protocol_;
   Socket socket_;
   sockaddr_in src_addr_;
-
-  // TODO: Remove filter-min-ip/filter-max-ip (makes no sense for IPv6).
-  // TODO: Sender buffer size CLI option.
 };
 }  // namespace dminer
