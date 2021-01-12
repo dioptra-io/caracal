@@ -151,12 +151,11 @@ inline optional<TracerouteReply> parse_icmp4(const uint64_t timestamp,
     double rtt = 0.0;
     if (estimate_rtt) {
       // Recover the timestamp and compute the RTT.
-      // TODO: Why is host_to_be(...) required here?
       const uint16_t inner_checksum = host_to_be(inner_udp->checksum());
       rtt = decode_difference(timestamp, inner_checksum) / 10.0;
     }
 
-    // (?)
+    // Why -10?
     const uint8_t inner_ttl_from_udp_len = inner_udp->length() - 10;
 
     return TracerouteReply{src_ip,

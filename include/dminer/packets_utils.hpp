@@ -180,32 +180,56 @@ inline void add_udp_length(uint8_t *transport_buffer,
   // +2 because 2 bytes are minimum to be able to fully tweak the checksum
 }
 
-inline void add_udp_timestamp(uint8_t *transport_buffer,
-                              const uint64_t timestamp) {
-  udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
-  // TODO: Encode timestamp.
-  // udp_header->uh_sum = encode_timestamp(timestamp);
-  udp_header->uh_sum = 0;
+inline void add_udp_timestamp(uint8_t *ip_buffer, uint8_t *transport_buffer,
+                              const size_t payload_len, const uint64_t timestamp) {
 
-  // // Payload
-  // // (A) "Tweak bytes"
-  // // => Craft the first two bytes to ensure that our custom checksum is
-  // // valid.
-  // auto tweak_bytes = advance<uint16_t>(ptr);
-  // uint32_t original_checksum =
-  //     base_.pseudo_header_checksum(IPPROTO_UDP, payload_length);
-  // uint32_t target_checksum_le = ~ntohs(timestamp) & 0xFFFF;
-  // if (target_checksum_le < original_checksum) {
-  //   target_checksum_le += 0xFFFF;
-  // }
-  // *tweak_bytes = htons(target_checksum_le - original_checksum);
-  //
-  // // (B) Padding
-  // // => Pad with zeros since we encode the TTL in the payload length.
-  // auto padding = advance<uint8_t>(ptr);
-  // for (size_t i = 0; i < payload_length; i++) {
-  //   padding[i] = 0;
-  // }
+    udphdr *udp_header = reinterpret_cast<udphdr *> (transport_buffer);
+    compact_ip_hdr * ip_header = reinterpret_cast<compact_ip_hdr *>(ip_buffer);
+
+    // Pseudo-header for checksum computation
+    pseudo_header_udp psh;
+    psh.source_address = ip_header->ip_src;
+    psh.dest_address = ip_header->ip_dst;
+    psh.placeholder = 0;
+    psh.transport_length = htons(sizeof(struct udphdr) + payload_len);
+    psh.protocol = IPPROTO_UDP;
+    psh.uh_sport = udp_header->uh_sport;
+    psh.uh_dport = udp_header->uh_dport;
+    psh.uh_ulen  = udp_header->uh_ulen;
+    psh.uh_sum   = 0;
+
+    uint32_t pseudo_header_sum_16 = in_cksum(reinterpret_cast<uint8_t *>(&psh), sizeof(pseudo_header_udp), 0);
+
+    uint8_t * data = reinterpret_cast<uint8_t *>(transport_buffer + sizeof(udphdr));
+    for (size_t i = 0; i < payload_len; ++i){
+        data[i] = 0;
+    }
+
+    // Encode the send time in the checksum
+    uint16_t target_checksum = static_cast<uint16_t>(encode_timestamp(timestamp));
+    if (target_checksum == 0){
+        udp_header->uh_sum = 0;
+        return;
+    }
+
+    uint32_t target_checksum_little_endian = ~ntohs(target_checksum) & 0xFFFF;
+    // Deconstruct the checksum
+    // Little endian checksum
+    uint32_t wrong_checksum = pseudo_header_sum_16;
+
+    uint32_t payload = 0;
+    uint32_t c = target_checksum_little_endian;
+    if (c < wrong_checksum){
+        c += 0xFFFF;
+    }
+
+    payload = c - wrong_checksum;
+
+    // First 2 bytes of payload make the checksum vary. Other bytes are just padding.
+    uint16_t * checksum_tweak_data = reinterpret_cast<uint16_t *>(transport_buffer + sizeof(udphdr));
+    *checksum_tweak_data = htons(payload);
+
+    udp_header->uh_sum = target_checksum;
 }
 
 }  // namespace packets_utils

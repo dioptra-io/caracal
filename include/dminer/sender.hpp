@@ -101,8 +101,7 @@ class Sender {
         add_udp_ports(buffer_.data() + sizeof(ip), probe.src_port,
                       probe.dst_port);
         add_udp_length(buffer_.data() + sizeof(ip), payload_length);
-        add_udp_timestamp(buffer_.data() + sizeof(ip), timestamp);
-        // TODO: Add transport checksum here? Check Kevin's original code.
+        add_udp_timestamp(buffer_.data(), buffer_.data() + sizeof(ip), payload_length, timestamp);
         break;
     }
 
