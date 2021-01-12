@@ -145,7 +145,7 @@ inline Statistics send_probes(const ProberConfig& config) {
     }
 
     // Log every ~10 seconds.
-    uint64_t rate = uint64_t(rl.current_rate());
+    auto rate = uint64_t(rl.current_rate());
     if ((rate > 0) && (stats.sent % (10 * rate) == 0)) {
       log_stats();
     }

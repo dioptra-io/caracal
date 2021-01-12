@@ -22,7 +22,7 @@ SnifferStatistics read_packets(const fs::path &input_file,
                                const fs::path &output_file,
                                const std::string &round) {
   std::ofstream output_csv{output_file};
-  SnifferStatistics statistics;
+  SnifferStatistics statistics{};
   Tins::FileSniffer sniffer{input_file};
 
   auto handler = [&output_csv, &round, &statistics](Packet &packet) {

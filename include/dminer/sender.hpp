@@ -106,6 +106,9 @@ class Sender {
         add_udp_timestamp(ip_buffer, transport_buffer, payload_length,
                           timestamp);
         break;
+
+      default:
+        break;
     }
 
     socket_.sendto(buffer_.data(), buf_size, 0, &dst_addr);

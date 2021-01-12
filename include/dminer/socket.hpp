@@ -49,7 +49,7 @@ class Socket {
  private:
   int socket_;
 
-  int check(int val) const {
+  static int check(int val) {
     if (val < 0) {
       throw std::system_error(errno, std::generic_category());
     }

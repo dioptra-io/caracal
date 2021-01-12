@@ -38,7 +38,7 @@ struct Probe {
   }
 
   static Probe from_csv(const std::string &line) {
-    Probe probe;
+    Probe probe{};
     int index = 0;
     std::istringstream lstream{line};
     std::string token;
@@ -65,6 +65,8 @@ struct Probe {
         case 3:
           probe.ttl = std::stoul(token);
           break;
+        default:
+          break;
       }
       index++;
     }
@@ -75,7 +77,7 @@ struct Probe {
   }
 
   sockaddr_in sockaddr() const {
-    sockaddr_in addr;
+    sockaddr_in addr{};
     addr.sin_family = AF_INET;  // TODO: IPv6
     addr.sin_addr = dst_addr;
     addr.sin_port = htons(dst_port);

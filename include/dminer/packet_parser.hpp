@@ -147,7 +147,7 @@ inline optional<TracerouteReply> parse_icmp4_echo(const uint64_t timestamp,
 inline optional<TracerouteReply> parse_icmp4(const uint64_t timestamp,
                                              const IP* ip, const ICMP* icmp,
                                              const bool estimate_rtt) {
-  const RawPDU* inner_raw = icmp->find_pdu<RawPDU>();
+  const auto inner_raw = icmp->find_pdu<RawPDU>();
   if (!inner_raw) {
     return nullopt;
   }
@@ -159,15 +159,14 @@ inline optional<TracerouteReply> parse_icmp4(const uint64_t timestamp,
   vector<uint8_t> inner_payload = inner_raw->payload();
   const uint8_t inner_proto = inner_payload[9];
   if (inner_proto == IPPROTO_TCP) {
-    const int padding = sizeof(ip) + sizeof(tcphdr) - inner_payload.size();
-    for (int i = 0; i < padding; i++) {
+    const size_t padding = sizeof(ip) + sizeof(tcphdr) - inner_payload.size();
+    for (size_t i = 0; i < padding; i++) {
       inner_payload.push_back(0);
     }
 
     // Create a fake TCP header for Tins.
     if (padding > 0) {
-      tcphdr* fake =
-          reinterpret_cast<tcphdr*>(inner_payload.data() + sizeof(ip));
+      auto fake = reinterpret_cast<tcphdr*>(inner_payload.data() + sizeof(ip));
       fake->th_ack = 1;
       fake->th_flags |= TH_ACK;
       fake->th_off = 5;
@@ -189,7 +188,7 @@ inline optional<TracerouteReply> parse_icmp4(const uint64_t timestamp,
   const uint32_t inner_dst_ip = be_to_host(uint32_t(inner_ip.dst_addr()));
   const uint16_t inner_size =
       inner_ip.tot_len();                   // NOTE: This field is useless.
-  const uint8_t inner_ttl = inner_ip.id();  // NOTE: `id` here, not `ttl`.
+  const uint8_t inner_ttl = inner_ip.id();  // NOTE: `id` here, not `ttl`, why?
 
   // UDP probe
   const UDP* inner_udp = inner_ip.find_pdu<UDP>();
@@ -197,7 +196,7 @@ inline optional<TracerouteReply> parse_icmp4(const uint64_t timestamp,
     const uint16_t inner_src_port = inner_udp->sport();
     const uint16_t inner_dst_port = inner_udp->dport();
 
-    double rtt = 0.0;
+    double rtt = -1.0;
     if (estimate_rtt) {
       const uint16_t inner_checksum = host_to_be(inner_udp->checksum());
       rtt = decode_difference(timestamp, inner_checksum) / 10.0;
@@ -257,7 +256,7 @@ inline optional<TracerouteReply> parse_icmp4(const uint64_t timestamp,
     const uint16_t inner_src_port = inner_icmp->id();
     const uint16_t inner_dst_port = 0;  // Not encoded in ICMP probes.
 
-    double rtt = 0.0;
+    double rtt = -1.0;
     if (estimate_rtt) {
       const uint16_t inner_seq = host_to_be(inner_icmp->sequence());
       rtt = decode_difference(timestamp, inner_seq) / 10.0;

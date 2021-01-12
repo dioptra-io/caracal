@@ -25,10 +25,10 @@ namespace dminer {
 
 class Sniffer {
  public:
-  Sniffer(const Tins::NetworkInterface interface,
-          const optional<fs::path> output_file_csv,
-          const optional<fs::path> output_file_pcap, const uint64_t buffer_size,
-          const optional<std::string> meta_round,
+  Sniffer(const Tins::NetworkInterface &interface,
+          const optional<fs::path> &output_file_csv,
+          const optional<fs::path> &output_file_pcap,
+          const uint64_t buffer_size, const optional<std::string> &meta_round,
           const uint16_t destination_port)
       : m_sniffer{interface.name()}, m_meta_round{meta_round}, m_statistics{} {
     std::string filter =
@@ -64,7 +64,7 @@ class Sniffer {
     BOOST_LOG_TRIVIAL(info) << "Starting sniffer...";
     // TODO: Benchmark utility of batching/batch size.
 
-    auto handler = [this](Packet& packet) {
+    auto handler = [this](Packet &packet) {
       auto reply = parse(packet);
 
       if (reply) {
@@ -102,7 +102,7 @@ class Sniffer {
     }
   }
 
-  const SnifferStatistics& statistics() const { return m_statistics; }
+  const SnifferStatistics &statistics() const { return m_statistics; }
 
  private:
   Tins::Sniffer m_sniffer;

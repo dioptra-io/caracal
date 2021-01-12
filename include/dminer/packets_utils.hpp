@@ -18,7 +18,7 @@ using dminer::encode_timestamp;
 namespace packets_utils {
 
 inline uint16_t checksum(uint8_t *ip_buffer, const uint16_t transport_length) {
-  iphdr *ip_header = reinterpret_cast<iphdr *>(ip_buffer);
+  auto *ip_header = reinterpret_cast<iphdr *>(ip_buffer);
   // (1) Sum the pseudo header.
   uint32_t current = ipv4_pseudo_header_checksum(ip_header, transport_length);
   // (2) Sum the transport header and the payload.
@@ -42,7 +42,7 @@ inline void init_ip_header(uint8_t *buffer, uint8_t ip_proto,
 }
 
 inline void init_tcp_header(uint8_t *transport_buffer) {
-  tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
+  auto *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
 
   tcp_header->th_ack = 0;
   tcp_header->th_off = 5;
@@ -82,7 +82,7 @@ inline void complete_ip_header(uint8_t *ip_buffer, in_addr dst_addr,
 
 inline void add_udp_ports(uint8_t *transport_buffer, uint16_t sport,
                           uint16_t dport) {
-  udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
+  auto *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
   udp_header->uh_sport = htons(sport);
   udp_header->uh_dport = htons(dport);
 }
@@ -90,11 +90,11 @@ inline void add_udp_ports(uint8_t *transport_buffer, uint16_t sport,
 inline void add_transport_checksum(uint8_t *ip_buffer, uint8_t protocol,
                                    uint16_t payload_len) {
   if (protocol == IPPROTO_TCP) {
-    tcphdr *tcp_header = reinterpret_cast<tcphdr *>(ip_buffer + sizeof(ip));
+    auto *tcp_header = reinterpret_cast<tcphdr *>(ip_buffer + sizeof(ip));
     tcp_header->th_sum = 0;
     tcp_header->th_sum = checksum(ip_buffer, sizeof(tcphdr) + payload_len);
   } else if (protocol == IPPROTO_UDP) {
-    udphdr *udp_header = reinterpret_cast<udphdr *>(ip_buffer + sizeof(ip));
+    auto *udp_header = reinterpret_cast<udphdr *>(ip_buffer + sizeof(ip));
     udp_header->uh_sum = 0;
     udp_header->uh_sum = checksum(ip_buffer, sizeof(udphdr) + payload_len);
   }
@@ -102,14 +102,14 @@ inline void add_transport_checksum(uint8_t *ip_buffer, uint8_t protocol,
 
 inline void add_tcp_ports(uint8_t *transport_buffer, const uint16_t sport,
                           const uint16_t dport) {
-  tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
+  auto *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
   tcp_header->th_sport = htons(sport);
   tcp_header->th_dport = htons(dport);
 }
 
 inline void add_tcp_timestamp(uint8_t *transport_buffer,
                               const uint64_t timestamp, const uint8_t ttl) {
-  tcphdr *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
+  auto *tcp_header = reinterpret_cast<tcphdr *>(transport_buffer);
   // The sequence number is 27 bits of diff time + 5 bits of ttl
   uint32_t msb_ttl = static_cast<uint32_t>(ttl) << 27;
   uint32_t seq_no = encode_timestamp(timestamp) + msb_ttl;
@@ -118,7 +118,7 @@ inline void add_tcp_timestamp(uint8_t *transport_buffer,
 
 inline void add_udp_length(uint8_t *transport_buffer,
                            const uint16_t payload_length) {
-  udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
+  auto *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
   udp_header->len = htons(sizeof(udphdr) + payload_length);
   // +2 because 2 bytes are minimum to be able to fully tweak the checksum
 }
@@ -126,30 +126,29 @@ inline void add_udp_length(uint8_t *transport_buffer,
 inline void add_udp_timestamp(uint8_t *ip_buffer, uint8_t *transport_buffer,
                               const size_t payload_len,
                               const uint64_t timestamp) {
-  udphdr *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
+  auto *udp_header = reinterpret_cast<udphdr *>(transport_buffer);
   udp_header->uh_sum = 0;
   uint32_t wrong_checksum =
       ~ntohs(checksum(ip_buffer, sizeof(udphdr) + payload_len)) & 0xFFFF;
 
   // Encode the send time in the checksum
-  uint16_t target_checksum = static_cast<uint16_t>(encode_timestamp(timestamp));
+  auto target_checksum = static_cast<uint16_t>(encode_timestamp(timestamp));
   if (target_checksum == 0) {
     udp_header->uh_sum = 0;
     return;
   }
 
   uint32_t target_checksum_little_endian = ~ntohs(target_checksum) & 0xFFFF;
-  uint32_t payload = 0;
   uint32_t c = target_checksum_little_endian;
   if (c < wrong_checksum) {
     c += 0xFFFF;
   }
 
-  payload = c - wrong_checksum;
+  uint32_t payload = c - wrong_checksum;
 
   // First 2 bytes of payload make the checksum vary. Other bytes are just
   // padding.
-  uint16_t *checksum_tweak_data =
+  auto *checksum_tweak_data =
       reinterpret_cast<uint16_t *>(transport_buffer + sizeof(udphdr));
   *checksum_tweak_data = htons(payload);
 
@@ -159,7 +158,7 @@ inline void add_udp_timestamp(uint8_t *ip_buffer, uint8_t *transport_buffer,
 void complete_icmp_header(uint8_t *transport_buffer,
                           const uint16_t target_checksum,
                           const uint64_t timestamp) {
-  icmphdr *icmp_header = reinterpret_cast<icmphdr *>(transport_buffer);
+  auto *icmp_header = reinterpret_cast<icmphdr *>(transport_buffer);
   icmp_header->type = 8;  // ICMP ECHO request
   icmp_header->code = 0;  // ICMP ECHO request
   icmp_header->checksum = 0;
@@ -173,16 +172,15 @@ void complete_icmp_header(uint8_t *transport_buffer,
   uint32_t wrong_checksum =
       ~ntohs(ip_checksum(icmp_header, sizeof(icmphdr))) & 0xFFFF;
 
-  uint32_t payload = 0;
   uint32_t c = target_checksum_little_endian;
   if (c < wrong_checksum) {
     c += 0xFFFF;
   }
-  payload = c - wrong_checksum;
+  uint32_t payload = c - wrong_checksum;
 
   // First 2 bytes of payload make the checksum vary. Other bytes are just
   // padding.
-  uint16_t *checksum_tweak_data =
+  auto *checksum_tweak_data =
       reinterpret_cast<uint16_t *>(transport_buffer + sizeof(icmphdr));
   *checksum_tweak_data = htons(payload);
 
@@ -191,7 +189,7 @@ void complete_icmp_header(uint8_t *transport_buffer,
 
 void fill_payload(uint8_t *transport_buffer, const uint16_t header_length,
                   const uint16_t payload_length, const uint8_t payload_value) {
-  uint8_t *data = reinterpret_cast<uint8_t *>(transport_buffer + header_length);
+  uint8_t *data = transport_buffer + header_length;
   for (uint16_t i = 0; i < payload_length; ++i) {
     data[i] = payload_value;
   }
