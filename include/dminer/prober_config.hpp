@@ -29,8 +29,6 @@ struct ProberConfig {
   optional<fs::path> bgp_filter_file;
   optional<fs::path> prefix_excl_file;
   optional<fs::path> prefix_incl_file;
-  optional<Tins::IPv4Address> filter_min_ip;
-  optional<Tins::IPv4Address> filter_max_ip;
   optional<int> filter_min_ttl;
   optional<int> filter_max_ttl;
   optional<string> meta_round;
@@ -112,14 +110,6 @@ struct ProberConfig {
     prefix_incl_file = p;
   }
 
-  void set_filter_min_ip(const string& s) {
-    filter_min_ip = Tins::IPv4Address{s};
-  }
-
-  void set_filter_max_ip(const string& s) {
-    filter_max_ip = Tins::IPv4Address{s};
-  }
-
   void set_filter_min_ttl(const int ttl) {
     if (ttl < 0) {
       throw std::domain_error("min_ttl must be > 0");
@@ -159,8 +149,6 @@ inline std::ostream& operator<<(std::ostream& os, ProberConfig const& v) {
   print_if_value("bgp_filter_file", v.bgp_filter_file);
   print_if_value("prefix_excl_file", v.prefix_excl_file);
   print_if_value("prefix_incl_file", v.prefix_incl_file);
-  print_if_value("min_ip", v.filter_min_ip);
-  print_if_value("max_ip", v.filter_max_ip);
   print_if_value("min_ttl", v.filter_min_ttl);
   print_if_value("max_ttl", v.filter_max_ttl);
   print_if_value("round", v.meta_round);

@@ -41,8 +41,6 @@ TEST_CASE("send_probes") {
   config.set_output_file_pcap("zzz_output.pcap");
   config.set_prefix_excl_file("zzz_excl.csv");
   config.set_prefix_incl_file("zzz_incl.csv");
-  config.set_filter_min_ip("0.0.0.0");
-  config.set_filter_max_ip("255.255.255.255");
   config.set_filter_min_ttl(1);
   config.set_filter_max_ttl(6);
   config.set_probing_rate(100);

@@ -43,8 +43,6 @@ int main(int argc, char** argv) {
     ("filter-from-bgp-file", po::value<string>()->value_name("file"), "Do not send probes to un-routed destinations")
     ("filter-from-prefix-file-excl", po::value<string>()->value_name("file"), "Do not send probes to prefixes specified in file (deny list)")
     ("filter-from-prefix-file-incl", po::value<string>()->value_name("file"), "Do not send probes to prefixes *not* specified in file (allow list)")
-    ("filter-min-ip", po::value<string>()->value_name("min_ip"), "Do not send probes with dest_ip < min_ip")
-    ("filter-max-ip", po::value<string>()->value_name("max_ip"), "Do not send probes with dest_ip > max_ip")
     ("filter-min-ttl", po::value<int>()->value_name("min_ttl"), "Do not send probes with ttl < min_ttl")
     ("filter-max-ttl", po::value<int>()->value_name("max_ttl"), "Do not send probes with ttl > max_ttl");
 
@@ -121,14 +119,6 @@ int main(int argc, char** argv) {
     if (vm.count("filter-from-prefix-file-incl")) {
       fs::path path{vm["filter-from-prefix-file-incl"].as<string>()};
       config.set_prefix_incl_file(path);
-    }
-
-    if (vm.count("filter-min-ip")) {
-      config.set_filter_min_ip(vm["filter-min-ip"].as<string>());
-    }
-
-    if (vm.count("filter-max-ip")) {
-      config.set_filter_max_ip(vm["filter-max-ip"].as<string>());
     }
 
     if (vm.count("filter-min-ttl")) {

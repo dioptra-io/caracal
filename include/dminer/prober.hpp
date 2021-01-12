@@ -103,22 +103,6 @@ inline Statistics send_probes(const ProberConfig& config) {
       continue;
     }
 
-    // IP filter
-    if (config.filter_min_ip &&
-        (p.dst_addr.s_addr < uint32_t(config.filter_min_ip.value()))) {
-      BOOST_LOG_TRIVIAL(trace)
-          << "Filtered probe " << p << " (destination address too low)";
-      stats.filtered_lo_ip++;
-      continue;
-    }
-    if (config.filter_max_ip &&
-        (p.dst_addr.s_addr > uint32_t(config.filter_max_ip.value()))) {
-      BOOST_LOG_TRIVIAL(trace)
-          << "Filtered probe " << p << " (destination address too high)";
-      stats.filtered_hi_ip++;
-      continue;
-    }
-
     // Prefix filter
     // Do not send probes to excluded prefixes (deny list).
     if (config.prefix_excl_file &&
