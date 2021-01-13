@@ -87,8 +87,15 @@ inline Statistics send_probes(const ProberConfig& config) {
 
   // Loop
   std::string line;
+  Probe p;
+
   while (std::getline(is, line)) {
-    Probe p = Probe::from_csv(line);
+    try {
+      p = Probe::from_csv(line);
+    } catch (const std::exception& e) {
+      BOOST_LOG_TRIVIAL(warning) << e.what();
+      continue;
+    }
     stats.read++;
 
     // TTL filter
