@@ -5,7 +5,7 @@
 [![Documentation](https://img.shields.io/badge/docs-online-blue.svg)](https://dioptra-io.github.io/diamond-miner-prober/)
 [![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/matthieugouel/diamond-miner-prober?logo=docker)](https://hub.docker.com/r/matthieugouel/diamond-miner-prober)
 
-This is the prober component of [Diamond Miner](https://www.usenix.org/conference/nsdi20/presentation/vermeulen). It is
+This is the prober component of [Diamond-Miner](https://www.usenix.org/conference/nsdi20/presentation/vermeulen). It is
 a stateless ICMP/UDP/TCP traceroute engine written in C++ and targeting a probing rate of 100k+ packets per second.
 
 ## Quickstart
