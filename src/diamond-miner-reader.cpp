@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
     string round = vm["meta-round"].as<string>();
 
     dminer::configure_logging(vm["log-level"].as<string>());
-    dminer::read_packets(input_file, output_file, round);
+    dminer::Reader::read(input_file, output_file, round);
   } catch (const std::exception& e) {
     auto type = boost::core::demangle(typeid(e).name());
     std::cerr << "Exception of type " << type << ": " << e.what() << std::endl;

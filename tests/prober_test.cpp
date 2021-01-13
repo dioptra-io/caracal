@@ -6,8 +6,8 @@
 
 namespace fs = std::filesystem;
 
-using dminer::ProberConfig;
-using dminer::send_probes;
+using dminer::Prober::Config;
+using dminer::Prober::probe;
 
 #ifdef __APPLE__
 #define LOOPBACK "lo0"
@@ -34,7 +34,7 @@ TEST_CASE("send_probes") {
   ofs << "127.0.0.0/16\n";
   ofs.close();
 
-  ProberConfig config;
+  Config config;
   config.set_interface(LOOPBACK);
   config.set_input_file("zzz_input.csv");
   config.set_output_file_csv("zzz_output.csv");
@@ -52,7 +52,7 @@ TEST_CASE("send_probes") {
 
   SECTION("Base case") {
     // We should receive port unreachable messages.
-    auto [prober_stats, sniffer_stats] = send_probes(config);
+    auto [prober_stats, sniffer_stats] = probe(config);
     REQUIRE(prober_stats.read == 5);
     REQUIRE(prober_stats.sent == 6);
     REQUIRE(prober_stats.filtered_lo_ip == 0);
@@ -72,7 +72,7 @@ TEST_CASE("send_probes") {
     ofs << "127.0.0.0/16";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats] = send_probes(config);
+    auto [prober_stats, sniffer_stats] = probe(config);
     REQUIRE(prober_stats.sent == 6);
     REQUIRE(sniffer_stats.received_count == 6);
     REQUIRE(sniffer_stats.received_invalid_count == 0);
@@ -84,7 +84,7 @@ TEST_CASE("send_probes") {
     ofs << "";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats] = send_probes(config);
+    auto [prober_stats, sniffer_stats] = probe(config);
     REQUIRE(prober_stats.sent == 9);
     REQUIRE(sniffer_stats.received_count == 9);
     REQUIRE(sniffer_stats.received_invalid_count == 0);
@@ -96,7 +96,7 @@ TEST_CASE("send_probes") {
     ofs << "";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats] = send_probes(config);
+    auto [prober_stats, sniffer_stats] = probe(config);
     REQUIRE(prober_stats.sent == 0);
     REQUIRE(sniffer_stats.received_count == 0);
     REQUIRE(sniffer_stats.received_invalid_count == 0);

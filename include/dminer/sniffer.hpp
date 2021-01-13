@@ -30,7 +30,7 @@ class Sniffer {
           const optional<fs::path> &output_file_pcap,
           const uint64_t buffer_size, const optional<std::string> &meta_round,
           const uint16_t destination_port)
-      : m_sniffer{interface.name()}, m_meta_round{meta_round}, m_statistics{} {
+      : sniffer_{interface.name()}, meta_round_{meta_round}, statistics_{} {
     std::string filter =
         "(icmp and icmp[icmptype] != icmp-echo) or (src port " +
         std::to_string(destination_port) + ")";
@@ -42,15 +42,15 @@ class Sniffer {
     config.set_immediate_mode(true);
 
     // As sniffer does not have set_configuration, we copy...
-    m_sniffer = Tins::Sniffer(interface.name(), config);
+    sniffer_ = Tins::Sniffer(interface.name(), config);
 
     if (output_file_csv) {
-      m_output_csv.open(output_file_csv.value());
+      output_csv_.open(output_file_csv.value());
     }
 
     if (output_file_pcap) {
-      m_output_pcap = Tins::PacketWriter{output_file_pcap.value(),
-                                         DataLinkType<EthernetII>()};
+      output_pcap_ = Tins::PacketWriter{output_file_pcap.value(),
+                                        DataLinkType<EthernetII>()};
     }
   }
 
@@ -71,46 +71,45 @@ class Sniffer {
         auto reply_ = reply.value();
         BOOST_LOG_TRIVIAL(trace) << "Received a reply from " << reply_.src_ip
                                  << " (" << reply_.rtt << "ms)";
-        m_statistics.icmp_messages_all.insert(reply_.src_ip);
+        statistics_.icmp_messages_all.insert(reply_.src_ip);
         if (reply_.src_ip != reply_.inner_dst_ip) {
-          m_statistics.icmp_messages_path.insert(reply_.src_ip);
+          statistics_.icmp_messages_path.insert(reply_.src_ip);
         }
-        m_output_csv << reply_.to_csv();
-        m_output_csv << "," << m_meta_round.value_or("1");
-        m_output_csv << ",1"
-                     << "\n";
+        output_csv_ << reply_.to_csv();
+        output_csv_ << "," << meta_round_.value_or("1");
+        output_csv_ << ",1"
+                    << "\n";
       } else {
-        m_statistics.received_invalid_count++;
+        statistics_.received_invalid_count++;
       }
 
-      if (m_output_pcap) {
-        m_output_pcap.value().write(packet);
+      if (output_pcap_) {
+        output_pcap_.value().write(packet);
       }
 
-      m_statistics.received_count++;
+      statistics_.received_count++;
       return true;
     };
 
-    m_thread =
-        std::thread([this, handler]() { m_sniffer.sniff_loop(handler); });
+    thread_ = std::thread([this, handler]() { sniffer_.sniff_loop(handler); });
   }
 
   void stop() noexcept {
-    if (m_thread.joinable()) {
-      m_sniffer.stop_sniff();
-      m_thread.join();
+    if (thread_.joinable()) {
+      sniffer_.stop_sniff();
+      thread_.join();
     }
   }
 
-  const SnifferStatistics &statistics() const { return m_statistics; }
+  const SnifferStatistics &statistics() const { return statistics_; }
 
  private:
-  Tins::Sniffer m_sniffer;
-  std::ofstream m_output_csv;
-  std::optional<std::string> m_meta_round;
-  std::optional<Tins::PacketWriter> m_output_pcap;
-  std::thread m_thread;
-  SnifferStatistics m_statistics;
+  Tins::Sniffer sniffer_;
+  std::ofstream output_csv_;
+  std::optional<std::string> meta_round_;
+  std::optional<Tins::PacketWriter> output_pcap_;
+  std::thread thread_;
+  SnifferStatistics statistics_;
 };
 
 }  // namespace dminer

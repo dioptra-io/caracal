@@ -15,21 +15,21 @@ namespace dminer {
 class RateLimiter {
  public:
   explicit RateLimiter(uint64_t target_rate)
-      : m_sleep_precision{sleep_precision()},
-        m_current_delta{0},
-        m_curr_tp{steady_clock::now()},
-        m_last_tp{m_curr_tp} {
+      : sleep_precision_{sleep_precision()},
+        current_delta_{0},
+        curr_tp_{steady_clock::now()},
+        last_tp_{curr_tp_} {
     if (target_rate <= 0) {
       throw std::domain_error("target_rate must be > 0");
     }
-    m_target_delta = nanoseconds{(uint64_t)(1e9 / target_rate)};
+    target_delta_ = nanoseconds{(uint64_t)(1e9 / target_rate)};
   }
 
   void wait() {
     // TODO: Use sleep first if possible, then spin.
     // TODO: Monitor/report time spent between calls.
     // x2 to allow 50% time outside wait.
-    if ((m_sleep_precision * 2) < m_target_delta) {
+    if ((sleep_precision_ * 2) < target_delta_) {
       wait_sleep();
     } else {
       wait_spin();
@@ -37,23 +37,23 @@ class RateLimiter {
   }
 
   void wait_sleep() {
-    m_curr_tp = steady_clock::now();
-    m_current_delta = duration_cast<nanoseconds>(m_curr_tp - m_last_tp);
-    if (m_current_delta < m_target_delta) {
-      std::this_thread::sleep_for(m_target_delta - m_current_delta);
+    curr_tp_ = steady_clock::now();
+    current_delta_ = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
+    if (current_delta_ < target_delta_) {
+      std::this_thread::sleep_for(target_delta_ - current_delta_);
     }
-    m_last_tp = steady_clock::now();
+    last_tp_ = steady_clock::now();
   }
 
   void wait_spin() {
     do {
-      m_curr_tp = steady_clock::now();
-      m_current_delta = duration_cast<nanoseconds>(m_curr_tp - m_last_tp);
-    } while (m_current_delta < m_target_delta);
-    m_last_tp = m_curr_tp;
+      curr_tp_ = steady_clock::now();
+      current_delta_ = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
+    } while (current_delta_ < target_delta_);
+    last_tp_ = curr_tp_;
   }
 
-  double current_rate() const { return 1e9 / m_current_delta.count(); }
+  double current_rate() const { return 1e9 / current_delta_.count(); }
 
   static nanoseconds sleep_precision() {
     nanoseconds worst_case{0};
@@ -77,11 +77,11 @@ class RateLimiter {
   }
 
  private:
-  nanoseconds m_sleep_precision;
-  nanoseconds m_target_delta;
-  nanoseconds m_current_delta;
-  steady_clock::time_point m_curr_tp;
-  steady_clock::time_point m_last_tp;
+  nanoseconds sleep_precision_;
+  nanoseconds target_delta_;
+  nanoseconds current_delta_;
+  steady_clock::time_point curr_tp_;
+  steady_clock::time_point last_tp_;
 };
 
 }  // namespace dminer

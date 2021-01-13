@@ -14,11 +14,12 @@
 #include "sniffer.hpp"
 #include "statistics.hpp"
 
-namespace dminer {
+/// Build and send probes.
+namespace dminer::Prober {
 
 typedef std::tuple<ProberStatistics, SnifferStatistics> Statistics;
 
-inline Statistics send_probes(const ProberConfig& config) {
+inline Statistics probe(const Config& config) {
   BOOST_LOG_TRIVIAL(info) << config;
 
   // Test the rate limiter
@@ -160,4 +161,4 @@ inline Statistics send_probes(const ProberConfig& config) {
   return {stats, sniffer.statistics()};
 }
 
-}  // namespace dminer
+}  // namespace dminer::Prober

@@ -12,9 +12,9 @@ using std::string;
 
 namespace fs = std::filesystem;
 
-namespace dminer {
+namespace dminer::Prober {
 
-struct ProberConfig {
+struct Config {
   uint64_t n_packets = 1;
   uint64_t probing_rate = 100;
   uint64_t sniffer_buffer_size = 2000000;
@@ -119,14 +119,14 @@ struct ProberConfig {
   void set_meta_round(const string& round) { meta_round = round; }
 };
 
-inline std::ostream& operator<<(std::ostream& os, ProberConfig const& v) {
+inline std::ostream& operator<<(std::ostream& os, Config const& v) {
   auto print_if_value = [&os](const string& name, const auto opt) {
     if (opt) {
       os << ",\n\t" << name << "=" << opt.value();
     }
   };
 
-  os << "ProberConfig{";
+  os << "Prober::Config{";
   os << "\n\tn_packets=" << v.n_packets;
   os << ",\n\tprobing_rate=" << v.probing_rate;
   os << ",\n\tsniffer_buffer_size=" << v.sniffer_buffer_size;
@@ -147,4 +147,4 @@ inline std::ostream& operator<<(std::ostream& os, ProberConfig const& v) {
   return os;
 }
 
-}  // namespace dminer
+}  // namespace dminer::Prober

@@ -16,11 +16,11 @@ using Tins::Packet;
 
 namespace fs = std::filesystem;
 
-namespace dminer {
+/// Read and convert PCAP files.
+namespace dminer::Reader {
 
-SnifferStatistics read_packets(const fs::path &input_file,
-                               const fs::path &output_file,
-                               const std::string &round) {
+SnifferStatistics read(const fs::path &input_file, const fs::path &output_file,
+                       const std::string &round) {
   std::ofstream output_csv{output_file};
   SnifferStatistics statistics{};
   Tins::FileSniffer sniffer{input_file};
@@ -51,4 +51,4 @@ SnifferStatistics read_packets(const fs::path &input_file,
   return statistics;
 }
 
-}  // namespace dminer
+}  // namespace dminer::Reader
