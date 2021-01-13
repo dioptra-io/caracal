@@ -59,47 +59,37 @@ class Sender {
   void send(const Probe &probe) {
     sockaddr_in dst_addr = probe.sockaddr();
 
-    uint8_t *ip_buffer = buffer_.data();
-    uint8_t *transport_buffer = buffer_.data() + sizeof(ip);
-
+    uint8_t *buffer = buffer_.data();
     uint16_t buf_size = 0;
     // We reserve two bytes in the payload to tweak the checksum.
     uint16_t payload_length = probe.ttl + 2;
     uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
 
-    Builder::init_ip_header(ip_buffer, protocol_, src_addr_.sin_addr);
-    Builder::complete_ip_header(ip_buffer, dst_addr.sin_addr, probe.ttl,
-                                protocol_, payload_length);
+    Builder::IP::init(buffer, protocol_, src_addr_.sin_addr, dst_addr.sin_addr,
+                      probe.ttl, payload_length);
 
     switch (protocol_) {
       case IPPROTO_ICMP:
         buf_size = sizeof(ip) + sizeof(icmphdr) + payload_length;
-        Builder::fill_payload(transport_buffer, sizeof(icmphdr), payload_length,
-                              0);
-        Builder::complete_icmp_header(transport_buffer, probe.src_port,
-                                      timestamp);
+        Builder::fill(buffer, buf_size, 0);
+        Builder::ICMP::init(buffer, probe.src_port, timestamp);
         break;
 
       case IPPROTO_TCP:
         buf_size = sizeof(ip) + sizeof(tcphdr) + payload_length;
-        Builder::fill_payload(transport_buffer, sizeof(tcphdr), payload_length,
-                              0);
-        Builder::init_tcp_header(transport_buffer);
-        Builder::add_tcp_ports(transport_buffer, probe.src_port,
-                               probe.dst_port);
-        Builder::add_tcp_timestamp(transport_buffer, timestamp, probe.ttl);
-        Builder::add_transport_checksum(ip_buffer, protocol_, payload_length);
+        Builder::fill(buffer, buf_size, 0);
+        Builder::TCP::init(buffer);
+        Builder::TCP::set_ports(buffer, probe.src_port, probe.dst_port);
+        Builder::TCP::set_timestamp(buffer, timestamp, probe.ttl);
+        Builder::TCP::set_checksum(buffer, payload_length);
         break;
 
       case IPPROTO_UDP:
         buf_size = sizeof(ip) + sizeof(udphdr) + payload_length;
-        Builder::fill_payload(transport_buffer, sizeof(udphdr), payload_length,
-                              0);
-        Builder::add_udp_ports(transport_buffer, probe.src_port,
-                               probe.dst_port);
-        Builder::add_udp_length(transport_buffer, payload_length);
-        Builder::add_udp_timestamp(ip_buffer, transport_buffer, payload_length,
-                                   timestamp);
+        Builder::fill(buffer, buf_size, 0);
+        Builder::UDP::set_ports(buffer, probe.src_port, probe.dst_port);
+        Builder::UDP::set_length(buffer, payload_length);
+        Builder::UDP::set_timestamp(buffer, payload_length, timestamp);
         break;
 
       default:
