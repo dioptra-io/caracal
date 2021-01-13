@@ -20,7 +20,7 @@ This program should compile on macOS, but it has been tuned for Linux, so do not
 macOS.
 
 ```bash
-# Ubuntu
+# Ubuntu 20.04+
 apt-get install build-essential cmake gcovr libboost-log-dev libboost-program-options-dev \
     libelf1 libpcap-dev libtins-dev pkg-config zlib1g-dev
 # macOS
