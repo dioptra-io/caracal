@@ -38,7 +38,7 @@ std::vector<std::string> parse_file(const std::string& file) {
   return res;
 }
 
-TEST_CASE("Parser") {
+TEST_CASE("Parser::parse") {
   // TODO: Test RTT estimation.
   auto data = fs::path{__FILE__}.parent_path() / ".." / "data";
   auto ref = read_lines(data / "sample_results.csv");

@@ -22,7 +22,8 @@ namespace dminer::Builder {
 /// @param buffer the packet buffer, including the IP header.
 /// @param transport_length the IP payload length (including the L4 header).
 /// @return the transport-level checksum in network order.
-inline uint16_t checksum(uint8_t *buffer, const uint16_t transport_length) {
+inline uint16_t transport_checksum(uint8_t *buffer,
+                                   const uint16_t transport_length) {
   const auto ip_header = reinterpret_cast<iphdr *>(buffer);
   // (1) Sum the pseudo header.
   uint32_t current = ipv4_pseudo_header_checksum(ip_header, transport_length);
@@ -37,8 +38,8 @@ inline uint16_t checksum(uint8_t *buffer, const uint16_t transport_length) {
 /// @param original_checksum the transport-level checksum of the packet.
 /// @param target_checksum the target transport-level checksum.
 /// @return the two bytes of the payload.
-uint16_t tweak_payload(const uint16_t original_checksum,
-                       const uint16_t target_checksum) {
+inline uint16_t tweak_payload(const uint16_t original_checksum,
+                              const uint16_t target_checksum) {
   uint32_t original_le = ~ntohs(original_checksum) & 0xFFFF;
   uint32_t target_le = ~ntohs(target_checksum) & 0xFFFF;
   if (target_le < original_le) {
@@ -109,7 +110,8 @@ namespace dminer::Builder::ICMP {
 /// @param buffer the packet buffer, including the IP header.
 /// @param flow_id the flow ID to be encoded in the checksum.
 /// @param timestamp the timestamp to be encoded in the sequence field.
-void init(uint8_t *buffer, const uint16_t flow_id, const uint64_t timestamp) {
+inline void init(uint8_t *buffer, const uint16_t flow_id,
+                 const uint64_t timestamp) {
   auto icmp_header = reinterpret_cast<icmphdr *>(buffer + sizeof(ip));
   icmp_header->type = 8;  // ICMP Echo Request
   icmp_header->code = 0;  // ICMP Echo Request
@@ -154,7 +156,7 @@ inline void init(uint8_t *buffer) {
 inline void set_checksum(uint8_t *buffer, const uint16_t payload_len) {
   auto tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
   tcp_header->th_sum = 0;
-  tcp_header->th_sum = checksum(buffer, sizeof(tcphdr) + payload_len);
+  tcp_header->th_sum = transport_checksum(buffer, sizeof(tcphdr) + payload_len);
 }
 
 /// Set the ports in the TCP header.
@@ -201,7 +203,7 @@ namespace dminer::Builder::UDP {
 inline void set_checksum(uint8_t *buffer, const uint16_t payload_len) {
   auto udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
   udp_header->uh_sum = 0;
-  udp_header->uh_sum = checksum(buffer, sizeof(udphdr) + payload_len);
+  udp_header->uh_sum = transport_checksum(buffer, sizeof(udphdr) + payload_len);
 }
 
 /// Set the length in the UDP header.
@@ -233,7 +235,7 @@ inline void set_timestamp(uint8_t *buffer, const size_t payload_len,
   auto udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
   udp_header->uh_sum = 0;
   const uint16_t original_checksum =
-      checksum(buffer, sizeof(udphdr) + payload_len);
+      transport_checksum(buffer, sizeof(udphdr) + payload_len);
   const uint16_t target_checksum = encode_timestamp(timestamp);
   *reinterpret_cast<uint16_t *>(buffer + sizeof(ip) + sizeof(udphdr)) =
       tweak_payload(original_checksum, target_checksum);

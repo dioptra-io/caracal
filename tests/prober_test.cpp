@@ -15,7 +15,7 @@ using dminer::Prober::probe;
 #define LOOPBACK "lo"
 #endif
 
-TEST_CASE("send_probes") {
+TEST_CASE("Prober::probe") {
   std::ofstream ofs;
 
   ofs.open("zzz_input.csv");
