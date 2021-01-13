@@ -25,7 +25,7 @@ RUN mkdir -p /tmp/build/debug && \
 
 RUN mkdir -p /tmp/build/release && \
     cd /tmp/build/release && \
-    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../.. && \
+    cmake -DCMAKE_BUILD_TYPE=Release ../.. && \
     cmake --build . --parallel 8
 
 # Main

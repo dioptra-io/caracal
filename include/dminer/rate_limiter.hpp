@@ -26,31 +26,28 @@ class RateLimiter {
   }
 
   void wait() {
-    // TODO: Use sleep first if possible, then spin.
     // TODO: Monitor/report time spent between calls.
-    // x2 to allow 50% time outside wait.
-    if ((sleep_precision_ * 2) < target_delta_) {
-      wait_sleep();
-    } else {
-      wait_spin();
-    }
-  }
-
-  void wait_sleep() {
     curr_tp_ = steady_clock::now();
     current_delta_ = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
-    if (current_delta_ < target_delta_) {
+
+    // (1) Early return if we do not need to wait.
+    if (current_delta_ >= target_delta_) {
+      last_tp_ = steady_clock::now();
+      return;
+    }
+
+    // (2) Wait if possible.
+    if (sleep_precision_ < (target_delta_ - current_delta_)) {
       std::this_thread::sleep_for(target_delta_ - current_delta_);
     }
-    last_tp_ = steady_clock::now();
-  }
 
-  void wait_spin() {
+    // (3) Spin wait.
     do {
       curr_tp_ = steady_clock::now();
       current_delta_ = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
     } while (current_delta_ < target_delta_);
-    last_tp_ = curr_tp_;
+
+    last_tp_ = steady_clock::now();
   }
 
   double current_rate() const { return 1e9 / current_delta_.count(); }

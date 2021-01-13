@@ -138,9 +138,9 @@ inline Statistics probe(const Config& config) {
       rl.wait();
     }
 
-    // Log every ~10 seconds.
+    // Log every ~5 seconds.
     auto rate = uint64_t(rl.current_rate());
-    if ((rate > 0) && (stats.sent % (10 * rate) == 0)) {
+    if ((rate > 0) && (stats.sent % (5 * rate) == 0)) {
       log_stats();
     }
 
