@@ -63,6 +63,7 @@ TEST_CASE("send_probes") {
     REQUIRE(prober_stats.filtered_prefix_not_incl == 1);
     REQUIRE(prober_stats.filtered_prefix_not_routable == 0);
     REQUIRE(sniffer_stats.received_count == 6);
+    REQUIRE(sniffer_stats.received_invalid_count == 0);
   }
 
   SECTION("Include list with missing new line") {
@@ -74,6 +75,7 @@ TEST_CASE("send_probes") {
     auto [prober_stats, sniffer_stats] = send_probes(config);
     REQUIRE(prober_stats.sent == 6);
     REQUIRE(sniffer_stats.received_count == 6);
+    REQUIRE(sniffer_stats.received_invalid_count == 0);
   }
 
   SECTION("Empty exclude list") {
@@ -85,6 +87,7 @@ TEST_CASE("send_probes") {
     auto [prober_stats, sniffer_stats] = send_probes(config);
     REQUIRE(prober_stats.sent == 9);
     REQUIRE(sniffer_stats.received_count == 9);
+    REQUIRE(sniffer_stats.received_invalid_count == 0);
   }
 
   SECTION("Empty include list") {
@@ -96,6 +99,7 @@ TEST_CASE("send_probes") {
     auto [prober_stats, sniffer_stats] = send_probes(config);
     REQUIRE(prober_stats.sent == 0);
     REQUIRE(sniffer_stats.received_count == 0);
+    REQUIRE(sniffer_stats.received_invalid_count == 0);
   }
 
   fs::remove("zzz_excl.csv");

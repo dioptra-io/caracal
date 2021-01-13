@@ -31,9 +31,9 @@ class Sniffer {
           const uint64_t buffer_size, const optional<std::string> &meta_round,
           const uint16_t destination_port)
       : m_sniffer{interface.name()}, m_meta_round{meta_round}, m_statistics{} {
-    // TODO: Ignore ICMP Echo requests.
     std::string filter =
-        "icmp or (src port " + std::to_string(destination_port) + ")";
+        "(icmp and icmp[icmptype] != icmp-echo) or (src port " +
+        std::to_string(destination_port) + ")";
     BOOST_LOG_TRIVIAL(info) << "Sniffer filter: " << filter;
 
     SnifferConfiguration config;
@@ -43,7 +43,6 @@ class Sniffer {
 
     // As sniffer does not have set_configuration, we copy...
     m_sniffer = Tins::Sniffer(interface.name(), config);
-    // m_sniffer.set_extract_raw_pdus(true);
 
     if (output_file_csv) {
       m_output_csv.open(output_file_csv.value());
@@ -66,7 +65,7 @@ class Sniffer {
     // TODO: Benchmark utility of batching/batch size.
 
     auto handler = [this](Packet &packet) {
-      auto reply = parse(packet);
+      auto reply = Parser::parse(packet);
 
       if (reply) {
         auto reply_ = reply.value();

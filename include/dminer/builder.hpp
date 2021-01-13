@@ -94,6 +94,37 @@ inline void init(uint8_t *buffer, uint8_t protocol, in_addr src_addr,
 
 }  // namespace dminer::Builder::IPv4
 
+/// Build ICMP echo probes.
+/// In the ICMP echo header, the code and checksum fields are used for per-flow
+/// load-balancing. We encode the flow ID in the checksum field to vary the flow
+/// ID, and in the id field. We encode the timestamp in the sequence field.
+/// Since echo replies, in contrast to destination unreachable messages, doesn't
+/// contain the original probe packet (including the original TTL and flow ID),
+/// we ignore them in the packet parser.
+namespace dminer::Builder::ICMP {
+
+/// Build an ICMP echo probe.
+/// @param buffer the packet buffer, including the IP header.
+/// @param flow_id the flow ID to be encoded in the checksum.
+/// @param timestamp the timestamp to be encoded in the sequence field.
+void init(uint8_t *buffer, const uint16_t flow_id, const size_t payload_len,
+          const uint64_t timestamp) {
+  auto *icmp_header = reinterpret_cast<icmphdr *>(buffer + sizeof(ip));
+  icmp_header->type = 8;  // ICMP Echo Request
+  icmp_header->code = 0;  // ICMP Echo Request
+  icmp_header->checksum = 0;
+  icmp_header->un.echo.id = flow_id;
+  icmp_header->un.echo.sequence = encode_timestamp(timestamp);
+
+  // Encode the flow ID in the checksum.
+  const uint16_t original_checksum = ip_checksum(icmp_header, sizeof(icmphdr));
+  *reinterpret_cast<uint16_t *>(buffer + sizeof(ip) + sizeof(icmphdr)) =
+      tweak_payload(original_checksum, flow_id);
+  icmp_header->checksum = flow_id;
+}
+
+}  // namespace dminer::Builder::ICMP
+
 /// Build TCP probes.
 /// In the TCP header, the source and destination ports are used for per-flow
 /// load-balancing. We use those for encoding the flow ID, and we encode the
@@ -208,34 +239,3 @@ inline void set_timestamp(uint8_t *buffer, const size_t payload_len,
 }
 
 }  // namespace dminer::Builder::UDP
-
-/// Build ICMP echo probes.
-/// In the ICMP echo header, the code and checksum fields are used for per-flow
-/// load-balancing. We encode the flow ID in the checksum field to vary the flow
-/// ID, and in the id field. We encode the timestamp in the sequence field.
-/// Since echo replies, in contrast to destination unreachable messages, doesn't
-/// contain the original probe packet (including the original TTL and flow ID),
-/// we ignore them in the packet parser.
-namespace dminer::Builder::ICMP {
-
-/// Build an ICMP echo probe.
-/// @param buffer the packet buffer, including the IP header.
-/// @param flow_id the flow ID to be encoded in the checksum.
-/// @param timestamp the timestamp to be encoded in the sequence field.
-void init(uint8_t *buffer, const uint16_t flow_id, const size_t payload_len,
-          const uint64_t timestamp) {
-  auto *icmp_header = reinterpret_cast<icmphdr *>(buffer + sizeof(ip));
-  icmp_header->type = 8;  // ICMP Echo Request
-  icmp_header->code = 0;  // ICMP Echo Request
-  icmp_header->checksum = 0;
-  icmp_header->un.echo.id = flow_id;
-  icmp_header->un.echo.sequence = encode_timestamp(timestamp);
-
-  // Encode the flow ID in the checksum.
-  const uint16_t original_checksum = ip_checksum(icmp_header, sizeof(icmphdr));
-  *reinterpret_cast<uint16_t *>(buffer + sizeof(ip) + sizeof(icmphdr)) =
-      tweak_payload(original_checksum, flow_id);
-  icmp_header->checksum = flow_id;
-}
-
-}  // namespace dminer::Builder::ICMP

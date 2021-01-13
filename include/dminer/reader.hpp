@@ -26,7 +26,7 @@ SnifferStatistics read_packets(const fs::path &input_file,
   Tins::FileSniffer sniffer{input_file};
 
   auto handler = [&output_csv, &round, &statistics](Packet &packet) {
-    auto reply = parse(packet);
+    auto reply = Parser::parse(packet);
 
     if (statistics.received_count % 1'000'000 == 0) {
       BOOST_LOG_TRIVIAL(info) << statistics;

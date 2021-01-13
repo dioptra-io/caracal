@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-using dminer::parse;
+using dminer::Parser::parse;
 
 namespace fs = std::filesystem;
 
@@ -38,7 +38,7 @@ std::vector<std::string> parse_file(const std::string& file) {
   return res;
 }
 
-TEST_CASE("PacketParser") {
+TEST_CASE("Parser") {
   // TODO: Test RTT estimation.
   auto data = fs::path{__FILE__}.parent_path() / ".." / "data";
   auto ref = read_lines(data / "sample_results.csv");
