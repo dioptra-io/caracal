@@ -26,7 +26,6 @@ struct ProberConfig {
   optional<fs::path> input_file;
   optional<fs::path> output_file_csv;
   optional<fs::path> output_file_pcap;
-  optional<fs::path> bgp_filter_file;
   optional<fs::path> prefix_excl_file;
   optional<fs::path> prefix_incl_file;
   optional<int> filter_min_ttl;
@@ -89,13 +88,6 @@ struct ProberConfig {
     n_packets = count;
   }
 
-  void set_bgp_filter_file(const fs::path& p) {
-    if (!fs::exists(p)) {
-      throw std::invalid_argument(p.string() + " does not exists");
-    }
-    bgp_filter_file = p;
-  }
-
   void set_prefix_excl_file(const fs::path& p) {
     if (!fs::exists(p)) {
       throw std::invalid_argument(p.string() + " does not exists");
@@ -146,7 +138,6 @@ inline std::ostream& operator<<(std::ostream& os, ProberConfig const& v) {
   print_if_value("output_file_csv", v.output_file_csv);
   print_if_value("output_file_pcap", v.output_file_pcap);
   print_if_value("max_probes", v.max_probes);
-  print_if_value("bgp_filter_file", v.bgp_filter_file);
   print_if_value("prefix_excl_file", v.prefix_excl_file);
   print_if_value("prefix_incl_file", v.prefix_incl_file);
   print_if_value("min_ttl", v.filter_min_ttl);

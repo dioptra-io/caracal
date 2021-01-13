@@ -35,7 +35,6 @@ inline Statistics send_probes(const ProberConfig& config) {
   // Filter tries, only v4 at the moment
   Patricia prefix_excl_trie{32};
   Patricia prefix_incl_trie{32};
-  Patricia bgp_filter_trie{32};
 
   if (config.prefix_excl_file) {
     BOOST_LOG_TRIVIAL(info) << "Loading excluded prefixes...";
@@ -47,11 +46,6 @@ inline Statistics send_probes(const ProberConfig& config) {
     BOOST_LOG_TRIVIAL(info) << "Loading included prefixes...";
     prefix_incl_trie.populateBlock(AF_INET,
                                    config.prefix_incl_file.value().c_str());
-  }
-
-  if (config.bgp_filter_file) {
-    BOOST_LOG_TRIVIAL(info) << "Loading routing informations...";
-    bgp_filter_trie.populate(config.bgp_filter_file.value().c_str());
   }
 
   // Sniffer
@@ -126,14 +120,6 @@ inline Statistics send_probes(const ProberConfig& config) {
       BOOST_LOG_TRIVIAL(trace)
           << "Filtered probe " << p << " (not included prefix)";
       stats.filtered_prefix_not_incl++;
-      continue;
-    }
-    // Do not send probes to un-routed destinations.
-    if (config.bgp_filter_file &&
-        (bgp_filter_trie.get(p.dst_addr.s_addr) == nullptr)) {
-      BOOST_LOG_TRIVIAL(trace)
-          << "Filtered probe " << p << " (not routable prefix)";
-      stats.filtered_prefix_not_routable++;
       continue;
     }
 

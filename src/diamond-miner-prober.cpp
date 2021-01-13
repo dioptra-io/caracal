@@ -40,7 +40,6 @@ int main(int argc, char** argv) {
     ("n-packets,N", po::value<int>()->value_name("count")->default_value(config.n_packets), "Number of packets to send per probe");
 
   filters.add_options()
-    ("filter-from-bgp-file", po::value<string>()->value_name("file"), "Do not send probes to un-routed destinations")
     ("filter-from-prefix-file-excl", po::value<string>()->value_name("file"), "Do not send probes to prefixes specified in file (deny list)")
     ("filter-from-prefix-file-incl", po::value<string>()->value_name("file"), "Do not send probes to prefixes *not* specified in file (allow list)")
     ("filter-min-ttl", po::value<int>()->value_name("min_ttl"), "Do not send probes with ttl < min_ttl")
@@ -104,11 +103,6 @@ int main(int argc, char** argv) {
 
     if (vm.count("n-packets")) {
       config.set_n_packets(vm["n-packets"].as<int>());
-    }
-
-    if (vm.count("filter-from-bgp-file")) {
-      fs::path path{vm["filter-from-bgp-file"].as<string>()};
-      config.set_bgp_filter_file(path);
     }
 
     if (vm.count("filter-from-prefix-file-excl")) {
