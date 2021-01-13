@@ -12,8 +12,8 @@ extern "C" {
 
 using dminer::encode_timestamp;
 using dminer::Builder::transport_checksum;
-using Tins::Endian::be_to_host;
 
+namespace ICMP = dminer::Builder::ICMP;
 namespace IPv4 = dminer::Builder::IPv4;
 namespace TCP = dminer::Builder::TCP;
 namespace UDP = dminer::Builder::UDP;
@@ -27,8 +27,18 @@ bool validate_ip_checksum(uint8_t* buffer) {
   return original == correct;
 }
 
+bool validate_icmp_checksum(uint8_t* buffer, const uint16_t payload_len) {
+  const auto icmp_header = reinterpret_cast<icmphdr*>(buffer + sizeof(ip));
+  const uint16_t original = icmp_header->checksum;
+  icmp_header->checksum = 0;
+  const uint16_t correct =
+      ip_checksum(buffer + sizeof(ip), sizeof(icmphdr) + payload_len);
+  icmp_header->checksum = original;
+  return original == correct;
+}
+
 bool validate_tcp_checksum(uint8_t* buffer, const uint16_t payload_len) {
-  const auto tcp_header = reinterpret_cast<tcphdr*>(buffer);
+  const auto tcp_header = reinterpret_cast<tcphdr*>(buffer + sizeof(ip));
   const uint16_t original = tcp_header->th_sum;
   tcp_header->th_sum = 0;
   const uint16_t correct =
@@ -38,13 +48,40 @@ bool validate_tcp_checksum(uint8_t* buffer, const uint16_t payload_len) {
 }
 
 bool validate_udp_checksum(uint8_t* buffer, const uint16_t payload_len) {
-  const auto udp_header = reinterpret_cast<udphdr*>(buffer);
+  const auto udp_header = reinterpret_cast<udphdr*>(buffer + sizeof(ip));
   const uint16_t original = udp_header->uh_sum;
   udp_header->uh_sum = 0;
   const uint16_t correct =
       transport_checksum(buffer, sizeof(udphdr) + payload_len);
   udp_header->uh_sum = original;
   return original == correct;
+}
+
+TEST_CASE("Builder::ICMP") {
+  uint8_t buffer[65536] = {0};
+  in_addr src_addr{3789697};
+  in_addr dst_addr{6543665};
+  uint16_t flow_id = 24000;
+  uint8_t ttl = 8;
+  uint16_t payload_len = 10;
+  uint64_t timestamp = 123456;
+
+  IPv4::init(buffer, IPPROTO_ICMP, src_addr, dst_addr, ttl, payload_len);
+  ICMP::init(buffer, flow_id, timestamp);
+
+  REQUIRE(validate_ip_checksum(buffer));
+  REQUIRE(validate_icmp_checksum(buffer, payload_len));
+
+  auto ip = Tins::IP(buffer, sizeof(iphdr) + sizeof(icmphdr) + payload_len);
+  REQUIRE(uint32_t(ip.src_addr()) == src_addr.s_addr);
+  REQUIRE(uint32_t(ip.dst_addr()) == dst_addr.s_addr);
+  REQUIRE(ip.id() == ttl);
+  REQUIRE(ip.ttl() == ttl);
+
+  auto icmp = ip.rfind_pdu<Tins::ICMP>();
+  REQUIRE(htons(icmp.id()) == flow_id);
+  REQUIRE(htons(icmp.checksum()) == flow_id);
+  REQUIRE(htons(icmp.sequence()) == encode_timestamp(timestamp));
 }
 
 TEST_CASE("Builder::TCP") {
@@ -66,7 +103,7 @@ TEST_CASE("Builder::TCP") {
   REQUIRE(validate_ip_checksum(buffer));
   REQUIRE(validate_tcp_checksum(buffer, payload_len));
 
-  auto ip = Tins::IP(buffer, sizeof(iphdr) + sizeof(iphdr) + payload_len);
+  auto ip = Tins::IP(buffer, sizeof(iphdr) + sizeof(tcphdr) + payload_len);
   REQUIRE(uint32_t(ip.src_addr()) == src_addr.s_addr);
   REQUIRE(uint32_t(ip.dst_addr()) == dst_addr.s_addr);
   REQUIRE(ip.id() == ttl);
@@ -105,5 +142,5 @@ TEST_CASE("Builder::UDP") {
   auto udp = ip.rfind_pdu<Tins::UDP>();
   REQUIRE(udp.sport() == src_port);
   REQUIRE(udp.dport() == dst_port);
-  REQUIRE(be_to_host(udp.checksum()) == encode_timestamp(timestamp));
+  REQUIRE(htons(udp.checksum()) == encode_timestamp(timestamp));
 }
