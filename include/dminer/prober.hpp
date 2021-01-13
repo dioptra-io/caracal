@@ -82,7 +82,7 @@ inline Statistics probe(const Config& config) {
 
   // Loop
   std::string line;
-  Probe p;
+  Probe p{};
 
   while (std::getline(is, line)) {
     try {

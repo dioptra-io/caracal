@@ -23,7 +23,7 @@ namespace dminer::Builder {
 /// @param transport_length the IP payload length (including the L4 header).
 /// @return the transport-level checksum in network order.
 inline uint16_t checksum(uint8_t *buffer, const uint16_t transport_length) {
-  auto *ip_header = reinterpret_cast<iphdr *>(buffer);
+  const auto ip_header = reinterpret_cast<iphdr *>(buffer);
   // (1) Sum the pseudo header.
   uint32_t current = ipv4_pseudo_header_checksum(ip_header, transport_length);
   // (2) Sum the transport header and the payload.
@@ -37,7 +37,8 @@ inline uint16_t checksum(uint8_t *buffer, const uint16_t transport_length) {
 /// @param original_checksum the transport-level checksum of the packet.
 /// @param target_checksum the target transport-level checksum.
 /// @return the two bytes of the payload.
-uint16_t tweak_payload(uint16_t original_checksum, uint16_t target_checksum) {
+uint16_t tweak_payload(const uint16_t original_checksum,
+                       const uint16_t target_checksum) {
   uint32_t original_le = ~ntohs(original_checksum) & 0xFFFF;
   uint32_t target_le = ~ntohs(target_checksum) & 0xFFFF;
   if (target_le < original_le) {
@@ -63,9 +64,10 @@ namespace dminer::Builder::IPv4 {
 /// @param dst_addr the destination IPv4 address.
 /// @param ttl the TTL.
 /// @param payload_len the IP payload length (including the L4 header).
-inline void init(uint8_t *buffer, uint8_t protocol, in_addr src_addr,
-                 in_addr dst_addr, uint8_t ttl, uint16_t payload_len) {
-  auto *ip_header = reinterpret_cast<ip *>(buffer);
+inline void init(uint8_t *buffer, const uint8_t protocol,
+                 const in_addr src_addr, const in_addr dst_addr,
+                 const uint8_t ttl, const uint16_t payload_len) {
+  auto ip_header = reinterpret_cast<ip *>(buffer);
 
   ip_header->ip_hl = 5;
   ip_header->ip_v = 4;
@@ -107,9 +109,8 @@ namespace dminer::Builder::ICMP {
 /// @param buffer the packet buffer, including the IP header.
 /// @param flow_id the flow ID to be encoded in the checksum.
 /// @param timestamp the timestamp to be encoded in the sequence field.
-void init(uint8_t *buffer, const uint16_t flow_id, const size_t payload_len,
-          const uint64_t timestamp) {
-  auto *icmp_header = reinterpret_cast<icmphdr *>(buffer + sizeof(ip));
+void init(uint8_t *buffer, const uint16_t flow_id, const uint64_t timestamp) {
+  auto icmp_header = reinterpret_cast<icmphdr *>(buffer + sizeof(ip));
   icmp_header->type = 8;  // ICMP Echo Request
   icmp_header->code = 0;  // ICMP Echo Request
   icmp_header->checksum = 0;
@@ -134,7 +135,7 @@ namespace dminer::Builder::TCP {
 /// Init the TCP header.
 /// @param buffer the packet buffer, including the IP header.
 inline void init(uint8_t *buffer) {
-  auto *tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
+  auto tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
   tcp_header->th_ack = 0;
   tcp_header->th_off = 5;
   // Do not send TCP SYN because of SYN Flood, do not put any TCP flags
@@ -150,8 +151,8 @@ inline void init(uint8_t *buffer) {
 /// valid.
 /// @param buffer the packet buffer, including the IP header.
 /// @param payload_len the TCP payload length.
-inline void set_checksum(uint8_t *buffer, uint16_t payload_len) {
-  auto *tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
+inline void set_checksum(uint8_t *buffer, const uint16_t payload_len) {
+  auto tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
   tcp_header->th_sum = 0;
   tcp_header->th_sum = checksum(buffer, sizeof(tcphdr) + payload_len);
 }
@@ -162,7 +163,7 @@ inline void set_checksum(uint8_t *buffer, uint16_t payload_len) {
 /// @param dst_port the destination port, in host order.
 inline void set_ports(uint8_t *buffer, const uint16_t src_port,
                       const uint16_t dst_port) {
-  auto *tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
+  auto tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
   tcp_header->th_sport = htons(src_port);
   tcp_header->th_dport = htons(dst_port);
 }
@@ -174,12 +175,13 @@ inline void set_ports(uint8_t *buffer, const uint16_t src_port,
 /// @param ttl the TTL to encode.
 inline void set_sequence(uint8_t *buffer, const uint64_t timestamp,
                          const uint8_t ttl) {
-  auto *tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
+  auto tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
   // The sequence number is 27 bits of timestamp + 5 bits of TTL
-  uint32_t msb_ttl = static_cast<uint32_t>(ttl) << 27;
-  uint32_t seq_no = encode_timestamp(timestamp) + msb_ttl;
+  const uint32_t msb_ttl = static_cast<uint32_t>(ttl) << 27;
+  const uint32_t seq_no = encode_timestamp(timestamp) + msb_ttl;
   tcp_header->th_seq = htonl(seq_no);
 }
+
 }  // namespace dminer::Builder::TCP
 
 /// Build UDP probes.
@@ -197,7 +199,7 @@ namespace dminer::Builder::UDP {
 /// @param buffer the packet buffer, including the IP header.
 /// @param payload_len the UDP payload length.
 inline void set_checksum(uint8_t *buffer, const uint16_t payload_len) {
-  auto *udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
+  auto udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
   udp_header->uh_sum = 0;
   udp_header->uh_sum = checksum(buffer, sizeof(udphdr) + payload_len);
 }
@@ -206,7 +208,7 @@ inline void set_checksum(uint8_t *buffer, const uint16_t payload_len) {
 /// @param buffer the packet buffer, including the IP header.
 /// @param payload_len the UDP payload length.
 inline void set_length(uint8_t *buffer, const uint16_t payload_len) {
-  auto *udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
+  auto udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
   udp_header->len = htons(sizeof(udphdr) + payload_len);
 }
 
@@ -216,7 +218,7 @@ inline void set_length(uint8_t *buffer, const uint16_t payload_len) {
 /// @param dst_port the destination port, in host order.
 inline void set_ports(uint8_t *buffer, const uint16_t src_port,
                       const uint16_t dst_port) {
-  auto *udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
+  auto udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
   udp_header->uh_sport = htons(src_port);
   udp_header->uh_dport = htons(dst_port);
 }
@@ -228,7 +230,7 @@ inline void set_ports(uint8_t *buffer, const uint16_t src_port,
 /// @param timestamp the timestamp to encode.
 inline void set_timestamp(uint8_t *buffer, const size_t payload_len,
                           const uint64_t timestamp) {
-  auto *udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
+  auto udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
   udp_header->uh_sum = 0;
   const uint16_t original_checksum =
       checksum(buffer, sizeof(udphdr) + payload_len);

@@ -71,7 +71,7 @@ class Sender {
         std::fill(buffer, buffer + buf_size, 0);
         Builder::IPv4::init(buffer, protocol_, src_addr_.sin_addr,
                             dst_addr.sin_addr, probe.ttl, payload_length);
-        Builder::ICMP::init(buffer, probe.src_port, payload_length, timestamp);
+        Builder::ICMP::init(buffer, probe.src_port, timestamp);
         break;
 
       case IPPROTO_TCP:
