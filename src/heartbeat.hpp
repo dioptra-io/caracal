@@ -98,8 +98,16 @@ inline std::tuple<HeartbeatStatistics, SnifferStatistics> send_heartbeat(
 
   // Loop
   std::string line;
+  Probe p;
+
   while (std::getline(is, line)) {
-    Probe p = Probe::from_csv(line);
+    try {
+      p = Probe::from_csv(line);
+    } catch (const std::exception& e) {
+      BOOST_LOG_TRIVIAL(warning)
+          << "Error while reading probe from CSV: " << e.what();
+      continue;
+    }
     stats.read++;
 
     // Temporary safeguard, until we cleanup packets_utils.
