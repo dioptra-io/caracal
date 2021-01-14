@@ -10,10 +10,6 @@
 #include "parser.hpp"
 #include "statistics.hpp"
 
-using Tins::DataLinkType;
-using Tins::EthernetII;
-using Tins::Packet;
-
 namespace fs = std::filesystem;
 
 /// Read and convert PCAP files.
@@ -25,7 +21,7 @@ SnifferStatistics read(const fs::path &input_file, const fs::path &output_file,
   SnifferStatistics statistics{};
   Tins::FileSniffer sniffer{input_file};
 
-  auto handler = [&output_csv, &round, &statistics](Packet &packet) {
+  auto handler = [&output_csv, &round, &statistics](Tins::Packet &packet) {
     auto reply = Parser::parse(packet);
 
     if (statistics.received_count % 1'000'000 == 0) {

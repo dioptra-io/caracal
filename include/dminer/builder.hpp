@@ -15,13 +15,11 @@ extern "C" {
 #include "timestamp.hpp"
 
 using dminer::encode_timestamp;
-using std::byte;
-using std::span;
 
 /// Build probe packets.
 namespace dminer::Builder {
 
-typedef span<byte> Packet;
+typedef std::span<std::byte> Packet;
 
 /// Compute the transport-level checksum.
 /// @param packet the packet buffer, including the IP header.

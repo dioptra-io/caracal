@@ -18,6 +18,7 @@
 #include "socket.hpp"
 #include "timestamp.hpp"
 
+using std::byte;
 using std::chrono::system_clock;
 
 namespace dminer {
@@ -101,7 +102,7 @@ class Sender {
   }
 
  private:
-  std::array<std::byte, 65536> buffer_;
+  std::array<byte, 65536> buffer_;
   uint8_t protocol_;
   Socket socket_;
   sockaddr_in src_addr_;

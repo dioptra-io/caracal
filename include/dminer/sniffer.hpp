@@ -15,12 +15,6 @@
 
 namespace fs = std::filesystem;
 
-using Tins::DataLinkType;
-using Tins::EthernetII;
-using Tins::Packet;
-using Tins::PacketWriter;
-using Tins::SnifferConfiguration;
-
 namespace dminer {
 
 class Sniffer {
@@ -36,7 +30,7 @@ class Sniffer {
         std::to_string(destination_port) + ")";
     BOOST_LOG_TRIVIAL(info) << "Sniffer filter: " << filter;
 
-    SnifferConfiguration config;
+    Tins::SnifferConfiguration config;
     config.set_buffer_size(buffer_size * 1024);
     config.set_filter(filter);
     config.set_immediate_mode(true);
@@ -50,7 +44,7 @@ class Sniffer {
 
     if (output_file_pcap) {
       output_pcap_ = Tins::PacketWriter{output_file_pcap.value(),
-                                        DataLinkType<EthernetII>()};
+                                        Tins::DataLinkType<Tins::EthernetII>()};
     }
   }
 
@@ -64,7 +58,7 @@ class Sniffer {
     BOOST_LOG_TRIVIAL(info) << "Starting sniffer...";
     // TODO: Benchmark utility of batching/batch size.
 
-    auto handler = [this](Packet &packet) {
+    auto handler = [this](Tins::Packet &packet) {
       auto reply = Parser::parse(packet);
 
       if (reply) {
