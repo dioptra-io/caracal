@@ -1,6 +1,5 @@
 #pragma once
 
-#include <arpa/inet.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/tcp.h>
@@ -13,7 +12,6 @@
 #include <string>
 
 #include "builder.hpp"
-#include "pretty.hpp"
 #include "probe.hpp"
 #include "socket.hpp"
 #include "timestamp.hpp"

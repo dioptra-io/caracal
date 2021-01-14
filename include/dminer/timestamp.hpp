@@ -2,7 +2,6 @@
 
 #include <chrono>
 #include <cmath>
-#include <iostream>
 
 namespace dminer {
 
