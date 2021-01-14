@@ -9,13 +9,12 @@ extern "C" {
 #include <catch2/catch.hpp>
 #include <dminer/builder.hpp>
 #include <dminer/timestamp.hpp>
-#include <span>
 
 using dminer::encode_timestamp;
 using dminer::Builder::Packet;
 using dminer::Builder::transport_checksum;
 using std::array;
-using std::span;
+using std::byte;
 
 namespace ICMP = dminer::Builder::ICMP;
 namespace IPv4 = dminer::Builder::IPv4;

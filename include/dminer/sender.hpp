@@ -10,7 +10,6 @@
 #include <array>
 #include <boost/log/trivial.hpp>
 #include <chrono>
-#include <span>
 #include <string>
 
 #include "builder.hpp"
@@ -19,19 +18,12 @@
 #include "socket.hpp"
 #include "timestamp.hpp"
 
-using std::array;
-using std::byte;
-using std::invalid_argument;
-using std::span;
-using std::string;
-using std::system_error;
 using std::chrono::system_clock;
-using Tins::NetworkInterface;
 
 namespace dminer {
 class Sender {
  public:
-  Sender(const NetworkInterface &interface, const string &protocol)
+  Sender(const Tins::NetworkInterface &interface, const std::string &protocol)
       : buffer_{}, socket_{AF_INET, SOCK_RAW, IPPROTO_RAW} {
     if (protocol == "icmp") {
       protocol_ = IPPROTO_ICMP;
@@ -40,7 +32,7 @@ class Sender {
     } else if (protocol == "udp") {
       protocol_ = IPPROTO_UDP;
     } else {
-      throw invalid_argument("protocol must be one of (icmp, tcp, udp).");
+      throw std::invalid_argument("protocol must be one of (icmp, tcp, udp).");
     }
 
     src_addr_.sin_addr.s_addr = uint32_t(interface.ipv4_address());
@@ -51,7 +43,7 @@ class Sender {
     socket_.set(SOL_SOCKET, SO_REUSEADDR, true);
     try {
       socket_.set(SOL_SOCKET, SO_SNDBUF, 8388608);
-    } catch (const system_error &e) {
+    } catch (const std::system_error &e) {
       BOOST_LOG_TRIVIAL(warning)
           << "Cannot increase send buffer size: " << e.what();
     }
@@ -109,7 +101,7 @@ class Sender {
   }
 
  private:
-  array<byte, 65536> buffer_;
+  std::array<std::byte, 65536> buffer_;
   uint8_t protocol_;
   Socket socket_;
   sockaddr_in src_addr_;
