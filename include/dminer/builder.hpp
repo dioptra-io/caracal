@@ -12,10 +12,6 @@ extern "C" {
 #include <iostream>
 #include <span>
 
-#include "timestamp.hpp"
-
-using dminer::encode_timestamp;
-
 /// Build probe packets.
 namespace dminer::Builder {
 
