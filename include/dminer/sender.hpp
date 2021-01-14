@@ -63,7 +63,9 @@ class Sender {
     uint16_t buf_size = 0;
     // We reserve two bytes in the payload to tweak the checksum.
     uint16_t payload_length = probe.ttl + 2;
+
     uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
+    uint16_t timestamp_enc = encode_timestamp(timestamp);
 
     switch (protocol_) {
       case IPPROTO_ICMP:
@@ -71,7 +73,8 @@ class Sender {
         std::fill(buffer, buffer + buf_size, 0);
         Builder::IPv4::init(buffer, protocol_, src_addr_.sin_addr,
                             dst_addr.sin_addr, probe.ttl, payload_length);
-        Builder::ICMP::init(buffer, probe.src_port, timestamp);
+        Builder::ICMP::init(buffer, payload_length, probe.src_port,
+                            timestamp_enc);
         break;
 
       case IPPROTO_TCP:
@@ -81,7 +84,7 @@ class Sender {
                             dst_addr.sin_addr, probe.ttl, payload_length);
         Builder::TCP::init(buffer);
         Builder::TCP::set_ports(buffer, probe.src_port, probe.dst_port);
-        Builder::TCP::set_sequence(buffer, timestamp, probe.ttl);
+        Builder::TCP::set_sequence(buffer, timestamp_enc, probe.ttl);
         Builder::TCP::set_checksum(buffer, payload_length);
         break;
 
@@ -92,7 +95,7 @@ class Sender {
                             dst_addr.sin_addr, probe.ttl, payload_length);
         Builder::UDP::set_ports(buffer, probe.src_port, probe.dst_port);
         Builder::UDP::set_length(buffer, payload_length);
-        Builder::UDP::set_timestamp(buffer, payload_length, timestamp);
+        Builder::UDP::set_checksum(buffer, payload_length, timestamp_enc);
         break;
 
       default:

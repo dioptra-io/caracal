@@ -56,74 +56,16 @@ inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
       inner_ip.tot_len();  // NOTE: This field is useless. Why?
   const uint8_t inner_ttl = inner_ip.id();
 
-  // UDP probe
-  const auto inner_udp = inner_ip.find_pdu<Tins::UDP>();
-  if (inner_udp) {
-    const uint16_t inner_src_port = inner_udp->sport();
-    const uint16_t inner_dst_port = inner_udp->dport();
-
-    double rtt = -1.0;
-    if (estimate_rtt) {
-      const uint16_t inner_checksum = host_to_be(inner_udp->checksum());
-      rtt = decode_difference(timestamp, inner_checksum) / 10.0;
-    }
-
-    const uint8_t inner_ttl_from_udp_len =
-        inner_udp->length() - sizeof(udphdr) - 2;
-
-    return Reply{src_ip,
-                 dst_ip,
-                 size,
-                 ttl,
-                 icmp->code(),
-                 static_cast<uint8_t>(icmp->type()),
-                 inner_dst_ip,
-                 inner_size,
-                 inner_ttl,
-                 IPPROTO_UDP,
-                 inner_src_port,
-                 inner_dst_port,
-                 inner_ttl_from_udp_len,
-                 rtt};
-  }
-
-  // TCP probe
-  const auto inner_tcp = inner_ip.find_pdu<Tins::TCP>();
-  if (inner_tcp) {
-    const uint16_t inner_src_port = inner_tcp->sport();
-    const uint16_t inner_dst_port = inner_tcp->dport();
-
-    double rtt = -1.0;
-    if (estimate_rtt) {
-      const uint16_t inner_seq = inner_tcp->seq() & ((1 << 27) - 1);
-      rtt = decode_difference(timestamp, inner_seq) / 10.0;
-    }
-
-    return Reply{src_ip,
-                 dst_ip,
-                 size,
-                 ttl,
-                 icmp->code(),
-                 static_cast<uint8_t>(icmp->type()),
-                 inner_dst_ip,
-                 inner_size,
-                 inner_ttl,
-                 IPPROTO_TCP,
-                 inner_src_port,
-                 inner_dst_port,
-                 0,
-                 rtt};
-  }
-
   // ICMP probe
   const auto inner_icmp = inner_ip.find_pdu<Tins::ICMP>();
   if (inner_icmp) {
     const uint16_t inner_src_port = inner_icmp->id();
-    const uint16_t inner_dst_port = 0;  // Not encoded in ICMP probes.
+    const uint16_t inner_dst_port = 0;           // Not encoded in ICMP probes.
+    const uint8_t inner_ttl_from_transport = 0;  // Not encoded in ICMP probes.
 
     double rtt = -1.0;
     if (estimate_rtt) {
-      const uint16_t inner_seq = host_to_be(inner_icmp->sequence());
+      const uint16_t inner_seq = inner_icmp->sequence();
       rtt = decode_difference(timestamp, inner_seq) / 10.0;
     }
 
@@ -139,7 +81,69 @@ inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
                  IPPROTO_ICMP,
                  inner_src_port,
                  inner_dst_port,
-                 0,
+                 inner_ttl_from_transport,
+                 rtt};
+  }
+
+  // TCP probe
+  const auto inner_tcp = inner_ip.find_pdu<Tins::TCP>();
+  if (inner_tcp) {
+    const uint16_t inner_src_port = inner_tcp->sport();
+    const uint16_t inner_dst_port = inner_tcp->dport();
+
+    double rtt = -1.0;
+    if (estimate_rtt) {
+      const uint16_t inner_seq1 = inner_tcp->seq() >> 16;
+      rtt = decode_difference(timestamp, inner_seq1) / 10.0;
+    }
+
+    const uint8_t inner_ttl_from_transport =
+        static_cast<uint16_t>(inner_tcp->seq());
+
+    return Reply{src_ip,
+                 dst_ip,
+                 size,
+                 ttl,
+                 icmp->code(),
+                 static_cast<uint8_t>(icmp->type()),
+                 inner_dst_ip,
+                 inner_size,
+                 inner_ttl,
+                 IPPROTO_TCP,
+                 inner_src_port,
+                 inner_dst_port,
+                 inner_ttl_from_transport,
+                 rtt};
+  }
+
+  // UDP probe
+  const auto inner_udp = inner_ip.find_pdu<Tins::UDP>();
+  if (inner_udp) {
+    const uint16_t inner_src_port = inner_udp->sport();
+    const uint16_t inner_dst_port = inner_udp->dport();
+
+    double rtt = -1.0;
+    if (estimate_rtt) {
+      const uint16_t inner_checksum = inner_udp->checksum();
+      rtt = decode_difference(timestamp, inner_checksum) / 10.0;
+    }
+
+    const uint8_t inner_ttl_from_transport =
+        inner_udp->length() - sizeof(udphdr) - 2;
+
+    return Reply{src_ip,
+                 dst_ip,
+                 size,
+                 ttl,
+                 icmp->code(),
+                 static_cast<uint8_t>(icmp->type()),
+                 inner_dst_ip,
+                 inner_size,
+                 inner_ttl,
+                 IPPROTO_UDP,
+                 inner_src_port,
+                 inner_dst_port,
+                 inner_ttl_from_transport,
                  rtt};
   }
 

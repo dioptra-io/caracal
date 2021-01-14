@@ -64,10 +64,10 @@ TEST_CASE("Builder::ICMP") {
   uint16_t flow_id = 24000;
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
-  uint64_t timestamp = 123456;
+  uint16_t timestamp_enc = encode_timestamp(123456);
 
   IPv4::init(buffer, IPPROTO_ICMP, src_addr, dst_addr, ttl, payload_len);
-  ICMP::init(buffer, flow_id, timestamp);
+  ICMP::init(buffer, payload_len, flow_id, timestamp_enc);
 
   REQUIRE(validate_ip_checksum(buffer));
   REQUIRE(validate_icmp_checksum(buffer, payload_len));
@@ -79,9 +79,9 @@ TEST_CASE("Builder::ICMP") {
   REQUIRE(ip.ttl() == ttl);
 
   auto icmp = ip.rfind_pdu<Tins::ICMP>();
-  REQUIRE(htons(icmp.id()) == flow_id);
-  REQUIRE(htons(icmp.checksum()) == flow_id);
-  REQUIRE(htons(icmp.sequence()) == encode_timestamp(timestamp));
+  REQUIRE(icmp.checksum() == flow_id);
+  REQUIRE(icmp.id() == flow_id);
+  REQUIRE(icmp.sequence() == timestamp_enc);
 }
 
 TEST_CASE("Builder::TCP") {
@@ -92,12 +92,12 @@ TEST_CASE("Builder::TCP") {
   uint16_t dst_port = 33434;
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
-  uint64_t timestamp = 123456;
+  uint16_t timestamp_enc = encode_timestamp(123456);
 
   IPv4::init(buffer, IPPROTO_TCP, src_addr, dst_addr, ttl, payload_len);
   TCP::init(buffer);
   TCP::set_ports(buffer, src_port, dst_port);
-  TCP::set_sequence(buffer, timestamp, ttl);
+  TCP::set_sequence(buffer, timestamp_enc, ttl);
   TCP::set_checksum(buffer, payload_len);
 
   REQUIRE(validate_ip_checksum(buffer));
@@ -112,7 +112,8 @@ TEST_CASE("Builder::TCP") {
   auto tcp = ip.rfind_pdu<Tins::TCP>();
   REQUIRE(tcp.sport() == src_port);
   REQUIRE(tcp.dport() == dst_port);
-  // TODO: Decode sequence and check TTL/timestamp.
+  REQUIRE(static_cast<uint16_t>(tcp.seq() >> 16) == timestamp_enc);
+  REQUIRE(static_cast<uint16_t>(tcp.seq()) == ttl);
 }
 
 TEST_CASE("Builder::UDP") {
@@ -123,12 +124,12 @@ TEST_CASE("Builder::UDP") {
   uint16_t dst_port = 33434;
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
-  uint64_t timestamp = 123456;
+  uint16_t timestamp_enc = encode_timestamp(123456);
 
   IPv4::init(buffer, IPPROTO_UDP, src_addr, dst_addr, ttl, payload_len);
   UDP::set_length(buffer, payload_len);
   UDP::set_ports(buffer, src_port, dst_port);
-  UDP::set_timestamp(buffer, payload_len, timestamp);
+  UDP::set_checksum(buffer, payload_len, timestamp_enc);
 
   REQUIRE(validate_ip_checksum(buffer));
   REQUIRE(validate_udp_checksum(buffer, payload_len));
@@ -142,5 +143,5 @@ TEST_CASE("Builder::UDP") {
   auto udp = ip.rfind_pdu<Tins::UDP>();
   REQUIRE(udp.sport() == src_port);
   REQUIRE(udp.dport() == dst_port);
-  REQUIRE(htons(udp.checksum()) == encode_timestamp(timestamp));
+  REQUIRE(udp.checksum() == timestamp_enc);
 }

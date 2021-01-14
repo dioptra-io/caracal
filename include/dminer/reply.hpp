@@ -39,9 +39,8 @@ struct Reply {
                             ///< in order to vary the flow ID.
   uint16_t inner_dst_port;  ///< The destination port of the probe packet,
                             ///< 0 for ICMP probes.
-  uint8_t
-      inner_ttl_from_udp_len;  ///< The TTL that was encoded in the UDP
-                               ///< probe packet length, 0 if not an UDP probe.
+  uint8_t inner_ttl_from_transport;  ///< The TTL that was encoded in the L4
+                                     ///< header, 0 if not available.
   /// @}
 
   /// @name Estimated attributes
@@ -59,7 +58,7 @@ struct Reply {
     oss << std::fixed << dst_ip << "," << prefix() << "," << inner_dst_ip << ","
         << src_ip << "," << uint(inner_proto) << "," << inner_src_port << ","
         << inner_dst_port << "," << uint(inner_ttl) << ","
-        << uint(inner_ttl_from_udp_len) << "," << uint(icmp_type) << ","
+        << uint(inner_ttl_from_transport) << "," << uint(icmp_type) << ","
         << uint(icmp_code) << "," << rtt << "," << uint(ttl) << "," << size;
     return oss.str();
   }
