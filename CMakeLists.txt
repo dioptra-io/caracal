@@ -17,7 +17,7 @@ configure_file(src/diamond-miner-config.h.in diamond-miner-config.h)
 
 # Library
 add_library(diamond-miner INTERFACE)
-target_compile_features(diamond-miner INTERFACE cxx_std_17)
+target_compile_features(diamond-miner INTERFACE cxx_std_20)
 target_compile_options(diamond-miner INTERFACE -DBOOST_LOG_DYN_LINK)
 target_include_directories(diamond-miner
                            INTERFACE "${PROJECT_SOURCE_DIR}/include")

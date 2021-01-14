@@ -7,8 +7,10 @@
 #include <netinet/udp.h>
 #include <tins/tins.h>
 
+#include <array>
 #include <boost/log/trivial.hpp>
 #include <chrono>
+#include <span>
 #include <string>
 
 #include "builder.hpp"
@@ -18,18 +20,19 @@
 #include "timestamp.hpp"
 
 using std::array;
+using std::byte;
 using std::invalid_argument;
+using std::span;
 using std::string;
 using std::system_error;
 using std::chrono::system_clock;
 using Tins::NetworkInterface;
 
 namespace dminer {
-// TODO: Sender buffer size CLI option.
 class Sender {
  public:
   Sender(const NetworkInterface &interface, const string &protocol)
-      : buffer_{0}, socket_{AF_INET, SOCK_RAW, IPPROTO_RAW} {
+      : buffer_{}, socket_{AF_INET, SOCK_RAW, IPPROTO_RAW} {
     if (protocol == "icmp") {
       protocol_ = IPPROTO_ICMP;
     } else if (protocol == "tcp") {
@@ -58,55 +61,55 @@ class Sender {
 
   void send(const Probe &probe) {
     sockaddr_in dst_addr = probe.sockaddr();
+    Builder::Packet packet;
 
-    uint8_t *buffer = buffer_.data();
-    uint16_t buf_size = 0;
     // We reserve two bytes in the payload to tweak the checksum.
     uint16_t payload_length = probe.ttl + 2;
-
     uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
     uint16_t timestamp_enc = encode_timestamp(timestamp);
 
     switch (protocol_) {
       case IPPROTO_ICMP:
-        buf_size = sizeof(ip) + sizeof(icmphdr) + payload_length;
-        std::fill(buffer, buffer + buf_size, 0);
-        Builder::IPv4::init(buffer, protocol_, src_addr_.sin_addr,
-                            dst_addr.sin_addr, probe.ttl, payload_length);
-        Builder::ICMP::init(buffer, payload_length, probe.src_port,
-                            timestamp_enc);
+        packet = Builder::Packet{buffer_.begin(),
+                                 sizeof(ip) + sizeof(icmphdr) + payload_length};
+        std::fill(packet.begin(), packet.end(), byte{0});
+        Builder::IPv4::init(packet, protocol_, src_addr_.sin_addr,
+                            dst_addr.sin_addr, probe.ttl);
+        Builder::ICMP::init(packet, probe.src_port, timestamp_enc);
         break;
 
       case IPPROTO_TCP:
-        buf_size = sizeof(ip) + sizeof(tcphdr) + payload_length;
-        std::fill(buffer, buffer + buf_size, 0);
-        Builder::IPv4::init(buffer, protocol_, src_addr_.sin_addr,
-                            dst_addr.sin_addr, probe.ttl, payload_length);
-        Builder::TCP::init(buffer);
-        Builder::TCP::set_ports(buffer, probe.src_port, probe.dst_port);
-        Builder::TCP::set_sequence(buffer, timestamp_enc, probe.ttl);
-        Builder::TCP::set_checksum(buffer, payload_length);
+        packet = Builder::Packet{buffer_.begin(),
+                                 sizeof(ip) + sizeof(tcphdr) + payload_length};
+        std::fill(packet.begin(), packet.end(), byte{0});
+        Builder::IPv4::init(packet, protocol_, src_addr_.sin_addr,
+                            dst_addr.sin_addr, probe.ttl);
+        Builder::TCP::init(packet);
+        Builder::TCP::set_ports(packet, probe.src_port, probe.dst_port);
+        Builder::TCP::set_sequence(packet, timestamp_enc, probe.ttl);
+        Builder::TCP::set_checksum(packet);
         break;
 
       case IPPROTO_UDP:
-        buf_size = sizeof(ip) + sizeof(udphdr) + payload_length;
-        std::fill(buffer, buffer + buf_size, 0);
-        Builder::IPv4::init(buffer, protocol_, src_addr_.sin_addr,
-                            dst_addr.sin_addr, probe.ttl, payload_length);
-        Builder::UDP::set_ports(buffer, probe.src_port, probe.dst_port);
-        Builder::UDP::set_length(buffer, payload_length);
-        Builder::UDP::set_checksum(buffer, payload_length, timestamp_enc);
+        packet = Builder::Packet{buffer_.begin(),
+                                 sizeof(ip) + sizeof(udphdr) + payload_length};
+        std::fill(packet.begin(), packet.end(), byte{0});
+        Builder::IPv4::init(packet, protocol_, src_addr_.sin_addr,
+                            dst_addr.sin_addr, probe.ttl);
+        Builder::UDP::set_ports(packet, probe.src_port, probe.dst_port);
+        Builder::UDP::set_length(packet);
+        Builder::UDP::set_checksum(packet, timestamp_enc);
         break;
 
       default:
         break;
     }
 
-    socket_.sendto(buffer_.data(), buf_size, 0, &dst_addr);
+    socket_.sendto(packet.data(), packet.size(), 0, &dst_addr);
   }
 
  private:
-  array<uint8_t, 65536> buffer_;
+  array<byte, 65536> buffer_;
   uint8_t protocol_;
   Socket socket_;
   sockaddr_in src_addr_;

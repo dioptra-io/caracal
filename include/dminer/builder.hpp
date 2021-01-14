@@ -10,25 +10,30 @@ extern "C" {
 }
 
 #include <iostream>
+#include <span>
 
 #include "timestamp.hpp"
 
 using dminer::encode_timestamp;
+using std::byte;
+using std::span;
 
 /// Build probe packets.
 namespace dminer::Builder {
 
+typedef span<byte> Packet;
+
 /// Compute the transport-level checksum.
-/// @param buffer the packet buffer, including the IP header.
-/// @param transport_length the IP payload length (including the L4 header).
+/// @param packet the packet buffer, including the IP header.
 /// @return the transport-level checksum in network order.
-inline uint16_t transport_checksum(uint8_t *buffer,
-                                   const uint16_t transport_length) {
-  const auto ip_header = reinterpret_cast<iphdr *>(buffer);
+inline uint16_t transport_checksum(Packet packet) {
+  const auto ip_header = reinterpret_cast<iphdr *>(packet.data());
   // (1) Sum the pseudo header.
-  uint32_t current = ipv4_pseudo_header_checksum(ip_header, transport_length);
+  uint32_t current =
+      ipv4_pseudo_header_checksum(ip_header, packet.size() - sizeof(ip));
   // (2) Sum the transport header and the payload.
-  current = ip_checksum_add(current, buffer + sizeof(ip), transport_length);
+  current = ip_checksum_add(current, packet.data() + sizeof(ip),
+                            packet.size() - sizeof(ip));
   // (3) Fold and close the sum.
   return ip_checksum_finish(current);
 }
@@ -59,17 +64,14 @@ inline uint16_t tweak_payload(const uint16_t original_checksum,
 namespace dminer::Builder::IPv4 {
 
 /// Init the IPv4 header.
-/// @param buffer the packet buffer, including the IP header.
+/// @param packet the packet buffer, including the IP header.
 /// @param protocol the IP protocol number.
 /// @param src_addr the source IPv4 address.
 /// @param dst_addr the destination IPv4 address.
 /// @param ttl the TTL.
-/// @param payload_len the IP payload length (including the L4 header).
-inline void init(uint8_t *buffer, const uint8_t protocol,
-                 const in_addr src_addr, const in_addr dst_addr,
-                 const uint8_t ttl, const uint16_t payload_len) {
-  auto ip_header = reinterpret_cast<ip *>(buffer);
-
+inline void init(Packet packet, const uint8_t protocol, const in_addr src_addr,
+                 const in_addr dst_addr, const uint8_t ttl) {
+  auto ip_header = reinterpret_cast<ip *>(packet.data());
   ip_header->ip_hl = 5;
   ip_header->ip_v = 4;
   ip_header->ip_tos = 0;
@@ -78,14 +80,7 @@ inline void init(uint8_t *buffer, const uint8_t protocol,
   ip_header->ip_dst = dst_addr;
   ip_header->ip_ttl = ttl;
   ip_header->ip_id = htons(ttl);
-
-  if (protocol == IPPROTO_UDP) {
-    ip_header->ip_len = htons(sizeof(ip) + sizeof(udphdr) + payload_len);
-  } else if (protocol == IPPROTO_TCP) {
-    ip_header->ip_len = htons(sizeof(ip) + sizeof(tcphdr) + payload_len);
-  } else if (protocol == IPPROTO_ICMP) {
-    ip_header->ip_len = htons(sizeof(ip) + sizeof(icmphdr) + payload_len);
-  }
+  ip_header->ip_len = htons(packet.size());
 
 #ifdef __APPLE__
   ip_header->ip_len = htons(ip_header->ip_len);
@@ -107,19 +102,18 @@ inline void init(uint8_t *buffer, const uint8_t protocol,
 namespace dminer::Builder::ICMP {
 
 /// Build an ICMP echo probe.
-/// @param buffer the packet buffer, including the IP header.
-/// @param payload_len the ICMP payload length.
+/// @param packet the packet buffer, including the IP header.
 /// @param target_checksum the custom ICMP checksum, in host order.
 /// @param target_seq the custom sequence field, in host order.
-inline void init(uint8_t *buffer, const uint16_t payload_len,
-                 const uint16_t target_checksum, const uint16_t target_seq) {
-  if (payload_len < 2) {
+inline void init(Packet packet, const uint16_t target_checksum,
+                 const uint16_t target_seq) {
+  if (packet.size() < (sizeof(ip) + sizeof(icmphdr) + 2)) {
     throw std::invalid_argument{
         "The payload must be at-least two bytes long to allow for a custom "
         "checksum"};
   }
 
-  auto icmp_header = reinterpret_cast<icmphdr *>(buffer + sizeof(ip));
+  auto icmp_header = reinterpret_cast<icmphdr *>(packet.data() + sizeof(ip));
   icmp_header->type = 8;  // ICMP Echo Request
   icmp_header->code = 0;  // ICMP Echo Request
   icmp_header->checksum = 0;
@@ -128,7 +122,7 @@ inline void init(uint8_t *buffer, const uint16_t payload_len,
 
   // Encode the flow ID in the checksum.
   const uint16_t original_checksum = ip_checksum(icmp_header, sizeof(icmphdr));
-  *reinterpret_cast<uint16_t *>(buffer + sizeof(ip) + sizeof(icmphdr)) =
+  *reinterpret_cast<uint16_t *>(packet.data() + sizeof(ip) + sizeof(icmphdr)) =
       tweak_payload(original_checksum, htons(target_checksum));
   icmp_header->checksum = htons(target_checksum);
 }
@@ -142,9 +136,9 @@ inline void init(uint8_t *buffer, const uint16_t payload_len,
 namespace dminer::Builder::TCP {
 
 /// Init the TCP header.
-/// @param buffer the packet buffer, including the IP header.
-inline void init(uint8_t *buffer) {
-  auto tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
+/// @param packet the packet buffer, including the IP header.
+inline void init(Packet packet) {
+  auto tcp_header = reinterpret_cast<tcphdr *>(packet.data() + sizeof(ip));
   tcp_header->th_ack = 0;
   tcp_header->th_off = 5;
   // Do not send TCP SYN because of SYN Flood, do not put any TCP flags
@@ -159,32 +153,31 @@ inline void init(uint8_t *buffer) {
 /// Compute and set the checksum in the TCP header.
 /// The packet must not be modified afterward to ensure that the checksum is
 /// valid.
-/// @param buffer the packet buffer, including the IP header.
-/// @param payload_len the TCP payload length.
-inline void set_checksum(uint8_t *buffer, const uint16_t payload_len) {
-  auto tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
+/// @param packet the packet buffer, including the IP header.
+inline void set_checksum(Packet packet) {
+  auto tcp_header = reinterpret_cast<tcphdr *>(packet.data() + sizeof(ip));
   tcp_header->th_sum = 0;
-  tcp_header->th_sum = transport_checksum(buffer, sizeof(tcphdr) + payload_len);
+  tcp_header->th_sum = transport_checksum(packet);
 }
 
 /// Set the ports in the TCP header.
-/// @param buffer the packet buffer, including the IP header.
+/// @param packet the packet buffer, including the IP header.
 /// @param src_port the source port, in host order.
 /// @param dst_port the destination port, in host order.
-inline void set_ports(uint8_t *buffer, const uint16_t src_port,
+inline void set_ports(Packet packet, const uint16_t src_port,
                       const uint16_t dst_port) {
-  auto tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
+  auto tcp_header = reinterpret_cast<tcphdr *>(packet.data() + sizeof(ip));
   tcp_header->th_sport = htons(src_port);
   tcp_header->th_dport = htons(dst_port);
 }
 
 /// Encode two 16-bit values in the 32-bit sequence field ((seq1 << 16) + seq2).
-/// @param buffer the packet buffer, including the IP header.
+/// @param packet the packet buffer, including the IP header.
 /// @param seq1 the first value to encode, in host order.
 /// @param seq2 the second value to encode, in host order.
-inline void set_sequence(uint8_t *buffer, const uint16_t seq1,
+inline void set_sequence(Packet packet, const uint16_t seq1,
                          const uint16_t seq2) {
-  auto tcp_header = reinterpret_cast<tcphdr *>(buffer + sizeof(ip));
+  auto tcp_header = reinterpret_cast<tcphdr *>(packet.data() + sizeof(ip));
   uint32_t seq = (static_cast<uint32_t>(seq1) << 16) + seq2;
   tcp_header->th_seq = htonl(seq);
 }
@@ -203,50 +196,45 @@ namespace dminer::Builder::UDP {
 /// Compute and set the checksum in the UDP header.
 /// The packet must not be modified afterward to ensure that the checksum is
 /// valid.
-/// @param buffer the packet buffer, including the IP header.
-/// @param payload_len the UDP payload length.
-inline void set_checksum(uint8_t *buffer, const uint16_t payload_len) {
-  auto udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
+/// @param packet the packet buffer, including the IP header.
+inline void set_checksum(Packet packet) {
+  auto udp_header = reinterpret_cast<udphdr *>(packet.data() + sizeof(ip));
   udp_header->uh_sum = 0;
-  udp_header->uh_sum = transport_checksum(buffer, sizeof(udphdr) + payload_len);
+  udp_header->uh_sum = transport_checksum(packet);
 }
 
 /// Set a custom checksum in the UDP header, and ensure that the checksum is
 /// valid by tweaking the payload.
-/// @param buffer the packet buffer, including the IP header.
-/// @param payload_len the UDP payload length.
+/// @param packet the packet buffer, including the IP header.
 /// @param target_checksum the custom checksum, in host order.
-inline void set_checksum(uint8_t *buffer, const size_t payload_len,
-                         const uint16_t target_checksum) {
-  if (payload_len < 2) {
+inline void set_checksum(Packet packet, const uint16_t target_checksum) {
+  if (packet.size() < (sizeof(ip) + sizeof(udphdr) + 2)) {
     throw std::invalid_argument{
         "The payload must be at-least two bytes long to allow for a custom "
         "checksum"};
   }
-  auto udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
+  auto udp_header = reinterpret_cast<udphdr *>(packet.data() + sizeof(ip));
   udp_header->uh_sum = 0;
-  const uint16_t original_checksum =
-      transport_checksum(buffer, sizeof(udphdr) + payload_len);
-  *reinterpret_cast<uint16_t *>(buffer + sizeof(ip) + sizeof(udphdr)) =
+  const uint16_t original_checksum = transport_checksum(packet);
+  *reinterpret_cast<uint16_t *>(packet.data() + sizeof(ip) + sizeof(udphdr)) =
       tweak_payload(original_checksum, htons(target_checksum));
   udp_header->uh_sum = htons(target_checksum);
 }
 
 /// Set the length in the UDP header.
-/// @param buffer the packet buffer, including the IP header.
-/// @param payload_len the UDP payload length.
-inline void set_length(uint8_t *buffer, const uint16_t payload_len) {
-  auto udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
-  udp_header->len = htons(sizeof(udphdr) + payload_len);
+/// @param packet the packet buffer, including the IP header.
+inline void set_length(Packet packet) {
+  auto udp_header = reinterpret_cast<udphdr *>(packet.data() + sizeof(ip));
+  udp_header->len = htons(packet.size() - sizeof(ip));
 }
 
 /// Set the ports in the UDP header.
-/// @param buffer the packet buffer, including the IP header.
+/// @param packet the packet buffer, including the IP header.
 /// @param src_port the source port, in host order.
 /// @param dst_port the destination port, in host order.
-inline void set_ports(uint8_t *buffer, const uint16_t src_port,
+inline void set_ports(Packet packet, const uint16_t src_port,
                       const uint16_t dst_port) {
-  auto udp_header = reinterpret_cast<udphdr *>(buffer + sizeof(ip));
+  auto udp_header = reinterpret_cast<udphdr *>(packet.data() + sizeof(ip));
   udp_header->uh_sport = htons(src_port);
   udp_header->uh_dport = htons(dst_port);
 }

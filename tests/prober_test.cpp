@@ -10,9 +10,9 @@ using dminer::Prober::Config;
 using dminer::Prober::probe;
 
 #ifdef __APPLE__
-#define LOOPBACK "lo0"
+constexpr auto loopback = "lo0";
 #else
-#define LOOPBACK "lo"
+constexpr auto loopback = "lo";
 #endif
 
 TEST_CASE("Prober::probe") {
@@ -35,7 +35,7 @@ TEST_CASE("Prober::probe") {
   ofs.close();
 
   Config config;
-  config.set_interface(LOOPBACK);
+  config.set_interface(loopback);
   config.set_input_file("zzz_input.csv");
   config.set_output_file_csv("zzz_output.csv");
   config.set_output_file_pcap("zzz_output.pcap");

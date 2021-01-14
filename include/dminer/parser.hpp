@@ -10,7 +10,6 @@
 #include <optional>
 #include <sstream>
 #include <string>
-#include <vector>
 
 #include "reply.hpp"
 #include "timestamp.hpp"
@@ -23,7 +22,6 @@ using Tins::Endian::host_to_be;
 
 using std::nullopt;
 using std::optional;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 
