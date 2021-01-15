@@ -28,9 +28,10 @@ sniffer_t::sniffer_t(const Tins::NetworkInterface interface,
                      const optional<std::string> meta_round,
                      const uint16_t destination_port)
     : m_sniffer{interface.name()}, m_meta_round{meta_round}, m_statistics{} {
-  std::string filter =
-      "icmp or (src port " + std::to_string(destination_port) + ")";
-  BOOST_LOG_TRIVIAL(info) << "Sniffer filter: " << filter;
+  auto dst_ip = interface.ipv4_address().to_string();
+  auto dst_port = std::to_string(destination_port);
+  auto filter = "dst " + dst_ip + " and (icmp or (src port " + dst_port + "))";
+  BOOST_LOG_TRIVIAL(info) << "sniffer_filter=" << filter;
 
   SnifferConfiguration config;
   config.set_buffer_size(buffer_size * 1024);
