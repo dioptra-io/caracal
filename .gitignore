@@ -3,4 +3,4 @@
 build/
 debug/
 docs/
-cmake-build-debug/
+cmake-build-*/

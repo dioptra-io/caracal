@@ -7,12 +7,12 @@
 #include <tins/tins.h>
 
 #include <array>
-#include <boost/log/trivial.hpp>
 #include <chrono>
 #include <map>
 #include <string>
 
 #include "builder.hpp"
+#include "logging.hpp"
 #include "pretty.hpp"
 #include "probe.hpp"
 #include "socket.hpp"
@@ -49,8 +49,7 @@ class Sender {
     try {
       socket_.set(SOL_SOCKET, SO_SNDBUF, 8388608);
     } catch (const std::system_error &e) {
-      BOOST_LOG_TRIVIAL(warning)
-          << "Cannot increase send buffer size: " << e.what();
+      LOG(warning, "Cannot increase send buffer size: " << e.what());
     }
 
     socket_.bind(&src_addr_);

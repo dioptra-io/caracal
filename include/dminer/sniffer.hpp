@@ -1,6 +1,5 @@
 #pragma once
 
-#include <boost/log/trivial.hpp>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -10,6 +9,7 @@
 #include <thread>
 #include <vector>
 
+#include "logging.hpp"
 #include "parser.hpp"
 #include "statistics.hpp"
 
@@ -25,10 +25,12 @@ class Sniffer {
           const uint64_t buffer_size, const optional<std::string> &meta_round,
           const uint16_t destination_port)
       : sniffer_{interface.name()}, meta_round_{meta_round}, statistics_{} {
-    std::string filter =
-        "(icmp and icmp[icmptype] != icmp-echo) or (src port " +
-        std::to_string(destination_port) + ")";
-    BOOST_LOG_TRIVIAL(info) << "sniffer_filter=" << filter;
+    auto dst_ip = interface.ipv4_address().to_string();
+    auto dst_port = std::to_string(destination_port);
+    auto filter = "dst " + dst_ip +
+                  " and ((icmp and icmp[icmptype] != icmp-echo) or (src port " +
+                  dst_port + "))";
+    LOG(info, "sniffer_filter=" << filter);
 
     Tins::SnifferConfiguration config;
     config.set_buffer_size(buffer_size * 1024);
@@ -60,8 +62,7 @@ class Sniffer {
 
       if (reply) {
         auto reply_ = reply.value();
-        BOOST_LOG_TRIVIAL(trace)
-            << "reply_from=" << reply_.src_ip << " rtt=" << reply_.rtt;
+        LOG(trace, "reply_from=" << reply_.src_ip << " rtt=" << reply_.rtt);
         statistics_.icmp_messages_all.insert(reply_.src_ip);
         if (reply_.src_ip != reply_.inner_dst_ip) {
           statistics_.icmp_messages_path.insert(reply_.src_ip);
@@ -92,7 +93,7 @@ class Sniffer {
     }
   }
 
-  const SnifferStatistics &statistics() const { return statistics_; }
+  const Statistics::Sniffer &statistics() const { return statistics_; }
 
  private:
   Tins::Sniffer sniffer_;
@@ -100,7 +101,7 @@ class Sniffer {
   std::optional<std::string> meta_round_;
   std::optional<Tins::PacketWriter> output_pcap_;
   std::thread thread_;
-  SnifferStatistics statistics_;
+  Statistics::Sniffer statistics_;
 };
 
 }  // namespace dminer

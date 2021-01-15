@@ -30,7 +30,7 @@ namespace dminer::Parser::ICMP {
 
 /// Parse an ICMPv4 DEST_UNREACHABLE or TIME_EXCEEDED reply.
 inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
-                             const Tins::ICMP* icmp, const bool estimate_rtt) {
+                             const Tins::ICMP* icmp) {
   const auto inner_raw = icmp->find_pdu<RawPDU>();
   if (!inner_raw) {
     return nullopt;
@@ -60,12 +60,8 @@ inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
     const uint16_t inner_src_port = inner_icmp->id();
     const uint16_t inner_dst_port = 0;           // Not encoded in ICMP probes.
     const uint8_t inner_ttl_from_transport = 0;  // Not encoded in ICMP probes.
-
-    double rtt = -1.0;
-    if (estimate_rtt) {
-      const uint16_t inner_seq = inner_icmp->sequence();
-      rtt = decode_difference(timestamp, inner_seq) / 10.0;
-    }
+    const double rtt =
+        decode_difference(timestamp, inner_icmp->sequence()) / 10.0;
 
     return Reply{src_ip,
                  dst_ip,
@@ -88,12 +84,8 @@ inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
   if (inner_tcp) {
     const uint16_t inner_src_port = inner_tcp->sport();
     const uint16_t inner_dst_port = inner_tcp->dport();
-
-    double rtt = -1.0;
-    if (estimate_rtt) {
-      const uint16_t inner_seq1 = inner_tcp->seq() >> 16;
-      rtt = decode_difference(timestamp, inner_seq1) / 10.0;
-    }
+    const double rtt =
+        decode_difference(timestamp, inner_tcp->seq() >> 16) / 10.0;
 
     const uint8_t inner_ttl_from_transport =
         static_cast<uint16_t>(inner_tcp->seq());
@@ -119,12 +111,8 @@ inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
   if (inner_udp) {
     const uint16_t inner_src_port = inner_udp->sport();
     const uint16_t inner_dst_port = inner_udp->dport();
-
-    double rtt = -1.0;
-    if (estimate_rtt) {
-      const uint16_t inner_checksum = inner_udp->checksum();
-      rtt = decode_difference(timestamp, inner_checksum) / 10.0;
-    }
+    const double rtt =
+        decode_difference(timestamp, inner_udp->checksum()) / 10.0;
 
     const uint8_t inner_ttl_from_transport =
         inner_udp->length() - sizeof(udphdr) - 2;
@@ -155,7 +143,7 @@ namespace dminer::Parser::TCP {
 
 /// Parse a TCP reply.
 inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
-                             const Tins::TCP* tcp, const bool estimate_rtt) {
+                             const Tins::TCP* tcp) {
   // const uint32_t src_ip = be_to_host(uint32_t(ip->src_addr()));
   // const uint32_t dst_ip = be_to_host(uint32_t(ip->dst_addr()));
   // const uint16_t size = ip->tot_len();
@@ -180,7 +168,7 @@ namespace dminer::Parser {
 /// @param packet the packet to parse.
 /// @param estimate_rtt whether to estimate the RTT or not.
 /// @return the parsed reply.
-inline optional<Reply> parse(const Packet& packet, const bool estimate_rtt) {
+inline optional<Reply> parse(const Packet& packet) {
   const uint64_t timestamp =
       duration_cast<tenth_ms>(microseconds(packet.timestamp())).count();
 
@@ -200,7 +188,7 @@ inline optional<Reply> parse(const Packet& packet, const bool estimate_rtt) {
   if (icmp) {
     if (icmp->type() == Tins::ICMP::DEST_UNREACHABLE ||
         icmp->type() == Tins::ICMP::TIME_EXCEEDED) {
-      return ICMP::parse(timestamp, ip, icmp, estimate_rtt);
+      return ICMP::parse(timestamp, ip, icmp);
     }
     if (icmp->type() == Tins::ICMP::ECHO_REPLY) {
       // Reply from the destination.
@@ -213,14 +201,10 @@ inline optional<Reply> parse(const Packet& packet, const bool estimate_rtt) {
   // TCP reply.
   const auto tcp = ip->find_pdu<Tins::TCP>();
   if (tcp) {
-    return TCP::parse(timestamp, ip, tcp, estimate_rtt);
+    return TCP::parse(timestamp, ip, tcp);
   }
 
   return nullopt;
-}
-
-inline optional<Reply> parse(const Packet& packet) {
-  return parse(packet, true);
 }
 
 }  // namespace dminer::Parser

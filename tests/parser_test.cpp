@@ -27,9 +27,9 @@ std::vector<std::string> parse_file(const std::string& file) {
   std::vector<std::string> res;
 
   auto handler = [&res](Tins::Packet& packet) {
-    auto reply = parse(packet, false);
+    auto reply = parse(packet);
     if (reply) {
-      res.push_back(reply.value().to_csv());
+      res.push_back(reply.value().to_csv(false));
     }
     return true;
   };

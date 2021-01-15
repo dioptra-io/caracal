@@ -57,13 +57,10 @@ TEST_CASE("Prober::probe") {
     auto [prober_stats, sniffer_stats] = probe(config);
     REQUIRE(prober_stats.read == 5);
     REQUIRE(prober_stats.sent == 6);
-    REQUIRE(prober_stats.filtered_lo_ip == 0);
-    REQUIRE(prober_stats.filtered_hi_ip == 0);
     REQUIRE(prober_stats.filtered_lo_ttl == 0);
     REQUIRE(prober_stats.filtered_hi_ttl == 1);
     REQUIRE(prober_stats.filtered_prefix_excl == 1);
     REQUIRE(prober_stats.filtered_prefix_not_incl == 1);
-    REQUIRE(prober_stats.filtered_prefix_not_routable == 0);
     REQUIRE(sniffer_stats.received_count == 6);
     REQUIRE(sniffer_stats.received_invalid_count == 0);
   }

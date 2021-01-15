@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <thread>
 
+#include "statistics.hpp"
+
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
@@ -16,6 +18,7 @@ class RateLimiter {
  public:
   explicit RateLimiter(uint64_t target_rate)
       : sleep_precision_{sleep_precision()},
+        target_delta_{0},
         current_delta_{0},
         curr_tp_{steady_clock::now()},
         last_tp_{curr_tp_} {
@@ -23,16 +26,18 @@ class RateLimiter {
       throw std::domain_error("target_rate must be > 0");
     }
     target_delta_ = nanoseconds{(uint64_t)(1e9 / target_rate)};
+    statistics_ = Statistics::RateLimiter{target_delta_};
   }
 
   void wait() {
-    // TODO: Monitor/report time spent between calls.
     curr_tp_ = steady_clock::now();
     current_delta_ = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
+    statistics_.log_inter_call_delta(current_delta_);
 
     // (1) Early return if we do not need to wait.
     if (current_delta_ >= target_delta_) {
       last_tp_ = steady_clock::now();
+      statistics_.log_effective_delta(current_delta_);
       return;
     }
 
@@ -47,10 +52,11 @@ class RateLimiter {
       current_delta_ = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
     } while (current_delta_ < target_delta_);
 
+    statistics_.log_effective_delta(current_delta_);
     last_tp_ = steady_clock::now();
   }
 
-  double current_rate() const { return 1e9 / current_delta_.count(); }
+  const Statistics::RateLimiter &statistics() const { return statistics_; }
 
   static nanoseconds sleep_precision() {
     nanoseconds worst_case{0};
@@ -79,6 +85,7 @@ class RateLimiter {
   nanoseconds current_delta_;
   steady_clock::time_point curr_tp_;
   steady_clock::time_point last_tp_;
+  Statistics::RateLimiter statistics_;
 };
 
 }  // namespace dminer

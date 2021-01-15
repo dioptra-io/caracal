@@ -9,13 +9,23 @@
 #include <iostream>
 #include <string>
 
+/// Boost.Log is not lazy, i.e. the stream is evaluated before filtering the
+/// message depending on the log level. To avoid this, the LOG macro checks the
+/// log level before evaluating the stream.
+#define LOG(severity, expr)                         \
+  if (boost::log::trivial::severity >= log_level) { \
+    BOOST_LOG_TRIVIAL(severity) << expr;            \
+  }
+
 namespace expr = boost::log::expressions;
 namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
 
 namespace dminer {
 
-void configure_logging(const std::string& log_level) {
+static boost::log::trivial::severity_level log_level;
+
+void configure_logging(const std::string& level) {
   logging::add_common_attributes();
   logging::add_console_log(
       std::cerr,
@@ -25,24 +35,25 @@ void configure_logging(const std::string& log_level) {
                         << " (" << logging::trivial::severity << ") "
                         << expr::message));
 
-  auto level = boost::log::trivial::trace;
-  if (log_level == "trace") {
-    level = boost::log::trivial::trace;
-  } else if (log_level == "debug") {
-    level = boost::log::trivial::debug;
-  } else if (log_level == "info") {
-    level = boost::log::trivial::info;
-  } else if (log_level == "warning") {
-    level = boost::log::trivial::warning;
-  } else if (log_level == "error") {
-    level = boost::log::trivial::error;
-  } else if (log_level == "fatal") {
-    level = boost::log::trivial::fatal;
+  if (level == "trace") {
+    log_level = boost::log::trivial::trace;
+  } else if (level == "debug") {
+    log_level = boost::log::trivial::debug;
+  } else if (level == "info") {
+    log_level = boost::log::trivial::info;
+  } else if (level == "warning") {
+    log_level = boost::log::trivial::warning;
+  } else if (level == "error") {
+    log_level = boost::log::trivial::error;
+  } else if (level == "fatal") {
+    log_level = boost::log::trivial::fatal;
   } else {
-    throw std::invalid_argument("Invalid log level: " + log_level);
+    throw std::invalid_argument("Invalid log level: " + level);
   }
 
-  logging::core::get()->set_filter(logging::trivial::severity >= level);
+  // We do not make use of Boost.Log filtering facilities,
+  // instead we rely on the LOG macro, for performance reasons.
+  // logging::core::get()->set_filter(logging::trivial::severity >= log_level);
 }
 
 }  // namespace dminer

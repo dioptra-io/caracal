@@ -2,11 +2,11 @@
 
 #include <tins/tins.h>
 
-#include <boost/log/trivial.hpp>
 #include <filesystem>
 #include <fstream>
 #include <string>
 
+#include "logging.hpp"
 #include "parser.hpp"
 #include "statistics.hpp"
 
@@ -15,17 +15,18 @@ namespace fs = std::filesystem;
 /// Read and convert PCAP files.
 namespace dminer::Reader {
 
-SnifferStatistics read(const fs::path &input_file, const fs::path &output_file,
-                       const std::string &round) {
+Statistics::Sniffer read(const fs::path &input_file,
+                         const fs::path &output_file,
+                         const std::string &round) {
   std::ofstream output_csv{output_file};
-  SnifferStatistics statistics{};
+  Statistics::Sniffer statistics{};
   Tins::FileSniffer sniffer{input_file};
 
   auto handler = [&output_csv, &round, &statistics](Tins::Packet &packet) {
     auto reply = Parser::parse(packet);
 
     if (statistics.received_count % 1'000'000 == 0) {
-      BOOST_LOG_TRIVIAL(info) << statistics;
+      LOG(info, statistics);
     }
 
     if (reply) {
@@ -43,7 +44,7 @@ SnifferStatistics read(const fs::path &input_file, const fs::path &output_file,
   };
 
   sniffer.sniff_loop(handler);
-  BOOST_LOG_TRIVIAL(info) << statistics;
+  LOG(info, statistics);
   return statistics;
 }
 
