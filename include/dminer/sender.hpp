@@ -9,9 +9,11 @@
 #include <array>
 #include <boost/log/trivial.hpp>
 #include <chrono>
+#include <map>
 #include <string>
 
 #include "builder.hpp"
+#include "pretty.hpp"
 #include "probe.hpp"
 #include "socket.hpp"
 #include "timestamp.hpp"
@@ -20,6 +22,10 @@ using std::byte;
 using std::chrono::system_clock;
 
 namespace dminer {
+
+static const std::map<std::string, int> protocols = {
+    {"icmp", IPPROTO_ICMP}, {"tcp", IPPROTO_TCP}, {"udp", IPPROTO_UDP}};
+
 class Sender {
  public:
   Sender(const Tins::NetworkInterface &interface, const std::string &protocol)

@@ -28,7 +28,7 @@ class Sniffer {
     std::string filter =
         "(icmp and icmp[icmptype] != icmp-echo) or (src port " +
         std::to_string(destination_port) + ")";
-    BOOST_LOG_TRIVIAL(info) << "Sniffer filter: " << filter;
+    BOOST_LOG_TRIVIAL(info) << "sniffer_filter=" << filter;
 
     Tins::SnifferConfiguration config;
     config.set_buffer_size(buffer_size * 1024);
@@ -55,16 +55,13 @@ class Sniffer {
   }
 
   void start() {
-    BOOST_LOG_TRIVIAL(info) << "Starting sniffer...";
-    // TODO: Benchmark utility of batching/batch size.
-
     auto handler = [this](Tins::Packet &packet) {
       auto reply = Parser::parse(packet);
 
       if (reply) {
         auto reply_ = reply.value();
-        BOOST_LOG_TRIVIAL(trace) << "Received a reply from " << reply_.src_ip
-                                 << " (" << reply_.rtt << "ms)";
+        BOOST_LOG_TRIVIAL(trace)
+            << "reply_from=" << reply_.src_ip << " rtt=" << reply_.rtt;
         statistics_.icmp_messages_all.insert(reply_.src_ip);
         if (reply_.src_ip != reply_.inner_dst_ip) {
           statistics_.icmp_messages_path.insert(reply_.src_ip);

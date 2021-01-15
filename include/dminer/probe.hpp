@@ -26,13 +26,13 @@ inline std::string remove_leading_zeros(std::string s) {
 /// A traceroute probe specification.
 struct Probe {
   // TODO: Use IPv6 address here (even for IPv4).
-  in_addr dst_addr;   ///< IPv6 or IPv4-mapped IPv6 address (network order)
+  in6_addr dst_addr;  ///< IPv6 or IPv4-mapped IPv6 address (network order)
   uint16_t src_port;  ///< Source port (host order)
   uint16_t dst_port;  ///< Destination port (host order)
   uint8_t ttl;        ///< Time-to-live
 
   bool operator==(const Probe &other) const {
-    return (dst_addr.s_addr == other.dst_addr.s_addr) &&
+    return IN6_ARE_ADDR_EQUAL(&dst_addr, &other.dst_addr) &&
            (src_port == other.src_port) && (dst_port == other.dst_port) &&
            (ttl == other.ttl);
   }
@@ -45,15 +45,26 @@ struct Probe {
     while (std::getline(lstream, token, ',')) {
       switch (index) {
         case 0:
-          if (std::find(token.begin(), token.end(), '.') == token.end()) {
-            // uint32
-            probe.dst_addr.s_addr = htonl(std::stoul(token));
-          } else {
-            // Dotted notation
-            token = remove_leading_zeros(token);
-            if (!inet_pton(AF_INET, token.c_str(), &probe.dst_addr)) {
-              throw std::runtime_error("Invalid token: " + token);
+          // IPv6 (x:x:x:x:x:x:x:x) or IPv4-mapped IPv6 (::ffff:d.d.d.d)
+          if (std::find(token.begin(), token.end(), ':') != token.end()) {
+            if (!inet_pton(AF_INET6, token.c_str(), &probe.dst_addr)) {
+              throw std::runtime_error("Invalid IPv6 or IPv4-mapped address: " +
+                                       token);
             }
+            // IPv4 dotted (d.d.d.d)
+          } else if (std::find(token.begin(), token.end(), '.') !=
+                     token.end()) {
+            token = remove_leading_zeros(token);
+            if (!inet_pton(AF_INET6, ("::ffff:" + token).c_str(),
+                           &probe.dst_addr)) {
+              throw std::runtime_error("Invalid IPv4 addresss: " + token);
+            }
+          } else {
+            // IPv4 uint32
+            probe.dst_addr.s6_addr32[0] = 0;
+            probe.dst_addr.s6_addr32[1] = 0;
+            probe.dst_addr.s6_addr32[2] = 0xFFFF0000;
+            probe.dst_addr.s6_addr32[3] = htonl(std::stoul(token));
           }
           break;
         case 1:
@@ -76,11 +87,23 @@ struct Probe {
     return probe;
   }
 
-  sockaddr_in sockaddr() const {
+  bool v4() const { return IN6_IS_ADDR_V4MAPPED(&dst_addr); }
+
+  sockaddr_in sockaddr4() const {
     sockaddr_in addr{};
-    addr.sin_family = AF_INET;  // TODO: IPv6
-    addr.sin_addr = dst_addr;
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = dst_addr.s6_addr32[3];
     addr.sin_port = htons(dst_port);
+    return addr;
+  }
+
+  sockaddr_in6 sockaddr6() const {
+    sockaddr_in6 addr{};
+    addr.sin6_family = AF_INET6;
+    addr.sin6_addr = dst_addr;
+    addr.sin6_port = htons(dst_port);
+    addr.sin6_flowinfo = 0;
+    addr.sin6_scope_id = 0;
     return addr;
   }
 
@@ -92,15 +115,24 @@ struct Probe {
   }
 
   std::string human_dst_addr() const {
-    char buf[INET_ADDRSTRLEN] = {};
-    inet_ntop(AF_INET, &dst_addr, buf, INET_ADDRSTRLEN);
+    char buf[INET6_ADDRSTRLEN] = {};
+    if (v4()) {
+      inet_ntop(AF_INET, &dst_addr.s6_addr32[3], buf, INET_ADDRSTRLEN);
+    } else {
+      inet_ntop(AF_INET6, &dst_addr, buf, INET6_ADDRSTRLEN);
+    }
     return std::string{buf};
   }
 };
 
 inline std::ostream &operator<<(std::ostream &os, Probe const &v) {
-  os << v.src_port << ":" << v.human_dst_addr() << ":" << v.dst_port << "@"
-     << uint(v.ttl);
+  os << v.src_port << ":";
+  if (v.v4()) {
+    os << v.human_dst_addr();
+  } else {
+    os << "[" << v.human_dst_addr() << "]";
+  }
+  os << ":" << v.dst_port << "@" << uint(v.ttl);
   return os;
 }
 

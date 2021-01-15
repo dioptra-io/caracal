@@ -18,6 +18,8 @@ constexpr auto loopback = "lo";
 TEST_CASE("Prober::probe") {
   std::ofstream ofs;
 
+  // TODO: IPv6.
+
   ofs.open("zzz_input.csv");
   ofs << "127.0.0.1,24000,33434,1\n";  // Allowed
   ofs << "127.0.0.1,24000,33434,2\n";  // Allowed

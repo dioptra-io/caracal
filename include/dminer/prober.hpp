@@ -107,8 +107,9 @@ inline Statistics probe(const Config& config) {
 
     // Prefix filter
     // Do not send probes to excluded prefixes (deny list).
+    // TODO: IPv6
     if (config.prefix_excl_file &&
-        (prefix_excl_trie.get(p.dst_addr.s_addr) != nullptr)) {
+        (prefix_excl_trie.get(p.dst_addr.s6_addr32[3]) != nullptr)) {
       BOOST_LOG_TRIVIAL(trace)
           << "Filtered probe " << p << " (excluded prefix)";
       stats.filtered_prefix_excl++;
@@ -116,8 +117,9 @@ inline Statistics probe(const Config& config) {
     }
     // Do not send probes to *not* included prefixes.
     // i.e. send probes only to included prefixes (allow list).
+    // TODO: IPv6
     if (config.prefix_incl_file &&
-        (prefix_incl_trie.get(p.dst_addr.s_addr) == nullptr)) {
+        (prefix_incl_trie.get(p.dst_addr.s6_addr32[3]) == nullptr)) {
       BOOST_LOG_TRIVIAL(trace)
           << "Filtered probe " << p << " (not included prefix)";
       stats.filtered_prefix_not_incl++;
@@ -125,14 +127,12 @@ inline Statistics probe(const Config& config) {
     }
 
     for (uint64_t i = 0; i < config.n_packets; i++) {
-      BOOST_LOG_TRIVIAL(trace)
-          << "Sending probe " << p << " (packet #" << i + 1 << ")";
+      BOOST_LOG_TRIVIAL(trace) << "probe=" << p << " packet=" << i + 1;
       try {
         sender.send(p);
         stats.sent++;
       } catch (const std::system_error& e) {
-        BOOST_LOG_TRIVIAL(error)
-            << "Error while sending probe " << p << ": " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "probe=" << p << " error=" << e.what();
         stats.failed++;
       }
       rl.wait();
