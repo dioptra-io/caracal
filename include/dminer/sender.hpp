@@ -57,7 +57,7 @@ class Sender {
   }
 
   void send(const Probe &probe) {
-    sockaddr_in dst_addr = probe.sockaddr();
+    sockaddr_in dst_addr = probe.sockaddr4();
     Builder::Packet packet;
 
     // We reserve two bytes in the payload to tweak the checksum.
