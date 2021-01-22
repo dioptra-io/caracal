@@ -3,7 +3,6 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <optional>
 #include <string>
 #include <thread>
@@ -41,11 +40,11 @@ class Sniffer {
     sniffer_ = Tins::Sniffer(interface.name(), config);
 
     if (output_file_csv) {
-      output_csv_.open(output_file_csv.value());
+      output_csv_.open(*output_file_csv);
     }
 
     if (output_file_pcap) {
-      output_pcap_ = Tins::PacketWriter{output_file_pcap.value(),
+      output_pcap_ = Tins::PacketWriter{*output_file_pcap,
                                         Tins::DataLinkType<Tins::EthernetII>()};
     }
   }
@@ -61,13 +60,12 @@ class Sniffer {
       auto reply = Parser::parse(packet);
 
       if (reply) {
-        auto reply_ = reply.value();
-        LOG(trace, "reply_from=" << reply_.src_ip << " rtt=" << reply_.rtt);
-        statistics_.icmp_messages_all.insert(reply_.src_ip);
-        if (reply_.src_ip != reply_.inner_dst_ip) {
-          statistics_.icmp_messages_path.insert(reply_.src_ip);
+        LOG(trace, "reply_from=" << reply->src_ip << " rtt=" << reply->rtt);
+        statistics_.icmp_messages_all.insert(reply->src_ip);
+        if (reply->src_ip != reply->inner_dst_ip) {
+          statistics_.icmp_messages_path.insert(reply->src_ip);
         }
-        output_csv_ << reply_.to_csv();
+        output_csv_ << reply->to_csv();
         output_csv_ << "," << meta_round_.value_or("1");
         output_csv_ << ",1"
                     << "\n";
@@ -76,7 +74,7 @@ class Sniffer {
       }
 
       if (output_pcap_) {
-        output_pcap_.value().write(packet);
+        output_pcap_->write(packet);
       }
 
       statistics_.received_count++;

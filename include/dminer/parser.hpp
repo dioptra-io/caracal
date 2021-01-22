@@ -25,8 +25,6 @@ using std::optional;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 
-#include <iostream>
-
 /// Parse ICMP replies.
 namespace dminer::Parser::ICMP {
 

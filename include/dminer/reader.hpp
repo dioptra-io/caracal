@@ -30,12 +30,11 @@ Statistics::Sniffer read(const fs::path &input_file,
     }
 
     if (reply) {
-      auto reply_ = reply.value();
-      statistics.icmp_messages_all.insert(reply_.src_ip);
-      if (reply_.src_ip != reply_.inner_dst_ip) {
-        statistics.icmp_messages_path.insert(reply_.src_ip);
+      statistics.icmp_messages_all.insert(reply->src_ip);
+      if (reply->src_ip != reply->inner_dst_ip) {
+        statistics.icmp_messages_path.insert(reply->src_ip);
       }
-      output_csv << reply_.to_csv() << "," << round << ",1"
+      output_csv << reply->to_csv() << "," << round << ",1"
                  << "\n";
     }
 

@@ -25,7 +25,7 @@ class RateLimiter {
     if (target_rate <= 0) {
       throw std::domain_error("target_rate must be > 0");
     }
-    target_delta_ = nanoseconds{(uint64_t)(1e9 / target_rate)};
+    target_delta_ = nanoseconds{static_cast<uint64_t>(1e9 / target_rate)};
     statistics_ = Statistics::RateLimiter{target_delta_};
   }
 

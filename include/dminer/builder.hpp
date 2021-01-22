@@ -40,8 +40,8 @@ using Packet = std::span<std::byte>;
 /// @return the two bytes of the payload.
 [[nodiscard]] inline uint16_t tweak_payload(const uint16_t original_checksum,
                                             const uint16_t target_checksum) {
-  uint32_t original_le = ~ntohs(original_checksum) & 0xFFFFu;
-  uint32_t target_le = ~ntohs(target_checksum) & 0xFFFFu;
+  uint32_t original_le = ~ntohs(original_checksum) & 0xFFFFU;
+  uint32_t target_le = ~ntohs(target_checksum) & 0xFFFFU;
   if (target_le < original_le) {
     target_le += 0xFFFF;
   }

@@ -13,22 +13,34 @@ namespace dminer::Statistics {
 template <typename T, size_t N>
 class CircularArray {
  public:
+  using array_type = std::array<T, N>;
+  using size_type = typename array_type::size_type;
+  using const_iterator = typename array_type::const_iterator;
+
   void push_back(T val) {
     values_[cursor_ % N] = val;
     cursor_++;
   }
 
   [[nodiscard]] T accumulate() const {
-    return std::accumulate(values_.begin(), values_.begin() + size(), T());
+    return std::accumulate(begin(), end(), T());
   }
 
-  [[nodiscard]] T average() const { return accumulate() / size(); }
+  [[nodiscard]] T average() const {
+    return size() > 0 ? (accumulate() / size()) : 0;
+  }
 
-  [[nodiscard]] size_t size() const { return std::min(N, cursor_); }
+  [[nodiscard]] size_type size() const { return std::min(N, cursor_); }
+
+  [[nodiscard]] const_iterator begin() const { return values_.begin(); }
+
+  [[nodiscard]] const_iterator end() const {
+    return std::next(begin(), size());
+  }
 
  private:
-  size_t cursor_;
-  std::array<T, N> values_;
+  array_type values_;
+  size_type cursor_;
 };
 
 struct Prober {
@@ -71,7 +83,8 @@ struct RateLimiter {
   }
 
   [[nodiscard]] double average_rate() const {
-    return nanoseconds::period::den / effective_.average();
+    const auto average = effective_.average();
+    return average > 0 ? (nanoseconds::period::den / average) : 0;
   }
 
  private:

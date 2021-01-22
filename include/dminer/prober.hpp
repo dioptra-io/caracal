@@ -37,14 +37,12 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
 
   if (config.prefix_excl_file) {
     LOG(info, "Loading excluded prefixes...");
-    prefix_excl_trie.populateBlock(AF_INET,
-                                   config.prefix_excl_file.value().c_str());
+    prefix_excl_trie.populateBlock(AF_INET, config.prefix_excl_file->c_str());
   }
 
   if (config.prefix_incl_file) {
     LOG(info, "Loading included prefixes...");
-    prefix_incl_trie.populateBlock(AF_INET,
-                                   config.prefix_incl_file.value().c_str());
+    prefix_incl_trie.populateBlock(AF_INET, config.prefix_incl_file->c_str());
   }
 
   // Sniffer
@@ -72,7 +70,7 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   std::istream& is = config.input_file ? input_file : std::cin;
 
   if (config.input_file) {
-    input_file.open(config.input_file.value());
+    input_file.open(*config.input_file);
   } else {
     LOG(info, "Reading from stdin, press CTRL+D to stop...");
     std::ios::sync_with_stdio(false);
@@ -92,12 +90,12 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     stats.read++;
 
     // TTL filter
-    if (config.filter_min_ttl && (p.ttl < config.filter_min_ttl.value())) {
+    if (config.filter_min_ttl && (p.ttl < *config.filter_min_ttl)) {
       LOG(trace, "Filtered probe " << p << " (TTL too low)");
       stats.filtered_lo_ttl++;
       continue;
     }
-    if (config.filter_max_ttl && (p.ttl > config.filter_max_ttl.value())) {
+    if (config.filter_max_ttl && (p.ttl > *config.filter_max_ttl)) {
       LOG(trace, "Filtered probe " << p << " (TTL too high)");
       stats.filtered_hi_ttl++;
       continue;
@@ -135,12 +133,12 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     }
 
     // Log every ~5 seconds.
-    auto rate = uint64_t(rl.statistics().average_rate());
+    auto rate = static_cast<uint64_t>(rl.statistics().average_rate());
     if ((rate > 0) && (stats.sent % (5 * rate) == 0)) {
       log_stats();
     }
 
-    if (config.max_probes && (stats.sent >= config.max_probes.value())) {
+    if (config.max_probes && (stats.sent >= *config.max_probes)) {
       LOG(trace, "max_probes reached, exiting...");
       break;
     }

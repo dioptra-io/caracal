@@ -6,7 +6,6 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/utility/setup/console.hpp>
-#include <iostream>
 #include <string>
 
 /// Boost.Log is not lazy, i.e. the stream is evaluated before filtering the

@@ -48,7 +48,7 @@ struct Probe {
         case 0:
           // IPv6 (x:x:x:x:x:x:x:x) or IPv4-mapped IPv6 (::ffff:d.d.d.d)
           if (std::find(token.begin(), token.end(), ':') != token.end()) {
-            if (!inet_pton(AF_INET6, token.c_str(), &probe.dst_addr)) {
+            if (inet_pton(AF_INET6, token.c_str(), &probe.dst_addr) != 1) {
               throw std::runtime_error("Invalid IPv6 or IPv4-mapped address: " +
                                        token);
             }
@@ -56,15 +56,15 @@ struct Probe {
           } else if (std::find(token.begin(), token.end(), '.') !=
                      token.end()) {
             token = remove_leading_zeros(token);
-            if (!inet_pton(AF_INET6, ("::ffff:" + token).c_str(),
-                           &probe.dst_addr)) {
+            if (inet_pton(AF_INET6, ("::ffff:" + token).c_str(),
+                          &probe.dst_addr) != 1) {
               throw std::runtime_error("Invalid IPv4 addresss: " + token);
             }
           } else {
             // IPv4 uint32
             probe.dst_addr.s6_addr32[0] = 0;
             probe.dst_addr.s6_addr32[1] = 0;
-            probe.dst_addr.s6_addr32[2] = 0xFFFF0000;
+            probe.dst_addr.s6_addr32[2] = 0xFFFF0000U;
             probe.dst_addr.s6_addr32[3] = Checked::htonl(std::stoul(token));
           }
           break;
