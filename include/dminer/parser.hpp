@@ -53,7 +53,7 @@ namespace dminer::Parser::ICMP {
   const uint32_t inner_dst_ip = be_to_host(uint32_t(inner_ip.dst_addr()));
   const uint16_t inner_size =
       inner_ip.tot_len();  // NOTE: This field is useless. Why?
-  const uint8_t inner_ttl = static_cast<uint8_t>(inner_ip.id());
+  const auto inner_ttl = static_cast<uint8_t>(inner_ip.id());
 
   // ICMP probe
   const auto inner_icmp = inner_ip.find_pdu<Tins::ICMP>();

@@ -40,4 +40,6 @@ TEST_CASE("RateLimiter") {
     REQUIRE(delta.count() >= milliseconds{450}.count());
     REQUIRE(delta.count() <= milliseconds{1000}.count());
   }
+
+  SECTION("Invalid arguments") { REQUIRE_THROWS(RateLimiter{0}); }
 }

@@ -26,6 +26,8 @@ TEST_CASE("Prober::probe") {
   ofs << "127.0.0.1,24000,33434,8\n";  // Denied (TTL)
   ofs << "127.0.1.1,24000,33434,2\n";  // Denied (prefix excluded)
   ofs << "127.1.0.0,24000,33434,2\n";  // Denied (prefix not included)
+  ofs << "a,b,c,d\n";  // Invalid probe (should not crash, and should not be
+                       // included in read stats)
   ofs.close();
 
   ofs.open("zzz_excl.csv");
