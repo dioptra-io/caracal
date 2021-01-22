@@ -13,7 +13,7 @@ namespace dminer {
 // to make tests pass, since inet_pton returns an error
 // on Linux when the address contains leading zeros.
 // e.g. 008.008.008.008 => 8.8.8.8.
-inline std::string remove_leading_zeros(std::string s) {
+[[nodiscard]] inline std::string remove_leading_zeros(std::string s) {
   std::replace(s.begin(), s.end(), '.', ' ');
   std::istringstream iss(s);
   int a, b, c, d;
@@ -25,19 +25,18 @@ inline std::string remove_leading_zeros(std::string s) {
 
 /// A traceroute probe specification.
 struct Probe {
-  // TODO: Use IPv6 address here (even for IPv4).
   in6_addr dst_addr;  ///< IPv6 or IPv4-mapped IPv6 address (network order)
   uint16_t src_port;  ///< Source port (host order)
   uint16_t dst_port;  ///< Destination port (host order)
   uint8_t ttl;        ///< Time-to-live
 
-  bool operator==(const Probe &other) const {
+  [[nodiscard]] bool operator==(const Probe &other) const {
     return IN6_ARE_ADDR_EQUAL(&dst_addr, &other.dst_addr) &&
            (src_port == other.src_port) && (dst_port == other.dst_port) &&
            (ttl == other.ttl);
   }
 
-  static Probe from_csv(const std::string &line) {
+  [[nodiscard]] static Probe from_csv(const std::string &line) {
     Probe probe{};
     int index = 0;
     std::istringstream lstream{line};
@@ -87,9 +86,9 @@ struct Probe {
     return probe;
   }
 
-  bool v4() const { return IN6_IS_ADDR_V4MAPPED(&dst_addr); }
+  [[nodiscard]] bool v4() const { return IN6_IS_ADDR_V4MAPPED(&dst_addr); }
 
-  sockaddr_in sockaddr4() const {
+  [[nodiscard]] sockaddr_in sockaddr4() const {
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = dst_addr.s6_addr32[3];
@@ -97,7 +96,7 @@ struct Probe {
     return addr;
   }
 
-  sockaddr_in6 sockaddr6() const {
+  [[nodiscard]] sockaddr_in6 sockaddr6() const {
     sockaddr_in6 addr{};
     addr.sin6_family = AF_INET6;
     addr.sin6_addr = dst_addr;
@@ -107,14 +106,14 @@ struct Probe {
     return addr;
   }
 
-  std::string to_csv() const {
+  [[nodiscard]] std::string to_csv() const {
     std::ostringstream oss;
     oss << human_dst_addr() << "," << src_port << "," << dst_port << ","
         << uint(ttl);
     return oss.str();
   }
 
-  std::string human_dst_addr() const {
+  [[nodiscard]] std::string human_dst_addr() const {
     char buf[INET6_ADDRSTRLEN] = {};
     if (v4()) {
       inet_ntop(AF_INET, &dst_addr.s6_addr32[3], buf, INET_ADDRSTRLEN);

@@ -29,8 +29,9 @@ using std::chrono::microseconds;
 namespace dminer::Parser::ICMP {
 
 /// Parse an ICMPv4 DEST_UNREACHABLE or TIME_EXCEEDED reply.
-inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
-                             const Tins::ICMP* icmp) {
+[[nodiscard]] inline optional<Reply> parse(const uint64_t timestamp,
+                                           const Tins::IP* ip,
+                                           const Tins::ICMP* icmp) {
   const auto inner_raw = icmp->find_pdu<RawPDU>();
   if (!inner_raw) {
     return nullopt;
@@ -52,6 +53,7 @@ inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
   const uint32_t inner_dst_ip = be_to_host(uint32_t(inner_ip.dst_addr()));
   const uint16_t inner_size =
       inner_ip.tot_len();  // NOTE: This field is useless. Why?
+
   const uint8_t inner_ttl = inner_ip.id();
 
   // ICMP probe
@@ -141,23 +143,23 @@ inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
 /// Parse TCP replies.
 namespace dminer::Parser::TCP {
 
-/// Parse a TCP reply.
-inline optional<Reply> parse(const uint64_t timestamp, const Tins::IP* ip,
-                             const Tins::TCP* tcp) {
-  // const uint32_t src_ip = be_to_host(uint32_t(ip->src_addr()));
-  // const uint32_t dst_ip = be_to_host(uint32_t(ip->dst_addr()));
-  // const uint16_t size = ip->tot_len();
-  // const uint8_t ttl = ip->ttl();
-
-  // TODO: RTT
-  // TODO: Probe TTL
-  // TODO: Parse TCP resets.
-
-  // const uint16_t inner_src_port = tcp->sport();
-  // const uint16_t inner_dst_port = tcp->dport();
-
-  return nullopt;
-}
+// /// Parse a TCP reply.
+// [[nodiscard]] inline optional<Reply> parse(const uint64_t timestamp,
+//                                           const Tins::IP* ip,
+//                                           const Tins::TCP* tcp) {
+//  // const uint32_t src_ip = be_to_host(uint32_t(ip->src_addr()));
+//  // const uint32_t dst_ip = be_to_host(uint32_t(ip->dst_addr()));
+//  // const uint16_t size = ip->tot_len();
+//  // const uint8_t ttl = ip->ttl();
+//
+//  // TODO: Probe TTL
+//  // TODO: Parse TCP resets.
+//
+//  // const uint16_t inner_src_port = tcp->sport();
+//  // const uint16_t inner_dst_port = tcp->dport();
+//
+//  return nullopt;
+// }
 
 }  // namespace dminer::Parser::TCP
 
@@ -168,7 +170,7 @@ namespace dminer::Parser {
 /// @param packet the packet to parse.
 /// @param estimate_rtt whether to estimate the RTT or not.
 /// @return the parsed reply.
-inline optional<Reply> parse(const Packet& packet) {
+[[nodiscard]] inline optional<Reply> parse(const Packet& packet) {
   const uint64_t timestamp =
       duration_cast<tenth_ms>(microseconds(packet.timestamp())).count();
 
@@ -198,10 +200,10 @@ inline optional<Reply> parse(const Packet& packet) {
     return nullopt;
   }
 
-  // TCP reply.
+  // TODO: TCP reply.
   const auto tcp = ip->find_pdu<Tins::TCP>();
   if (tcp) {
-    return TCP::parse(timestamp, ip, tcp);
+    return nullopt;
   }
 
   return nullopt;

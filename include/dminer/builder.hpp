@@ -19,7 +19,7 @@ typedef std::span<std::byte> Packet;
 /// Compute the transport-level checksum.
 /// @param packet the packet buffer, including the IP header.
 /// @return the transport-level checksum in network order.
-inline uint16_t transport_checksum(Packet packet) {
+[[nodiscard]] inline uint16_t transport_checksum(Packet packet) {
   const auto ip_header = reinterpret_cast<iphdr *>(packet.data());
   // (1) Sum the pseudo header.
   uint32_t current =
@@ -36,8 +36,8 @@ inline uint16_t transport_checksum(Packet packet) {
 /// @param original_checksum the transport-level checksum of the packet.
 /// @param target_checksum the target transport-level checksum.
 /// @return the two bytes of the payload.
-inline uint16_t tweak_payload(const uint16_t original_checksum,
-                              const uint16_t target_checksum) {
+[[nodiscard]] inline uint16_t tweak_payload(const uint16_t original_checksum,
+                                            const uint16_t target_checksum) {
   uint32_t original_le = ~ntohs(original_checksum) & 0xFFFF;
   uint32_t target_le = ~ntohs(target_checksum) & 0xFFFF;
   if (target_le < original_le) {

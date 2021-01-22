@@ -56,9 +56,11 @@ class RateLimiter {
     last_tp_ = steady_clock::now();
   }
 
-  const Statistics::RateLimiter &statistics() const { return statistics_; }
+  [[nodiscard]] const Statistics::RateLimiter &statistics() const {
+    return statistics_;
+  }
 
-  static nanoseconds sleep_precision() {
+  [[nodiscard]] static nanoseconds sleep_precision() {
     nanoseconds worst_case{0};
     for (auto i = 0; i < 5; i++) {
       auto start = steady_clock::now();
@@ -69,7 +71,7 @@ class RateLimiter {
     return worst_case;
   }
 
-  static bool test(uint64_t target_rate) {
+  [[nodiscard]] static bool test(uint64_t target_rate) {
     RateLimiter rl{target_rate};
     auto start = steady_clock::now();
     for (unsigned int i = 0; i < target_rate; i++) {

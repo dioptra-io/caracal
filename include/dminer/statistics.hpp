@@ -18,13 +18,13 @@ class CircularArray {
     cursor_++;
   }
 
-  T accumulate() const {
+  [[nodiscard]] T accumulate() const {
     return std::accumulate(values_.begin(), values_.begin() + size(), T());
   }
 
-  T average() const { return accumulate() / size(); }
+  [[nodiscard]] T average() const { return accumulate() / size(); }
 
-  size_t size() const { return std::min(N, cursor_); }
+  [[nodiscard]] size_t size() const { return std::min(N, cursor_); }
 
  private:
   size_t cursor_;
@@ -66,11 +66,11 @@ struct RateLimiter {
     inter_call_.push_back(delta.count());
   }
 
-  double average_utilization() const {
+  [[nodiscard]] double average_utilization() const {
     return inter_call_.average() / target_delta_.count();
   }
 
-  double average_rate() const {
+  [[nodiscard]] double average_rate() const {
     return nanoseconds::period::den / effective_.average();
   }
 

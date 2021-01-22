@@ -56,7 +56,7 @@ class Sniffer {
     stop();
   }
 
-  void start() {
+  void start() noexcept {
     auto handler = [this](Tins::Packet &packet) {
       auto reply = Parser::parse(packet);
 
@@ -93,7 +93,9 @@ class Sniffer {
     }
   }
 
-  const Statistics::Sniffer &statistics() const { return statistics_; }
+  [[nodiscard]] const Statistics::Sniffer &statistics() const {
+    return statistics_;
+  }
 
  private:
   Tins::Sniffer sniffer_;
