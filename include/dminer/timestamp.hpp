@@ -8,7 +8,7 @@ namespace dminer {
 using tenth_ms = std::chrono::duration<uint64_t, std::ratio<1, 10000>>;
 
 [[nodiscard]] inline uint16_t encode_timestamp(uint64_t timestamp) {
-  return timestamp % 65535;
+  return static_cast<uint16_t>(timestamp % 65535);
 }
 
 [[nodiscard]] inline uint64_t decode_timestamp(uint64_t timestamp,
@@ -20,7 +20,8 @@ using tenth_ms = std::chrono::duration<uint64_t, std::ratio<1, 10000>>;
 
 [[nodiscard]] inline uint16_t decode_difference(uint64_t timestamp,
                                                 uint16_t remainder) {
-  return timestamp - decode_timestamp(timestamp, remainder);
+  return static_cast<uint16_t>(timestamp -
+                               decode_timestamp(timestamp, remainder));
 }
 
 template <typename Duration, typename TimePoint>

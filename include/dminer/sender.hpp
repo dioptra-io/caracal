@@ -60,9 +60,9 @@ class Sender {
     Builder::Packet packet;
 
     // We reserve two bytes in the payload to tweak the checksum.
-    uint16_t payload_length = probe.ttl + 2;
-    uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
-    uint16_t timestamp_enc = encode_timestamp(timestamp);
+    const uint16_t payload_length = probe.ttl + 2;
+    const uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
+    const uint16_t timestamp_enc = encode_timestamp(timestamp);
 
     switch (protocol_) {
       case IPPROTO_ICMP:

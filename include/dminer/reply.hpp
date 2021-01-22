@@ -59,10 +59,10 @@ struct Reply {
     oss.precision(1);
     const auto rtt_ = include_rtt ? rtt : -1.0;
     oss << std::fixed << dst_ip << "," << prefix() << "," << inner_dst_ip << ","
-        << src_ip << "," << uint(inner_proto) << "," << inner_src_port << ","
-        << inner_dst_port << "," << uint(inner_ttl) << ","
-        << uint(inner_ttl_from_transport) << "," << uint(icmp_type) << ","
-        << uint(icmp_code) << "," << rtt_ << "," << uint(ttl) << "," << size;
+        << src_ip << "," << +inner_proto << "," << inner_src_port << ","
+        << inner_dst_port << "," << +inner_ttl << ","
+        << +inner_ttl_from_transport << "," << +icmp_type << "," << +icmp_code
+        << "," << rtt_ << "," << +ttl << "," << size;
     return oss.str();
   }
 };

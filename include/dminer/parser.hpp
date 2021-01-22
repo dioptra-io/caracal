@@ -25,6 +25,8 @@ using std::optional;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 
+#include <iostream>
+
 /// Parse ICMP replies.
 namespace dminer::Parser::ICMP {
 
@@ -53,8 +55,7 @@ namespace dminer::Parser::ICMP {
   const uint32_t inner_dst_ip = be_to_host(uint32_t(inner_ip.dst_addr()));
   const uint16_t inner_size =
       inner_ip.tot_len();  // NOTE: This field is useless. Why?
-
-  const uint8_t inner_ttl = inner_ip.id();
+  const uint8_t inner_ttl = static_cast<uint8_t>(inner_ip.id());
 
   // ICMP probe
   const auto inner_icmp = inner_ip.find_pdu<Tins::ICMP>();
@@ -86,11 +87,12 @@ namespace dminer::Parser::ICMP {
   if (inner_tcp) {
     const uint16_t inner_src_port = inner_tcp->sport();
     const uint16_t inner_dst_port = inner_tcp->dport();
-    const double rtt =
-        decode_difference(timestamp, inner_tcp->seq() >> 16) / 10.0;
 
-    const uint8_t inner_ttl_from_transport =
-        static_cast<uint16_t>(inner_tcp->seq());
+    const auto seq1 = static_cast<uint16_t>(inner_tcp->seq() >> 16);
+    const auto seq2 = static_cast<uint16_t>(inner_tcp->seq());
+
+    const double rtt = decode_difference(timestamp, seq1) / 10.0;
+    const auto inner_ttl_from_transport = static_cast<uint8_t>(seq2);
 
     return Reply{src_ip,
                  dst_ip,

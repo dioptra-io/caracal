@@ -47,7 +47,7 @@ struct Config {
     if (rate <= 0) {
       throw std::domain_error("rate must be > 0");
     }
-    probing_rate = rate;
+    probing_rate = static_cast<uint64_t>(rate);
   }
 
   void set_protocol(const string& s) {
@@ -64,14 +64,14 @@ struct Config {
     if (size <= 0) {
       throw std::domain_error("sniffer_buffer_size must be > 0");
     }
-    sniffer_buffer_size = size;
+    sniffer_buffer_size = static_cast<uint64_t>(size);
   }
 
   void set_sniffer_wait_time(const int seconds) {
     if (seconds < 0) {
       throw std::domain_error("sniffer_wait_time must be >= 0");
     }
-    sniffer_wait_time = seconds;
+    sniffer_wait_time = static_cast<uint64_t>(seconds);
   }
 
   void set_max_probes(const uint64_t count) {
@@ -85,7 +85,7 @@ struct Config {
     if (count <= 0) {
       throw std::domain_error("n_packets must be > 0");
     }
-    n_packets = count;
+    n_packets = static_cast<uint64_t>(count);
   }
 
   void set_prefix_excl_file(const fs::path& p) {

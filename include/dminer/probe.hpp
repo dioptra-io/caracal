@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string>
 
+#include "checked.hpp"
+
 namespace dminer {
 
 // Quick hack from https://stackoverflow.com/a/966497,
@@ -63,17 +65,17 @@ struct Probe {
             probe.dst_addr.s6_addr32[0] = 0;
             probe.dst_addr.s6_addr32[1] = 0;
             probe.dst_addr.s6_addr32[2] = 0xFFFF0000;
-            probe.dst_addr.s6_addr32[3] = htonl(std::stoul(token));
+            probe.dst_addr.s6_addr32[3] = Checked::htonl(std::stoul(token));
           }
           break;
         case 1:
-          probe.src_port = std::stoul(token);
+          probe.src_port = Checked::cast<uint16_t>(std::stoul(token));
           break;
         case 2:
-          probe.dst_port = std::stoul(token);
+          probe.dst_port = Checked::cast<uint16_t>(std::stoul(token));
           break;
         case 3:
-          probe.ttl = std::stoul(token);
+          probe.ttl = Checked::cast<uint8_t>(std::stoul(token));
           break;
         default:
           break;
@@ -92,7 +94,7 @@ struct Probe {
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = dst_addr.s6_addr32[3];
-    addr.sin_port = htons(dst_port);
+    addr.sin_port = Checked::htons(dst_port);
     return addr;
   }
 
@@ -100,7 +102,7 @@ struct Probe {
     sockaddr_in6 addr{};
     addr.sin6_family = AF_INET6;
     addr.sin6_addr = dst_addr;
-    addr.sin6_port = htons(dst_port);
+    addr.sin6_port = Checked::htons(dst_port);
     addr.sin6_flowinfo = 0;
     addr.sin6_scope_id = 0;
     return addr;
@@ -109,7 +111,7 @@ struct Probe {
   [[nodiscard]] std::string to_csv() const {
     std::ostringstream oss;
     oss << human_dst_addr() << "," << src_port << "," << dst_port << ","
-        << uint(ttl);
+        << +ttl;
     return oss.str();
   }
 
@@ -131,7 +133,7 @@ inline std::ostream &operator<<(std::ostream &os, Probe const &v) {
   } else {
     os << "[" << v.human_dst_addr() << "]";
   }
-  os << ":" << v.dst_port << "@" << uint(v.ttl);
+  os << ":" << v.dst_port << "@" << +v.ttl;
   return os;
 }
 
