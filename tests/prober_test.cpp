@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <dminer/prober.hpp>
 #include <dminer/prober_config.hpp>
 #include <filesystem>
@@ -9,37 +9,31 @@ namespace fs = std::filesystem;
 using dminer::Prober::Config;
 using dminer::Prober::probe;
 
-#ifdef __APPLE__
-constexpr auto loopback = "lo0";
-#else
-constexpr auto loopback = "lo";
-#endif
-
 TEST_CASE("Prober::probe") {
   std::ofstream ofs;
 
   // TODO: IPv6.
 
   ofs.open("zzz_input.csv");
-  ofs << "127.0.0.1,24000,33434,1\n";  // Allowed
-  ofs << "127.0.0.1,24000,33434,2\n";  // Allowed
-  ofs << "127.0.0.1,24000,33434,8\n";  // Denied (TTL)
-  ofs << "127.0.1.1,24000,33434,2\n";  // Denied (prefix excluded)
-  ofs << "127.1.0.0,24000,33434,2\n";  // Denied (prefix not included)
+  ofs << "8.8.8.8,24000,33434,1\n";  // Allowed
+  ofs << "8.8.8.8,24000,33434,2\n";  // Allowed
+  ofs << "8.8.8.8,24000,33434,0\n";  // Denied (TTL too low)
+  ofs << "8.8.8.8,24000,33434,8\n";  // Denied (TTL too high)
+  ofs << "8.8.9.1,24000,33434,2\n";  // Denied (prefix excluded)
+  ofs << "8.9.8.8,24000,33434,2\n";  // Denied (prefix not included)
   ofs << "a,b,c,d\n";  // Invalid probe (should not crash, and should not be
                        // included in read stats)
   ofs.close();
 
   ofs.open("zzz_excl.csv");
-  ofs << "127.0.1.0/24\n";
+  ofs << "8.8.9.0/24\n";
   ofs.close();
 
   ofs.open("zzz_incl.csv");
-  ofs << "127.0.0.0/16\n";
+  ofs << "8.8.0.0/16\n";
   ofs.close();
 
   Config config;
-  config.set_interface(loopback);
   config.set_input_file("zzz_input.csv");
   config.set_output_file_csv("zzz_output.csv");
   config.set_output_file_pcap("zzz_output.pcap");
@@ -55,11 +49,10 @@ TEST_CASE("Prober::probe") {
   config.set_meta_round("1");
 
   SECTION("Base case") {
-    // We should receive port unreachable messages.
     auto [prober_stats, sniffer_stats] = probe(config);
-    REQUIRE(prober_stats.read == 5);
+    REQUIRE(prober_stats.read == 6);
     REQUIRE(prober_stats.sent == 6);
-    REQUIRE(prober_stats.filtered_lo_ttl == 0);
+    REQUIRE(prober_stats.filtered_lo_ttl == 1);
     REQUIRE(prober_stats.filtered_hi_ttl == 1);
     REQUIRE(prober_stats.filtered_prefix_excl == 1);
     REQUIRE(prober_stats.filtered_prefix_not_incl == 1);
@@ -70,7 +63,7 @@ TEST_CASE("Prober::probe") {
   SECTION("Include list with missing new line") {
     // Should not crash and should filter the prefixes not included.
     ofs.open("zzz_incl.csv");
-    ofs << "127.0.0.0/16";
+    ofs << "8.8.0.0/16";
     ofs.close();
 
     auto [prober_stats, sniffer_stats] = probe(config);

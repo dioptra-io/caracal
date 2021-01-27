@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fmt/format.h>
+
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -24,15 +26,16 @@ class Sniffer {
           const uint64_t buffer_size, const optional<std::string> &meta_round,
           const uint16_t destination_port)
       : sniffer_{interface.name()}, meta_round_{meta_round}, statistics_{} {
-    auto dst_ip = interface.ipv4_address().to_string();
-    auto dst_port = std::to_string(destination_port);
-    auto filter = "dst " + dst_ip +
-                  " and ((icmp and icmp[icmptype] != icmp-echo) or (src port " +
-                  dst_port + "))";
+    auto filter = fmt::format(
+        "(dst {} or dst {}) and ((icmp and icmp[icmptype] != icmp-echo) or "
+        "(icmp6 and icmp6[icmptype] != icmp-echo) or "
+        "(src port {}))",
+        Utilities::source_ipv4_for(interface).to_string(),
+        Utilities::source_ipv6_for(interface).to_string(), destination_port);
     LOG(info, "sniffer_filter=" << filter);
 
     Tins::SnifferConfiguration config;
-    config.set_buffer_size(buffer_size * 1024);
+    config.set_buffer_size(buffer_size);
     config.set_filter(filter);
     config.set_immediate_mode(true);
 
@@ -65,10 +68,8 @@ class Sniffer {
         if (reply->src_ip != reply->inner_dst_ip) {
           statistics_.icmp_messages_path.insert(reply->src_ip);
         }
-        output_csv_ << reply->to_csv();
-        output_csv_ << "," << meta_round_.value_or("1");
-        output_csv_ << ",1"
-                    << "\n";
+        output_csv_ << fmt::format("{},{},{}\n", reply->to_csv(),
+                                   meta_round_.value_or("1"), "1");
       } else {
         statistics_.received_invalid_count++;
       }

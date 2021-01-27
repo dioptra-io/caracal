@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/format.h>
 #include <tins/tins.h>
 
 #include <filesystem>
@@ -34,8 +35,7 @@ Statistics::Sniffer read(const fs::path &input_file,
       if (reply->src_ip != reply->inner_dst_ip) {
         statistics.icmp_messages_path.insert(reply->src_ip);
       }
-      output_csv << reply->to_csv() << "," << round << ",1"
-                 << "\n";
+      output_csv << fmt::format("{},{},{}\n", reply->to_csv(), round, "1");
     }
 
     statistics.received_count++;

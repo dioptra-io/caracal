@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <dminer/probe.hpp>
 
 using dminer::Probe;
@@ -9,6 +9,7 @@ std::string to_string(T x) {
   ss << x;
   return ss.str();
 }
+
 TEST_CASE("Probe::from_csv") {
   SECTION("IPv4 dotted") {
     Probe probe = Probe::from_csv("0.0.0.0,1,2,3");

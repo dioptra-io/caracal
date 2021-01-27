@@ -20,13 +20,13 @@ ADD . /tmp
 
 RUN mkdir -p /tmp/build/debug && \
     cd /tmp/build/debug && \
-    cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=ON ../.. && \
-    cmake --build . --parallel 8
+    cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON ../.. && \
+    cmake --build . --target diamond-miner-tests --parallel 8
 
 RUN mkdir -p /tmp/build/release && \
     cd /tmp/build/release && \
     cmake -DCMAKE_BUILD_TYPE=Release ../.. && \
-    cmake --build . --parallel 8
+    cmake --build . --target diamond-miner-prober --parallel 8
 
 # Main
 FROM ubuntu:21.04

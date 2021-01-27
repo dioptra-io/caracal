@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fmt/format.h>
+
 #include <string>
 
 namespace dminer {
@@ -55,15 +57,11 @@ struct Reply {
   /// @param include_rtt sets the RTT field to -1.0 if false.
   /// @return the reply in CSV format.
   [[nodiscard]] std::string to_csv(const bool include_rtt = true) const {
-    std::ostringstream oss;
-    oss.precision(1);
-    const auto rtt_ = include_rtt ? rtt : -1.0;
-    oss << std::fixed << dst_ip << "," << prefix() << "," << inner_dst_ip << ","
-        << src_ip << "," << +inner_proto << "," << inner_src_port << ","
-        << inner_dst_port << "," << +inner_ttl << ","
-        << +inner_ttl_from_transport << "," << +icmp_type << "," << +icmp_code
-        << "," << rtt_ << "," << +ttl << "," << size;
-    return oss.str();
+    return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{:.1f},{},{}", dst_ip,
+                       prefix(), inner_dst_ip, src_ip, inner_proto,
+                       inner_src_port, inner_dst_port, inner_ttl,
+                       inner_ttl_from_transport, icmp_type, icmp_code,
+                       include_rtt ? rtt : -1.0, ttl, size);
   }
 };
 

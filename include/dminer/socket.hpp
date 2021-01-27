@@ -1,6 +1,7 @@
 #pragma once
 
 #include <netinet/in.h>
+#include <netpacket/packet.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -11,9 +12,10 @@ namespace dminer {
 
 template <typename T>
 void assert_sockaddr_in(const T *) {
-  static_assert(std::is_same<T, sockaddr_in>::value ||
+  static_assert(std::is_same<T, sockaddr_ll>::value ||
+                    std::is_same<T, sockaddr_in>::value ||
                     std::is_same<T, sockaddr_in6>::value,
-                "addr must be sockaddr_in or sockaddr_in6");
+                "addr must be sockaddr_ll or sockaddr_in or sockaddr_in6");
 }
 
 class Socket {
@@ -23,7 +25,7 @@ class Socket {
   }
 
   Socket(const Socket &) = delete;
-  Socket(const Socket &&s) = delete;
+  Socket(const Socket &&) = delete;
 
   ~Socket() { close(socket_); }
 

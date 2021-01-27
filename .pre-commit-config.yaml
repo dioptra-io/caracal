@@ -6,7 +6,7 @@ repos:
   hooks:
     - id: clang-format
     - id: cpplint
-      args: ["--filter=-build/c++11,-build/include_order,-legal/copyright,-readability/todo,-whitespace/line_length"]
+      args: ["--filter=-build/c++11,-build/include_order,-legal/copyright,-readability/todo,-runtime/references,-whitespace/line_length"]
     - id: cppcheck
 
 - repo: https://github.com/cheshirekow/cmake-format-precommit

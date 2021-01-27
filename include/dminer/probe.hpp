@@ -1,13 +1,14 @@
 #pragma once
 
 #include <arpa/inet.h>
+#include <fmt/format.h>
 
 #include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-#include "checked.hpp"
+#include "utilities.hpp"
 
 namespace dminer {
 
@@ -65,17 +66,17 @@ struct Probe {
             probe.dst_addr.s6_addr32[0] = 0;
             probe.dst_addr.s6_addr32[1] = 0;
             probe.dst_addr.s6_addr32[2] = 0xFFFF0000U;
-            probe.dst_addr.s6_addr32[3] = Checked::htonl(std::stoul(token));
+            probe.dst_addr.s6_addr32[3] = Utilities::htonl(std::stoul(token));
           }
           break;
         case 1:
-          probe.src_port = Checked::cast<uint16_t>(std::stoul(token));
+          probe.src_port = Utilities::stou16(token);
           break;
         case 2:
-          probe.dst_port = Checked::cast<uint16_t>(std::stoul(token));
+          probe.dst_port = Utilities::stou16(token);
           break;
         case 3:
-          probe.ttl = Checked::cast<uint8_t>(std::stoul(token));
+          probe.ttl = Utilities::stou8(token);
           break;
         default:
           break;
@@ -94,7 +95,7 @@ struct Probe {
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = dst_addr.s6_addr32[3];
-    addr.sin_port = Checked::htons(dst_port);
+    addr.sin_port = Utilities::htons(dst_port);
     return addr;
   }
 
@@ -102,17 +103,15 @@ struct Probe {
     sockaddr_in6 addr{};
     addr.sin6_family = AF_INET6;
     addr.sin6_addr = dst_addr;
-    addr.sin6_port = Checked::htons(dst_port);
+    addr.sin6_port = Utilities::htons(dst_port);
     addr.sin6_flowinfo = 0;
     addr.sin6_scope_id = 0;
     return addr;
   }
 
   [[nodiscard]] std::string to_csv() const {
-    std::ostringstream oss;
-    oss << human_dst_addr() << "," << src_port << "," << dst_port << ","
-        << +ttl;
-    return oss.str();
+    return fmt::format("{},{},{},{}", human_dst_addr(), src_port, dst_port,
+                       ttl);
   }
 
   [[nodiscard]] std::string human_dst_addr() const {

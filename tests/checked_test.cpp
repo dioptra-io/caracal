@@ -1,10 +1,10 @@
 #include <arpa/inet.h>
 
-#include <catch2/catch.hpp>
-#include <dminer/checked.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <dminer/utilities.hpp>
 #include <stdexcept>
 
-using dminer::Checked::cast;
+using dminer::Utilities::cast;
 
 TEST_CASE("cast") {
   constexpr uint8_t u8 = 255;
@@ -33,8 +33,8 @@ TEST_CASE("cast") {
 TEST_CASE("hton") {
   uint16_t u16 = 65535;
   uint32_t u32 = 4294967295;
-  REQUIRE(dminer::Checked::htons(u16) == htons(u16));
-  REQUIRE(dminer::Checked::htonl(u16) == htonl(u16));
-  REQUIRE(dminer::Checked::htonl(u32) == htonl(u32));
-  REQUIRE_THROWS_AS(dminer::Checked::htons(u32), std::invalid_argument);
+  REQUIRE(dminer::Utilities::htons(u16) == htons(u16));
+  REQUIRE(dminer::Utilities::htonl(u16) == htonl(u16));
+  REQUIRE(dminer::Utilities::htonl(u32) == htonl(u32));
+  REQUIRE_THROWS_AS(dminer::Utilities::htons(u32), std::invalid_argument);
 }
