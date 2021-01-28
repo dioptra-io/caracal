@@ -67,6 +67,9 @@ namespace dminer::Builder::IP {
 
 // TODO: IPv4 and IPv6 namespaces.
 // TODO: For IPv4, check that both IP are IPv4-mapped IPv6.
+// TODO: Documentation
+// TODO: Test in builder_test.cpp
+// TODO: Fix checksum for ICMPv6.
 
 /// Init the IPv4 header.
 /// @param packet the packet buffer, including the IP header.
