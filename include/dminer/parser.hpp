@@ -84,6 +84,16 @@ inline void parse_inner(Reply& reply, const Tins::ICMP* icmp,
   reply.rtt = decode_difference(timestamp, icmp->sequence()) / 10.0;
 }
 
+inline void parse_inner(Reply& reply, const Tins::ICMPv6* icmp,
+                        const uint64_t timestamp) {
+  // TODO
+  // reply.inner_proto = IPPROTO_ICMPV6;
+  // reply.inner_src_port = icmp->id();
+  // reply.inner_dst_port = 0;            // Not encoded in ICMP probes.
+  // reply.inner_ttl_from_transport = 0;  // Not encoded in ICMP probes.
+  // reply.rtt = decode_difference(timestamp, icmp->sequence()) / 10.0;
+}
+
 inline void parse_inner(Reply& reply, const Tins::TCP* tcp,
                         const uint64_t timestamp) {
   const auto seq1 = static_cast<uint16_t>(tcp->seq() >> 16);
@@ -186,9 +196,7 @@ template <typename T>
       const auto inner_tcp = inner_ip->find_pdu<Tins::TCP>();
       const auto inner_udp = inner_ip->find_pdu<Tins::UDP>();
       if (inner_icmp) {
-        // IPv6 → ICMPv6 → IPv6 → ICMPv4
-        // NOTE: For now, we send ICMPv4 probes over IPv6, and not ICMPv6
-        // probes.
+        // IPv6 → ICMPv6 → IPv6 → ICMPv6
         parse_inner(reply, inner_icmp, timestamp);
       } else if (inner_tcp) {
         // IPv6 → ICMPv6 → IPv6 → TCP

@@ -23,7 +23,7 @@ It runs on x86-64 and ARM systems.
 # Ubuntu 21.04+
 # (We require GCC 10+ for C++20 support)
 apt-get install build-essential cmake gcovr libboost-log-dev libboost-program-options-dev \
-    libelf1 libpcap-dev libtins-dev pkg-config zlib1g-dev
+    libboost-regex-dev libelf1 libpcap-dev libtins-dev pkg-config zlib1g-dev
 ```
 
 ```bash

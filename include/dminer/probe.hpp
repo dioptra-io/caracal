@@ -12,6 +12,7 @@
 
 namespace dminer {
 
+// TODO: Remove this.
 // Quick hack from https://stackoverflow.com/a/966497,
 // to make tests pass, since inet_pton returns an error
 // on Linux when the address contains leading zeros.
@@ -39,6 +40,7 @@ struct Probe {
            (ttl == other.ttl);
   }
 
+  // TODO: from_csv(line, protocol).
   [[nodiscard]] static Probe from_csv(const std::string &line) {
     Probe probe{};
     int index = 0;
@@ -47,6 +49,7 @@ struct Probe {
     while (std::getline(lstream, token, ',')) {
       switch (index) {
         case 0:
+          // TODO: Move this parsing to utilities.
           // IPv6 (x:x:x:x:x:x:x:x) or IPv4-mapped IPv6 (::ffff:d.d.d.d)
           if (std::find(token.begin(), token.end(), ':') != token.end()) {
             if (inet_pton(AF_INET6, token.c_str(), &probe.dst_addr) != 1) {
@@ -91,6 +94,7 @@ struct Probe {
 
   [[nodiscard]] bool v4() const { return IN6_IS_ADDR_V4MAPPED(&dst_addr); }
 
+  // TODO: Remove?
   [[nodiscard]] sockaddr_in sockaddr4() const {
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
@@ -115,6 +119,7 @@ struct Probe {
   }
 
   [[nodiscard]] std::string human_dst_addr() const {
+    // TODO: Always print the v6 address?
     char buf[INET6_ADDRSTRLEN] = {};
     if (v4()) {
       inet_ntop(AF_INET, &dst_addr.s6_addr32[3], buf, INET_ADDRSTRLEN);
@@ -126,6 +131,7 @@ struct Probe {
 };
 
 inline std::ostream &operator<<(std::ostream &os, Probe const &v) {
+  // TODO: Always print the v6 address?
   os << v.src_port << ":";
   if (v.v4()) {
     os << v.human_dst_addr();

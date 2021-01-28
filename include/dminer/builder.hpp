@@ -65,6 +65,9 @@ namespace dminer::Builder {
 /// decreased/modified at each hop.
 namespace dminer::Builder::IP {
 
+// TODO: IPv4 and IPv6 namespaces.
+// TODO: For IPv4, check that both IP are IPv4-mapped IPv6.
+
 /// Init the IPv4 header.
 /// @param packet the packet buffer, including the IP header.
 /// @param protocol the L4 protocol number.
@@ -97,7 +100,7 @@ inline void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
                  const in6_addr dst_addr, const uint8_t ttl) {
   auto ip_header = reinterpret_cast<ip6_hdr *>(packet.l3());
   // We cannot store the TTL in the flow-ID field, since it is used for LB,
-  // unlike IPv4. Rely on the payload length instead?
+  // unlike IPv4. We rely on the payload length instead.
   // https://homepages.dcc.ufmg.br/~cunha/papers/almeida17pam-mda6.pdf
   // 4 bits version, 8 bits TC, 20 bits flow-ID.
   // Version = 6, TC = 0, flow-ID = 0.
@@ -132,18 +135,17 @@ inline void init(Packet packet, const uint16_t target_checksum,
         "checksum"};
   }
 
+  // TODO: Use icmp6_hdr.
   auto icmp_header = reinterpret_cast<icmphdr *>(packet.l4());
-  icmp_header->type = 8;  // ICMP Echo Request
-  icmp_header->code = 0;  // ICMP Echo Request
+  icmp_header->type = 128;  // ICMPv6 Echo Request
+  icmp_header->code = 0;    // ICMPv6 Echo Request
   icmp_header->checksum = 0;
   icmp_header->un.echo.id = Utilities::htons(target_checksum);
   icmp_header->un.echo.sequence = Utilities::htons(target_seq);
-
-  // Encode the flow ID in the checksum.
-  const uint16_t original_checksum = ip_checksum(icmp_header, sizeof(icmphdr));
-  *reinterpret_cast<uint16_t *>(packet.payload()) =
-      tweak_payload(original_checksum, Utilities::htons(target_checksum));
-  icmp_header->checksum = Utilities::htons(target_checksum);
+  // NOTE: ICMPv6 checksum computation is different from ICMPv4.
+  // We can't encode the flow ID in the checksum?
+  // TODO: Do not tweak the payload but something else instead?
+  icmp_header->checksum = transport_checksum(packet);
 }
 
 }  // namespace dminer::Builder::ICMP
@@ -228,6 +230,7 @@ inline void set_checksum(Packet packet) {
 /// @param target_checksum the custom checksum, in host order.
 inline void set_checksum(Packet packet, const uint16_t target_checksum) {
   if (packet.payload_size() < 2) {
+    // TODO: Builder::Exception::PayloadTooSmall exception ?
     throw std::invalid_argument{
         "The payload must be at-least two bytes long to allow for a custom "
         "checksum"};
