@@ -16,14 +16,13 @@ docker run matthieugouel/diamond-miner-prober --help
 
 ### Building from source
 
-This program compiles only on Linux as it depends on `AF_PACKET`.
-It runs on x86-64 and ARM systems.
+This program compiles only on Linux as it depends on `AF_PACKET`. It runs on x86-64 and ARM systems.
 
 ```bash
 # Ubuntu 21.04+
 # (We require GCC 10+ for C++20 support)
-apt-get install build-essential cmake gcovr libboost-log-dev libboost-program-options-dev \
-    libboost-regex-dev libelf1 libpcap-dev libtins-dev pkg-config zlib1g-dev
+apt-get install build-essential cmake gcovr libboost-program-options-dev \
+    libelf1 libpcap-dev libtins-dev pkg-config zlib1g-dev
 ```
 
 ```bash

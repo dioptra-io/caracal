@@ -1,8 +1,8 @@
 #include <diamond-miner-config.h>
+#include <spdlog/cfg/helpers.h>
 
 #include <boost/core/demangle.hpp>
 #include <boost/program_options.hpp>
-#include <dminer/logging.hpp>
 #include <dminer/prober.hpp>
 #include <dminer/prober_config.hpp>
 #include <filesystem>
@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
       config.set_meta_round(vm["meta-round"].as<string>());
     }
 
-    dminer::configure_logging(vm["log-level"].as<string>());
+    spdlog::cfg::helpers::load_levels(vm["log-level"].as<string>());
     dminer::Prober::probe(config);
   } catch (const std::exception& e) {
     auto type = boost::core::demangle(typeid(e).name());

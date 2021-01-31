@@ -1,6 +1,8 @@
 #pragma once
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 
 #include <chrono>
 #include <filesystem>
@@ -10,7 +12,6 @@
 #include <thread>
 #include <vector>
 
-#include "logging.hpp"
 #include "parser.hpp"
 #include "statistics.hpp"
 
@@ -32,7 +33,7 @@ class Sniffer {
         "(src port {}))",
         Utilities::source_ipv4_for(interface).to_string(),
         Utilities::source_ipv6_for(interface).to_string(), destination_port);
-    LOG(info, "sniffer_filter=" << filter);
+    spdlog::info("sniffer_filter={}", filter);
 
     Tins::SnifferConfiguration config;
     config.set_buffer_size(buffer_size);
@@ -63,7 +64,7 @@ class Sniffer {
       auto reply = Parser::parse(packet);
 
       if (reply) {
-        LOG(trace, "reply_from=" << reply->src_ip << " rtt=" << reply->rtt);
+        spdlog::trace("reply_from={} rtt={}", reply->src_ip, reply->rtt);
         statistics_.icmp_messages_all.insert(reply->src_ip);
         if (reply->src_ip != reply->inner_dst_ip) {
           statistics_.icmp_messages_path.insert(reply->src_ip);

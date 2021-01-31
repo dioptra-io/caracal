@@ -7,7 +7,6 @@ RUN apt-get update && \
         build-essential \
         cmake \
         gcovr \
-        libboost-log1.74-dev \
         libboost-program-options1.74-dev \
         libelf1 \
         libpcap0.8-dev \
@@ -34,7 +33,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y -q --no-install-recommends \
-        libboost-log1.74.0 \
         libboost-program-options1.74.0 \
         libelf1 \
         libpcap0.8 \

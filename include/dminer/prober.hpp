@@ -1,11 +1,13 @@
 #pragma once
 
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 #include <chrono>
 #include <patricia.hpp>
 #include <string>
 #include <tuple>
 
-#include "logging.hpp"
 #include "probe.hpp"
 #include "prober_config.hpp"
 #include "rate_limiter.hpp"
@@ -18,14 +20,14 @@ namespace dminer::Prober {
 
 inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     const Config& config) {
-  LOG(info, config);
+  spdlog::info(config);
 
   // Test the rate limiter
-  LOG(info,
+  spdlog::info(
       "Testing the rate limiter, this should take ~1s... If it takes too long "
       "try to reduce the probing rate.");
   if (!RateLimiter::test(config.probing_rate)) {
-    LOG(warning,
+    spdlog::warn(
         "Unable to achieve the target probing rate, either the system clock "
         "resolution is insufficient, or the probing rate is too high for the "
         "system.");
@@ -36,12 +38,12 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   Patricia prefix_incl_trie{32};
 
   if (config.prefix_excl_file) {
-    LOG(info, "Loading excluded prefixes...");
+    spdlog::info("Loading excluded prefixes...");
     prefix_excl_trie.populateBlock(AF_INET, config.prefix_excl_file->c_str());
   }
 
   if (config.prefix_incl_file) {
-    LOG(info, "Loading included prefixes...");
+    spdlog::info("Loading included prefixes...");
     prefix_incl_trie.populateBlock(AF_INET, config.prefix_incl_file->c_str());
   }
 
@@ -60,9 +62,9 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   // Statistics
   Statistics::Prober stats;
   auto log_stats = [&] {
-    LOG(info, rl.statistics());
-    LOG(info, stats);
-    LOG(info, sniffer.statistics());
+    spdlog::info(rl.statistics());
+    spdlog::info(stats);
+    spdlog::info(sniffer.statistics());
   };
 
   // Input
@@ -72,7 +74,7 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   if (config.input_file) {
     input_file.open(*config.input_file);
   } else {
-    LOG(info, "Reading from stdin, press CTRL+D to stop...");
+    spdlog::info("Reading from stdin, press CTRL+D to stop...");
     std::ios::sync_with_stdio(false);
   }
 
@@ -84,19 +86,19 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     try {
       p = Probe::from_csv(line);
     } catch (const std::exception& e) {
-      LOG(warning, e.what());
+      spdlog::warn(e.what());
       continue;
     }
     stats.read++;
 
     // TTL filter
     if (config.filter_min_ttl && (p.ttl < *config.filter_min_ttl)) {
-      LOG(trace, "Filtered probe " << p << " (TTL too low)");
+      spdlog::trace("Filtered probe {} (TTL too low)", p);
       stats.filtered_lo_ttl++;
       continue;
     }
     if (config.filter_max_ttl && (p.ttl > *config.filter_max_ttl)) {
-      LOG(trace, "Filtered probe " << p << " (TTL too high)");
+      spdlog::trace("Filtered probe {} (TTL too high)", p);
       stats.filtered_hi_ttl++;
       continue;
     }
@@ -106,7 +108,7 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     // TODO: IPv6
     if (config.prefix_excl_file &&
         (prefix_excl_trie.get(p.dst_addr.s6_addr32[3]) != nullptr)) {
-      LOG(trace, "Filtered probe " << p << " (excluded prefix)");
+      spdlog::trace("Filtered probe {} (excluded prefix)", p);
       stats.filtered_prefix_excl++;
       continue;
     }
@@ -115,18 +117,18 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     // TODO: IPv6
     if (config.prefix_incl_file &&
         (prefix_incl_trie.get(p.dst_addr.s6_addr32[3]) == nullptr)) {
-      LOG(trace, "Filtered probe " << p << " (not included prefix)");
+      spdlog::trace("Filtered probe {} (not included prefix)", p);
       stats.filtered_prefix_not_incl++;
       continue;
     }
 
     for (uint64_t i = 0; i < config.n_packets; i++) {
-      LOG(trace, "probe=" << p << " packet=" << i + 1);
+      spdlog::trace("probe={} packet={}", p, i + 1);
       try {
         sender.send(p);
         stats.sent++;
       } catch (const std::system_error& e) {
-        LOG(error, "probe=" << p << " error=" << e.what());
+        spdlog::error("probe={} error={}", p, e.what());
         stats.failed++;
       }
       rl.wait();
@@ -139,17 +141,16 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     }
 
     if (config.max_probes && (stats.sent >= *config.max_probes)) {
-      LOG(trace, "max_probes reached, exiting...");
+      spdlog::trace("max_probes reached, exiting...");
       break;
     }
   }
 
   log_stats();
 
-  LOG(info,
-      "Waiting "
-          << config.sniffer_wait_time
-          << "s to allow the sniffer to get the last flying responses...");
+  spdlog::info(
+      "Waiting {} s to allow the sniffer to get the last flying responses...",
+      config.sniffer_wait_time);
   std::this_thread::sleep_for(std::chrono::seconds(config.sniffer_wait_time));
   sniffer.stop();
 

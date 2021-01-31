@@ -1,8 +1,8 @@
 #include <diamond-miner-config.h>
+#include <spdlog/cfg/helpers.h>
 
 #include <boost/core/demangle.hpp>
 #include <boost/program_options.hpp>
-#include <dminer/logging.hpp>
 #include <dminer/reader.hpp>
 #include <filesystem>
 #include <iostream>
@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
     fs::path output_file{vm["output-file-csv"].as<string>()};
     string round = vm["meta-round"].as<string>();
 
-    dminer::configure_logging(vm["log-level"].as<string>());
+    spdlog::cfg::helpers::load_levels(vm["log-level"].as<string>());
     dminer::Reader::read(input_file, output_file, round);
   } catch (const std::exception& e) {
     auto type = boost::core::demangle(typeid(e).name());

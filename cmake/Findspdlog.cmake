@@ -1,0 +1,1 @@
+add_subdirectory(extern/spdlog EXCLUDE_FROM_ALL)

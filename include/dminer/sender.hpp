@@ -2,6 +2,8 @@
 
 #include <netinet/ip.h>
 #include <netpacket/packet.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 #include <tins/tins.h>
 
 #include <algorithm>
@@ -11,7 +13,6 @@
 #include <string>
 
 #include "builder.hpp"
-#include "logging.hpp"
 #include "pretty.hpp"
 #include "probe.hpp"
 #include "socket.hpp"
@@ -41,10 +42,10 @@ class Sender {
       gateway_mac =
           Utilities::gateway_mac_for(interface, Tins::IPv4Address("8.8.8.8"));
     } catch (const std::runtime_error &e) {
-      LOG(warning,
-          "Unable to resolve the gateway MAC address (this is expected on "
-          "a loopback or tunnel interface): "
-              << e.what())
+      spdlog::warn(
+          "Unable to resolve the gateway MAC address (this is expected on a "
+          "loopback or tunnel interface): {}",
+          e.what());
     }
 
     // Set the IPv4 destination MAC address.
@@ -73,9 +74,9 @@ class Sender {
               Utilities::source_ipv6_for(interface).to_string().c_str(),
               &src_ip_v6.sin6_addr);
 
-    LOG(info, "dst_mac_v4=" << dst_mac_v4_ << " dst_mac_v6=" << dst_mac_v6_);
-    LOG(info, "src_ip_v4=" << src_ip_v4.sin_addr
-                           << " src_ip_v6=" << src_ip_v6.sin6_addr);
+    spdlog::info("dst_mac_v4={} dst_mac_v6={}", dst_mac_v4_, dst_mac_v6_);
+    spdlog::info("src_ip_v4={} src_ip_v6={}", src_ip_v4.sin_addr,
+                 src_ip_v6.sin6_addr);
   }
 
   void send(const Probe &probe) {

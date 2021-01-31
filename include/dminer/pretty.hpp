@@ -1,8 +1,8 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <fmt/ranges.h>
 #include <netpacket/packet.h>
+#include <spdlog/fmt/fmt.h>
 
 inline std::ostream& operator<<(std::ostream& os, in_addr const& v) {
   char buf[INET_ADDRSTRLEN] = {};

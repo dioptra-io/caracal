@@ -1,7 +1,7 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <algorithm>
 #include <iostream>

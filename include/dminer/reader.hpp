@@ -1,13 +1,14 @@
 #pragma once
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 #include <tins/tins.h>
 
 #include <filesystem>
 #include <fstream>
 #include <string>
 
-#include "logging.hpp"
 #include "parser.hpp"
 #include "statistics.hpp"
 
@@ -27,7 +28,7 @@ Statistics::Sniffer read(const fs::path &input_file,
     auto reply = Parser::parse(packet);
 
     if (statistics.received_count % 1'000'000 == 0) {
-      LOG(info, statistics);
+      spdlog::info(statistics);
     }
 
     if (reply) {
@@ -43,7 +44,7 @@ Statistics::Sniffer read(const fs::path &input_file,
   };
 
   sniffer.sniff_loop(handler);
-  LOG(info, statistics);
+  spdlog::info(statistics);
   return statistics;
 }
 

@@ -4,12 +4,12 @@ project(diamond-miner VERSION 0.1.12)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
-find_package(Boost REQUIRED COMPONENTS log log_setup program_options)
+find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Catch2 REQUIRED)
-find_package(Fmt REQUIRED)
 find_package(NetUtils REQUIRED)
 find_package(Patricia REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(spdlog REQUIRED)
 find_package(Threads REQUIRED)
 pkg_check_modules(Tins REQUIRED IMPORTED_TARGET libtins)
 
@@ -23,18 +23,11 @@ include(CTest)
 # Library
 add_library(diamond-miner INTERFACE)
 target_compile_features(diamond-miner INTERFACE cxx_std_20)
-target_compile_options(diamond-miner INTERFACE -DBOOST_LOG_DYN_LINK)
 target_include_directories(diamond-miner
                            INTERFACE "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
-  diamond-miner
-  INTERFACE Boost::log
-            Boost::log_setup
-            fmt::fmt
-            NetUtils::NetUtils
-            Patricia::Patricia
-            PkgConfig::Tins
-            Threads::Threads)
+  diamond-miner INTERFACE NetUtils::NetUtils Patricia::Patricia PkgConfig::Tins
+                          spdlog::spdlog Threads::Threads)
 
 # Executable (Prober)
 add_executable(diamond-miner-prober src/diamond-miner-prober.cpp)
