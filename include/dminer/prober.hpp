@@ -149,7 +149,7 @@ inline std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   log_stats();
 
   spdlog::info(
-      "Waiting {} s to allow the sniffer to get the last flying responses...",
+      "Waiting {}s to allow the sniffer to get the last flying responses...",
       config.sniffer_wait_time);
   std::this_thread::sleep_for(std::chrono::seconds(config.sniffer_wait_time));
   sniffer.stop();
