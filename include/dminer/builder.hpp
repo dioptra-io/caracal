@@ -126,6 +126,8 @@ inline void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
 /// we ignore them in the packet parser.
 namespace dminer::Builder::ICMP {
 
+// TODO: ICMPv6
+
 /// Build an ICMP echo probe.
 /// @param packet the packet buffer, including the IP header.
 /// @param target_checksum the custom ICMP checksum, in host order.
@@ -138,17 +140,18 @@ inline void init(Packet packet, const uint16_t target_checksum,
         "checksum"};
   }
 
-  // TODO: Use icmp6_hdr.
   auto icmp_header = reinterpret_cast<icmphdr *>(packet.l4());
-  icmp_header->type = 128;  // ICMPv6 Echo Request
-  icmp_header->code = 0;    // ICMPv6 Echo Request
+  icmp_header->type = 8;  // ICMP Echo Request
+  icmp_header->code = 0;  // ICMP Echo Request
   icmp_header->checksum = 0;
   icmp_header->un.echo.id = Utilities::htons(target_checksum);
   icmp_header->un.echo.sequence = Utilities::htons(target_seq);
-  // NOTE: ICMPv6 checksum computation is different from ICMPv4.
-  // We can't encode the flow ID in the checksum?
-  // TODO: Do not tweak the payload but something else instead?
-  icmp_header->checksum = transport_checksum(packet);
+
+  // Encode the flow ID in the checksum.
+  const uint16_t original_checksum = ip_checksum(icmp_header, sizeof(icmphdr));
+  *reinterpret_cast<uint16_t *>(packet.payload()) =
+      tweak_payload(original_checksum, Utilities::htons(target_checksum));
+  icmp_header->checksum = Utilities::htons(target_checksum);
 }
 
 }  // namespace dminer::Builder::ICMP

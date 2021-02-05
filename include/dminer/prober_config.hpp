@@ -17,7 +17,7 @@ namespace dminer::Prober {
 struct Config {
   uint64_t n_packets = 1;
   uint64_t probing_rate = 100;
-  uint64_t sniffer_buffer_size = 16'000'000;
+  uint64_t sniffer_buffer_size = 16'000;
   uint64_t sniffer_wait_time = 5;
   string protocol = "udp";
   Tins::NetworkInterface interface =

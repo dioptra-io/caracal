@@ -36,7 +36,9 @@ class Sniffer {
     spdlog::info("sniffer_filter={}", filter);
 
     Tins::SnifferConfiguration config;
-    config.set_buffer_size(buffer_size);
+    // TODO: What happens the buffer is full?
+    // TODO: Log buffer full / dropped packets?
+    config.set_buffer_size(buffer_size * 1024);
     config.set_filter(filter);
     config.set_immediate_mode(true);
 
