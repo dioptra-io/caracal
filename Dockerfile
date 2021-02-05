@@ -10,7 +10,6 @@ RUN apt-get update && \
         libboost-program-options1.74-dev \
         libelf1 \
         libpcap0.8-dev \
-        libtins-dev \
         pkg-config \
         zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -36,7 +35,6 @@ RUN apt-get update && \
         libboost-program-options1.74.0 \
         libelf1 \
         libpcap0.8 \
-        libtins4.0 \
         zlib1g && \
     rm -rf /var/lib/apt/lists/* && \
     # Remove unneeded files

@@ -2,16 +2,15 @@ cmake_minimum_required(VERSION 3.12)
 project(diamond-miner VERSION 0.1.12)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Catch2 REQUIRED)
 find_package(NetUtils REQUIRED)
 find_package(Patricia REQUIRED)
-find_package(PkgConfig REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(Tins REQUIRED)
 find_package(Threads REQUIRED)
-pkg_check_modules(Tins REQUIRED IMPORTED_TARGET libtins)
 
 option(WITH_COVERAGE "Enable code coverage" OFF)
 option(WITH_SANITIZER "Enable compiler sanitizers" OFF)
@@ -26,7 +25,7 @@ target_compile_features(diamond-miner INTERFACE cxx_std_20)
 target_include_directories(diamond-miner
                            INTERFACE "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
-  diamond-miner INTERFACE NetUtils::NetUtils Patricia::Patricia PkgConfig::Tins
+  diamond-miner INTERFACE NetUtils::NetUtils Patricia::Patricia tins
                           spdlog::spdlog Threads::Threads)
 
 # Executable (Prober)

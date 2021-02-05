@@ -22,7 +22,7 @@ This program compiles only on Linux as it depends on `AF_PACKET`. It runs on x86
 # Ubuntu 21.04+
 # (We require GCC 10+ for C++20 support)
 apt-get install build-essential cmake gcovr libboost-program-options-dev \
-    libelf1 libpcap-dev libtins-dev pkg-config zlib1g-dev
+    libelf1 libpcap-dev pkg-config zlib1g-dev
 ```
 
 ```bash
