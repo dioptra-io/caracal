@@ -2,6 +2,8 @@
 !cmake/
 !data/
 !extern/
+!include/
 !src/
+!tests/
 !CMakeLists.txt
 !LICENSE
