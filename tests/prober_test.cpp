@@ -1,3 +1,5 @@
+#include <spdlog/cfg/helpers.h>
+
 #include <catch2/catch_test_macros.hpp>
 #include <dminer/prober.hpp>
 #include <dminer/prober_config.hpp>
@@ -10,6 +12,7 @@ using dminer::Prober::Config;
 using dminer::Prober::probe;
 
 TEST_CASE("Prober::probe") {
+  spdlog::cfg::helpers::load_levels("trace");
   std::ofstream ofs;
 
   // TODO: IPv6.

@@ -1,0 +1,133 @@
+No.     Time           Source                Destination           Protocol Length Info
+     19 1.236673669    192.168.1.5           8.8.8.8               ICMP     54     Echo (ping) request  id=0x5dc0, seq=3398/17933, ttl=10 (reply in 23)
+
+Frame 19: 54 bytes on wire (432 bits), 54 bytes captured (432 bits) on interface enp0s3, id 0
+    Interface id: 0 (enp0s3)
+        Interface name: enp0s3
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Feb 12, 2021 19:48:17.123370512 CET
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1613155697.123370512 seconds
+    [Time delta from previous captured frame: 0.000987600 seconds]
+    [Time delta from previous displayed frame: 0.000000000 seconds]
+    [Time since reference or first frame: 1.236673669 seconds]
+    Frame Number: 19
+    Frame Length: 54 bytes (432 bits)
+    Capture Length: 54 bytes (432 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:icmp:data]
+    [Coloring Rule Name: ICMP]
+    [Coloring Rule String: icmp || icmpv6]
+Ethernet II, Src: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48), Dst: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c)
+    Destination: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c)
+        Address: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48)
+        Address: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+Internet Protocol Version 4, Src: 192.168.1.5, Dst: 8.8.8.8
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 40
+    Identification: 0x000a (10)
+    Flags: 0x0000
+        0... .... .... .... = Reserved bit: Not set
+        .0.. .... .... .... = Don't fragment: Not set
+        ..0. .... .... .... = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 10
+    Protocol: ICMP (1)
+    Header checksum: 0xdf0e [validation disabled]
+    [Header checksum status: Unverified]
+    Source: 192.168.1.5
+    Destination: 8.8.8.8
+Internet Control Message Protocol
+    Type: 8 (Echo (ping) request)
+    Code: 0
+    Checksum: 0x5dc0 [correct]
+    [Checksum Status: Good]
+    Identifier (BE): 24000 (0x5dc0)
+    Identifier (LE): 49245 (0xc05d)
+    Sequence number (BE): 3398 (0x0d46)
+    Sequence number (LE): 17933 (0x460d)
+    [Response frame: 23]
+    Data (12 bytes)
+
+0000  2f 39 00 00 00 00 00 00 00 00 00 00               /9..........
+        Data: 2f3900000000000000000000
+        [Length: 12]
+
+No.     Time           Source                Destination           Protocol Length Info
+     23 1.243593657    8.8.8.8               192.168.1.5           ICMP     60     Echo (ping) reply    id=0x5dc0, seq=3398/17933, ttl=117 (request in 19)
+
+Frame 23: 60 bytes on wire (480 bits), 60 bytes captured (480 bits) on interface enp0s3, id 0
+    Interface id: 0 (enp0s3)
+        Interface name: enp0s3
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Feb 12, 2021 19:48:17.130290500 CET
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1613155697.130290500 seconds
+    [Time delta from previous captured frame: 0.005377254 seconds]
+    [Time delta from previous displayed frame: 0.006919988 seconds]
+    [Time since reference or first frame: 1.243593657 seconds]
+    Frame Number: 23
+    Frame Length: 60 bytes (480 bits)
+    Capture Length: 60 bytes (480 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:icmp:data]
+    [Coloring Rule Name: ICMP]
+    [Coloring Rule String: icmp || icmpv6]
+Ethernet II, Src: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c), Dst: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48)
+    Destination: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48)
+        Address: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c)
+        Address: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    Padding: 000000000000
+Internet Protocol Version 4, Src: 8.8.8.8, Dst: 192.168.1.5
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 40
+    Identification: 0x0000 (0)
+    Flags: 0x0000
+        0... .... .... .... = Reserved bit: Not set
+        .0.. .... .... .... = Don't fragment: Not set
+        ..0. .... .... .... = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 117
+    Protocol: ICMP (1)
+    Header checksum: 0x7418 [validation disabled]
+    [Header checksum status: Unverified]
+    Source: 8.8.8.8
+    Destination: 192.168.1.5
+Internet Control Message Protocol
+    Type: 0 (Echo (ping) reply)
+    Code: 0
+    Checksum: 0x65c0 [correct]
+    [Checksum Status: Good]
+    Identifier (BE): 24000 (0x5dc0)
+    Identifier (LE): 49245 (0xc05d)
+    Sequence number (BE): 3398 (0x0d46)
+    Sequence number (LE): 17933 (0x460d)
+    [Request frame: 19]
+    [Response time: 6,920 ms]
+    Data (12 bytes)
+
+0000  2f 39 00 00 00 00 00 00 00 00 00 00               /9..........
+        Data: 2f3900000000000000000000
+        [Length: 12]

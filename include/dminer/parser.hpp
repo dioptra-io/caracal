@@ -52,7 +52,7 @@ inline void parse_outer(Reply& reply, const Tins::ICMPv6* icmp) {
 
 inline void parse_inner(Reply& reply, const Tins::IP* ip) {
   reply.inner_dst_ip = be_to_host(uint32_t(ip->dst_addr()));
-  reply.inner_size = ip->tot_len();  // NOTE: This field is useless. Why?
+  reply.inner_size = ip->tot_len();
   reply.inner_ttl = static_cast<uint8_t>(ip->id());
 }
 
@@ -79,8 +79,7 @@ inline void parse_inner(Reply& reply, const Tins::ICMP* icmp,
                         const uint64_t timestamp) {
   reply.inner_proto = IPPROTO_ICMP;
   reply.inner_src_port = icmp->id();
-  reply.inner_dst_port = 0;            // Not encoded in ICMP probes.
-  reply.inner_ttl_from_transport = 0;  // Not encoded in ICMP probes.
+  reply.inner_dst_port = 0;  // Not encoded in ICMP probes.
   reply.rtt = decode_difference(timestamp, icmp->sequence()) / 10.0;
 }
 
@@ -112,6 +111,12 @@ inline void parse_inner(Reply& reply, const Tins::UDP* udp,
   reply.inner_dst_port = udp->dport();
   reply.inner_ttl_from_transport = udp->length() - sizeof(udphdr) - 2;
   reply.rtt = decode_difference(timestamp, udp->checksum()) / 10.0;
+}
+
+// Retrieve the TTL encoded in the ICMP payload length.
+inline void parse_inner_ttl_icmp(Reply& reply, const Tins::IP* ip) {
+  reply.inner_ttl_from_transport =
+      ip->tot_len() - sizeof(iphdr) - sizeof(icmphdr) - 2;
 }
 
 // TODO: Explain why this is needed.
@@ -171,6 +176,7 @@ template <typename T>
       if (inner_icmp) {
         // IPv4 → ICMPv4 → IPv4 → ICMPv4
         parse_inner(reply, inner_icmp, timestamp);
+        parse_inner_ttl_icmp(reply, &inner_ip.value());
       } else if (inner_tcp) {
         // IPv4 → ICMPv4 → IPv4 → TCP
         parse_inner(reply, inner_tcp, timestamp);
@@ -215,6 +221,7 @@ template <typename T>
     // IPv4 → ICMPv4
     parse_outer(reply, icmp4);
     parse_inner(reply, icmp4, timestamp);
+    parse_inner_ttl_icmp(reply, ip4);
     return reply;
   }
 

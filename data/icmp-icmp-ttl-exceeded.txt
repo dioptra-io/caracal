@@ -1,0 +1,158 @@
+No.     Time           Source                Destination           Protocol Length Info
+     67 1.607663678    192.168.1.5           8.8.8.8               ICMP     50     Echo (ping) request  id=0x5dc0, seq=56974/36574, ttl=6 (no response found!)
+
+Frame 67: 50 bytes on wire (400 bits), 50 bytes captured (400 bits) on interface enp0s3, id 0
+    Interface id: 0 (enp0s3)
+        Interface name: enp0s3
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Feb 12, 2021 19:47:03.838995153 CET
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1613155623.838995153 seconds
+    [Time delta from previous captured frame: 0.000487903 seconds]
+    [Time delta from previous displayed frame: 0.000000000 seconds]
+    [Time since reference or first frame: 1.607663678 seconds]
+    Frame Number: 67
+    Frame Length: 50 bytes (400 bits)
+    Capture Length: 50 bytes (400 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:icmp:data]
+    [Coloring Rule Name: ICMP]
+    [Coloring Rule String: icmp || icmpv6]
+Ethernet II, Src: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48), Dst: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c)
+    Destination: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c)
+        Address: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48)
+        Address: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+Internet Protocol Version 4, Src: 192.168.1.5, Dst: 8.8.8.8
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 36
+    Identification: 0x0006 (6)
+    Flags: 0x0000
+        0... .... .... .... = Reserved bit: Not set
+        .0.. .... .... .... = Don't fragment: Not set
+        ..0. .... .... .... = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 6
+    Protocol: ICMP (1)
+    Header checksum: 0xe316 [validation disabled]
+    [Header checksum status: Unverified]
+    Source: 192.168.1.5
+    Destination: 8.8.8.8
+Internet Control Message Protocol
+    Type: 8 (Echo (ping) request)
+    Code: 0
+    Checksum: 0x5dc0 [correct]
+    [Checksum Status: Good]
+    Identifier (BE): 24000 (0x5dc0)
+    Identifier (LE): 49245 (0xc05d)
+    Sequence number (BE): 56974 (0xde8e)
+    Sequence number (LE): 36574 (0x8ede)
+    [No response seen]
+        [Expert Info (Warning/Sequence): No response seen to ICMP request]
+            [No response seen to ICMP request]
+            [Severity level: Warning]
+            [Group: Sequence]
+    Data (8 bytes)
+
+0000  5d f0 00 00 00 00 00 00                           ].......
+        Data: 5df0000000000000
+        [Length: 8]
+
+No.     Time           Source                Destination           Protocol Length Info
+     72 1.614248532    72.14.204.68          192.168.1.5           ICMP     70     Time-to-live exceeded (Time to live exceeded in transit)
+
+Frame 72: 70 bytes on wire (560 bits), 70 bytes captured (560 bits) on interface enp0s3, id 0
+    Interface id: 0 (enp0s3)
+        Interface name: enp0s3
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Feb 12, 2021 19:47:03.845580007 CET
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1613155623.845580007 seconds
+    [Time delta from previous captured frame: 0.005331133 seconds]
+    [Time delta from previous displayed frame: 0.006584854 seconds]
+    [Time since reference or first frame: 1.614248532 seconds]
+    Frame Number: 72
+    Frame Length: 70 bytes (560 bits)
+    Capture Length: 70 bytes (560 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:icmp:ip:icmp]
+    [Coloring Rule Name: ICMP errors]
+    [Coloring Rule String: icmp.type eq 3 || icmp.type eq 4 || icmp.type eq 5 || icmp.type eq 11 || icmpv6.type eq 1 || icmpv6.type eq 2 || icmpv6.type eq 3 || icmpv6.type eq 4]
+Ethernet II, Src: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c), Dst: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48)
+    Destination: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48)
+        Address: PcsCompu_6d:6a:48 (08:00:27:6d:6a:48)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c)
+        Address: 20:9a:7d:07:78:8c (20:9a:7d:07:78:8c)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+Internet Protocol Version 4, Src: 72.14.204.68, Dst: 192.168.1.5
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 56
+    Identification: 0x0000 (0)
+    Flags: 0x0000
+        0... .... .... .... = Reserved bit: Not set
+        .0.. .... .... .... = Don't fragment: Not set
+        ..0. .... .... .... = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 250
+    Protocol: ICMP (1)
+    Header checksum: 0xeac4 [validation disabled]
+    [Header checksum status: Unverified]
+    Source: 72.14.204.68
+    Destination: 192.168.1.5
+Internet Control Message Protocol
+    Type: 11 (Time-to-live exceeded)
+    Code: 0 (Time to live exceeded in transit)
+    Checksum: 0x52f0 [correct]
+    [Checksum Status: Good]
+    Unused: 00000000
+    Internet Protocol Version 4, Src: 192.168.1.5, Dst: 8.8.8.8
+        0100 .... = Version: 4
+        .... 0101 = Header Length: 20 bytes (5)
+        Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+            0000 00.. = Differentiated Services Codepoint: Default (0)
+            .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+        Total Length: 36
+        Identification: 0x0006 (6)
+        Flags: 0x0000
+            0... .... .... .... = Reserved bit: Not set
+            .0.. .... .... .... = Don't fragment: Not set
+            ..0. .... .... .... = More fragments: Not set
+        Fragment offset: 0
+        Time to live: 1
+            [Expert Info (Note/Sequence): "Time To Live" only 1]
+                ["Time To Live" only 1]
+                [Severity level: Note]
+                [Group: Sequence]
+        Protocol: ICMP (1)
+        Header checksum: 0xe816 [validation disabled]
+        [Header checksum status: Unverified]
+        Source: 192.168.1.5
+        Destination: 8.8.8.8
+    Internet Control Message Protocol
+        Type: 8 (Echo (ping) request)
+        Code: 0
+        Checksum: 0x5dc0 [unverified] [in ICMP error packet]
+        [Checksum Status: Unverified]
+        Identifier (BE): 24000 (0x5dc0)
+        Identifier (LE): 49245 (0xc05d)
+        Sequence number (BE): 56974 (0xde8e)
+        Sequence number (LE): 36574 (0x8ede)
