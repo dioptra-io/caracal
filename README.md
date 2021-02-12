@@ -6,7 +6,7 @@
 [![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/matthieugouel/diamond-miner-prober?logo=docker)](https://hub.docker.com/r/matthieugouel/diamond-miner-prober)
 
 This is the prober component of [Diamond-Miner](https://www.usenix.org/conference/nsdi20/presentation/vermeulen). It is
-a stateless ICMP/UDP/TCP traceroute engine written in C++ and targeting a probing rate of 100k+ packets per second.
+a stateless ICMP/UDP/TCP Paris traceroute engine written in C++ and targeting a probing rate of 100k+ packets per second.
 
 ## Quickstart
 
@@ -14,13 +14,13 @@ a stateless ICMP/UDP/TCP traceroute engine written in C++ and targeting a probin
 docker run matthieugouel/diamond-miner-prober --help
 ```
 
+:warning: You may get incorrect results on Docker on macOS.
+Docker and/or macOS seems to rewrite some fields of the IP header that we use to encode probe informations.
+
 ### Building from source
 
 This program compiles only on Linux as it depends on `AF_PACKET`.
 It runs on x86-64 and ARM systems.
-
-Do not run it on Docker on macOS, you may get incorrect results.
-Docker and/or macOS seems to rewrite some fields of the IP header that we use to encode probe informations.
 
 ```bash
 # Ubuntu 21.04+
