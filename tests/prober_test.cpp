@@ -1,6 +1,7 @@
 #include <spdlog/cfg/helpers.h>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <dminer/prober.hpp>
 #include <dminer/prober_config.hpp>
 #include <filesystem>
@@ -12,7 +13,7 @@ using dminer::Prober::Config;
 using dminer::Prober::probe;
 
 TEST_CASE("Prober::probe") {
-  spdlog::cfg::helpers::load_levels("trace");
+  auto protocol = GENERATE("icmp", "udp");
   std::ofstream ofs;
 
   // TODO: IPv6.
@@ -47,9 +48,11 @@ TEST_CASE("Prober::probe") {
   config.set_probing_rate(100);
   config.set_sniffer_buffer_size(20000);
   config.set_sniffer_wait_time(1);
-  config.set_protocol("udp");
+  config.set_protocol(protocol);
   config.set_n_packets(3);
   config.set_meta_round("1");
+
+  spdlog::cfg::helpers::load_levels("trace");
 
   SECTION("Base case") {
     auto [prober_stats, sniffer_stats] = probe(config);
