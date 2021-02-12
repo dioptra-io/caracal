@@ -186,7 +186,7 @@ template <typename T>
   // ICMPv6 Destination Unreachable or Time Exceeded.
   if (icmp6 && (icmp6->type() == Tins::ICMPv6::DEST_UNREACHABLE ||
                 icmp6->type() == Tins::ICMPv6::TIME_EXCEEDED)) {
-    // IPv46→ ICMPv6
+    // IPv6 → ICMPv6
     parse_outer(reply, icmp6);
     const auto inner_ip = build_inner<Tins::IPv6>(icmp6->find_pdu<RawPDU>());
     if (inner_ip) {
@@ -212,13 +212,15 @@ template <typename T>
 
   // ICMPv4 Echo Reply
   if (icmp4 && (icmp4->type() == Tins::ICMP::ECHO_REPLY)) {
-    // Discard echo replies for now.
-    return nullopt;
+    // IPv4 → ICMPv4
+    parse_outer(reply, icmp4);
+    parse_inner(reply, icmp4, timestamp);
+    return reply;
   }
 
   // ICMPv6 Echo Reply
   if (icmp6 && (icmp6->type() == Tins::ICMPv6::ECHO_REPLY)) {
-    // Discard echo replies for now.
+    // Discard ICMPv6 echo replies for now.
     return nullopt;
   }
 
