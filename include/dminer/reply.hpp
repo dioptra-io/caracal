@@ -69,12 +69,12 @@ struct Reply {
 };
 
 inline std::ostream& operator<<(std::ostream& os, Reply const& v) {
-  os << "src_ip=" << in_addr{v.src_ip};
-  os << " dst_ip=" << in_addr{v.dst_ip};
+  os << "src_ip=" << in_addr{htonl(v.src_ip)};
+  os << " dst_ip=" << in_addr{htonl(v.dst_ip)};
   os << " ttl=" << +v.ttl;
   os << " icmp_code=" << +v.icmp_code;
   os << " icmp_type=" << +v.icmp_type;
-  os << " inner_dst_ip=" << in_addr{v.inner_dst_ip};
+  os << " inner_dst_ip=" << in_addr{htonl(v.inner_dst_ip)};
   os << " inner_size=" << v.inner_size;
   os << " inner_ttl=" << +v.inner_ttl;
   os << " inner_proto=" << +v.inner_proto;
