@@ -1,8 +1,11 @@
 #pragma once
 
+#include <arpa/inet.h>
 #include <spdlog/fmt/fmt.h>
 
 #include <string>
+
+#include "dminer/pretty.hpp"
 
 namespace dminer {
 
@@ -64,5 +67,22 @@ struct Reply {
                        include_rtt ? rtt : -1.0, ttl, size);
   }
 };
+
+inline std::ostream& operator<<(std::ostream& os, Reply const& v) {
+  os << "src_ip=" << in_addr{v.src_ip};
+  os << " dst_ip=" << in_addr{v.dst_ip};
+  os << " ttl=" << +v.ttl;
+  os << " icmp_code=" << +v.icmp_code;
+  os << " icmp_type=" << +v.icmp_type;
+  os << " inner_dst_ip=" << in_addr{v.inner_dst_ip};
+  os << " inner_size=" << v.inner_size;
+  os << " inner_ttl=" << +v.inner_ttl;
+  os << " inner_proto=" << +v.inner_proto;
+  os << " inner_src_port=" << v.inner_src_port;
+  os << " inner_dst_port=" << v.inner_dst_port;
+  os << " inner_ttl_from_transport=" << +v.inner_ttl_from_transport;
+  os << " rtt=" << v.rtt;
+  return os;
+}
 
 }  // namespace dminer

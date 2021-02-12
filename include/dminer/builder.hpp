@@ -12,6 +12,7 @@ extern "C" {
 
 #include <span>
 
+#include "constants.hpp"
 #include "packet.hpp"
 #include "utilities.hpp"
 
@@ -134,10 +135,10 @@ namespace dminer::Builder::ICMP {
 /// @param target_seq the custom sequence field, in host order.
 inline void init(Packet packet, const uint16_t target_checksum,
                  const uint16_t target_seq) {
-  if (packet.payload_size() < 2) {
-    throw std::invalid_argument{
-        "The payload must be at-least two bytes long to allow for a custom "
-        "checksum"};
+  if (packet.payload_size() < PAYLOAD_TWEAK_BYTES) {
+    throw std::invalid_argument{"The payload must be at-least " +
+                                std::to_string(PAYLOAD_TWEAK_BYTES) +
+                                " bytes long to allow for a custom checksum"};
   }
 
   auto icmp_header = reinterpret_cast<icmphdr *>(packet.l4());
@@ -235,11 +236,11 @@ inline void set_checksum(Packet packet) {
 /// @param packet the packet buffer, including the IP header.
 /// @param target_checksum the custom checksum, in host order.
 inline void set_checksum(Packet packet, const uint16_t target_checksum) {
-  if (packet.payload_size() < 2) {
+  if (packet.payload_size() < PAYLOAD_TWEAK_BYTES) {
     // TODO: Builder::Exception::PayloadTooSmall exception ?
-    throw std::invalid_argument{
-        "The payload must be at-least two bytes long to allow for a custom "
-        "checksum"};
+    throw std::invalid_argument{"The payload must be at-least " +
+                                std::to_string(PAYLOAD_TWEAK_BYTES) +
+                                " bytes long to allow for a custom checksum"};
   }
   auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
   udp_header->uh_sum = 0;

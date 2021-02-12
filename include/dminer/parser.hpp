@@ -11,6 +11,7 @@
 #include <sstream>
 #include <string>
 
+#include "constants.hpp"
 #include "reply.hpp"
 #include "timestamp.hpp"
 
@@ -65,11 +66,14 @@ inline void parse_inner(Reply& reply, const Tins::IPv6* ip) {
   // so we compute it from the payload length.
   const uint8_t protocol = ip->next_header();
   if (protocol == IPPROTO_ICMP) {
-    reply.inner_ttl = ip->payload_length() - sizeof(icmphdr) - 2;
+    reply.inner_ttl =
+        ip->payload_length() - sizeof(icmphdr) - PAYLOAD_TWEAK_BYTES;
   } else if (protocol == IPPROTO_TCP) {
-    reply.inner_ttl = ip->payload_length() - sizeof(tcphdr) - 2;
+    reply.inner_ttl =
+        ip->payload_length() - sizeof(tcphdr) - PAYLOAD_TWEAK_BYTES;
   } else if (protocol == IPPROTO_UDP) {
-    reply.inner_ttl = ip->payload_length() - sizeof(udphdr) - 2;
+    reply.inner_ttl =
+        ip->payload_length() - sizeof(udphdr) - PAYLOAD_TWEAK_BYTES;
   } else {
     reply.inner_ttl = 0;
   }
@@ -83,8 +87,8 @@ inline void parse_inner(Reply& reply, const Tins::ICMP* icmp,
   reply.rtt = decode_difference(timestamp, icmp->sequence()) / 10.0;
 }
 
-inline void parse_inner(Reply& reply, const Tins::ICMPv6* icmp,
-                        const uint64_t timestamp) {
+inline void parse_inner(Reply& /* reply */, const Tins::ICMPv6* /* icmp */,
+                        const uint64_t /* timestamp */) {
   // TODO
   // reply.inner_proto = IPPROTO_ICMPV6;
   // reply.inner_src_port = icmp->id();
@@ -109,14 +113,15 @@ inline void parse_inner(Reply& reply, const Tins::UDP* udp,
   reply.inner_proto = IPPROTO_UDP;
   reply.inner_src_port = udp->sport();
   reply.inner_dst_port = udp->dport();
-  reply.inner_ttl_from_transport = udp->length() - sizeof(udphdr) - 2;
+  reply.inner_ttl_from_transport =
+      udp->length() - sizeof(udphdr) - PAYLOAD_TWEAK_BYTES;
   reply.rtt = decode_difference(timestamp, udp->checksum()) / 10.0;
 }
 
 // Retrieve the TTL encoded in the ICMP payload length.
 inline void parse_inner_ttl_icmp(Reply& reply, const Tins::IP* ip) {
   reply.inner_ttl_from_transport =
-      ip->tot_len() - sizeof(iphdr) - sizeof(icmphdr) - 2;
+      ip->tot_len() - sizeof(iphdr) - sizeof(icmphdr) - PAYLOAD_TWEAK_BYTES;
 }
 
 // TODO: Explain why this is needed.

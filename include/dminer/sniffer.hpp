@@ -66,7 +66,7 @@ class Sniffer {
       auto reply = Parser::parse(packet);
 
       if (reply) {
-        spdlog::trace("reply_from={} rtt={}", reply->src_ip, reply->rtt);
+        spdlog::trace(reply.value());
         statistics_.icmp_messages_all.insert(reply->src_ip);
         if (reply->src_ip != reply->inner_dst_ip) {
           statistics_.icmp_messages_path.insert(reply->src_ip);

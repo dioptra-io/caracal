@@ -16,7 +16,11 @@ docker run matthieugouel/diamond-miner-prober --help
 
 ### Building from source
 
-This program compiles only on Linux as it depends on `AF_PACKET`. It runs on x86-64 and ARM systems.
+This program compiles only on Linux as it depends on `AF_PACKET`.
+It runs on x86-64 and ARM systems.
+
+Do not run it on Docker on macOS, you may get incorrect results.
+Docker and/or macOS seems to rewrite some fields of the IP header that we use to encode probe informations.
 
 ```bash
 # Ubuntu 21.04+
