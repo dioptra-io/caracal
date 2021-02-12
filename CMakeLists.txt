@@ -42,8 +42,16 @@ target_include_directories(diamond-miner-reader PRIVATE "${PROJECT_BINARY_DIR}")
 target_link_libraries(diamond-miner-reader PRIVATE Boost::program_options
                                                    diamond-miner)
 
+# Executable (Benchmarks)
+file(GLOB BENCH_SOURCES tests/*_bench.cpp)
+add_executable(diamond-miner-bench ${BENCH_SOURCES})
+target_compile_options(diamond-miner-bench PRIVATE -Wall -Wextra -pedantic)
+target_link_libraries(diamond-miner-bench PRIVATE Catch2::Catch2WithMain
+                                                  diamond-miner)
+catch_discover_tests(diamond-miner-bench)
+
 # Executable (Tests)
-file(GLOB TESTS_SOURCES tests/*.cpp)
+file(GLOB TESTS_SOURCES tests/*_test.cpp)
 add_executable(diamond-miner-tests ${TESTS_SOURCES})
 target_compile_options(diamond-miner-tests PRIVATE -Wall -Wextra -pedantic)
 target_link_libraries(diamond-miner-tests PRIVATE Catch2::Catch2WithMain
