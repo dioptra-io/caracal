@@ -31,12 +31,3 @@ TEST_CASE("<< in6_addr") {
   sa.sin6_port = htons(24000);
   REQUIRE(to_string(sa) == "[2001:4860:4860::8888]:24000");
 }
-
-TEST_CASE("<< sockaddr_ll") {
-  sockaddr_ll sa{};
-  sa.sll_addr[0] = 0x00;
-  sa.sll_addr[1] = 0x11;
-  sa.sll_addr[2] = 0x42;
-  sa.sll_halen = 3;
-  REQUIRE(to_string(sa) == "00:11:42");
-}

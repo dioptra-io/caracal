@@ -28,6 +28,9 @@ using std::chrono::microseconds;
 /// Parse traceroute replies.
 namespace dminer::Parser {
 
+/// Alias to avoid the `ip` struct to be hidden by the `ip` variable.
+using ip_hdr = ip;
+
 // TODO: Document these functions.
 inline void parse_outer(Reply& reply, const Tins::IP* ip) {
   reply.src_ip = be_to_host(uint32_t(ip->src_addr()));
@@ -65,9 +68,9 @@ inline void parse_inner(Reply& reply, const Tins::IPv6* ip) {
   // Can't store the TTL in the id field (see Builder::IP::init),
   // so we compute it from the payload length.
   const uint8_t protocol = ip->next_header();
+  // TODO: ICMPv6
   if (protocol == IPPROTO_ICMP) {
-    reply.inner_ttl =
-        ip->payload_length() - sizeof(icmphdr) - PAYLOAD_TWEAK_BYTES;
+    reply.inner_ttl = ip->payload_length() - ICMP_MINLEN - PAYLOAD_TWEAK_BYTES;
   } else if (protocol == IPPROTO_TCP) {
     reply.inner_ttl =
         ip->payload_length() - sizeof(tcphdr) - PAYLOAD_TWEAK_BYTES;
@@ -121,7 +124,7 @@ inline void parse_inner(Reply& reply, const Tins::UDP* udp,
 // Retrieve the TTL encoded in the ICMP payload length.
 inline void parse_inner_ttl_icmp(Reply& reply, const Tins::IP* ip) {
   reply.inner_ttl_from_transport =
-      ip->tot_len() - sizeof(iphdr) - sizeof(icmphdr) - PAYLOAD_TWEAK_BYTES;
+      ip->tot_len() - sizeof(ip_hdr) - ICMP_MINLEN - PAYLOAD_TWEAK_BYTES;
 }
 
 // TODO: Explain why this is needed.

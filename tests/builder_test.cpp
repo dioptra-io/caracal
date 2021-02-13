@@ -31,11 +31,11 @@ bool validate_ip_checksum(Packet buffer) {
 }
 
 bool validate_icmp_checksum(Packet buffer) {
-  const auto icmp_header = reinterpret_cast<icmphdr*>(buffer.l4());
-  const uint16_t original = icmp_header->checksum;
-  icmp_header->checksum = 0;
+  const auto icmp_header = reinterpret_cast<icmp*>(buffer.l4());
+  const uint16_t original = icmp_header->icmp_cksum;
+  icmp_header->icmp_cksum = 0;
   const uint16_t correct = ip_checksum(buffer.l4(), buffer.l4_size());
-  icmp_header->checksum = original;
+  icmp_header->icmp_cksum = original;
   return original == correct;
 }
 

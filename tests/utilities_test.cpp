@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 using dminer::Utilities::cast;
+using dminer::Utilities::hton;
 
 TEST_CASE("cast") {
   constexpr uint8_t u8 = 255;
@@ -31,10 +32,24 @@ TEST_CASE("cast") {
 }
 
 TEST_CASE("hton") {
-  uint16_t u16 = 65535;
-  uint32_t u32 = 4294967295;
-  REQUIRE(dminer::Utilities::htons(u16) == htons(u16));
-  REQUIRE(dminer::Utilities::htonl(u16) == htonl(u16));
-  REQUIRE(dminer::Utilities::htonl(u32) == htonl(u32));
-  REQUIRE_THROWS_AS(dminer::Utilities::htons(u32), std::invalid_argument);
+  constexpr uint16_t u16 = 65534;
+  constexpr uint32_t u32 = 4294967294;
+
+#ifdef __APPLE__
+  // These expressions should be available at compile-time.
+  // If not, this test will not compile.
+  // NOTE: This works only on macOS, where hton{s,l} is a macro.
+  constexpr auto compile_time_check_1 = hton<uint16_t>(u16);
+  constexpr auto compile_time_check_2 = hton<uint32_t>(u16);
+  constexpr auto compile_time_check_3 = hton<uint32_t>(u32);
+
+  static_assert(compile_time_check_1 == htons(u16));
+  static_assert(compile_time_check_2 == htonl(u16));
+  static_assert(compile_time_check_3 == htonl(u32));
+#endif
+
+  REQUIRE(hton<uint16_t>(u16) == htons(u16));
+  REQUIRE(hton<uint32_t>(u16) == htonl(u16));
+  REQUIRE(hton<uint32_t>(u32) == htonl(u32));
+  REQUIRE_THROWS_AS(hton<uint16_t>(u32), std::invalid_argument);
 }

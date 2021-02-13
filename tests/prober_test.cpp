@@ -62,7 +62,7 @@ TEST_CASE("Prober::probe") {
     REQUIRE(prober_stats.filtered_hi_ttl == 1);
     REQUIRE(prober_stats.filtered_prefix_excl == 1);
     REQUIRE(prober_stats.filtered_prefix_not_incl == 1);
-    // Some replies are dropped on GitHub CI.
+    // TTL 2 does not reply on GitHub CI.
     // REQUIRE(sniffer_stats.received_count == 6);
     REQUIRE(sniffer_stats.received_count >= 2);
     REQUIRE(sniffer_stats.received_invalid_count == 0);
@@ -76,7 +76,7 @@ TEST_CASE("Prober::probe") {
 
     auto [prober_stats, sniffer_stats] = probe(config);
     REQUIRE(prober_stats.sent == 6);
-    // Some replies are dropped on GitHub CI.
+    // TTL 2 does not reply on GitHub CI.
     // REQUIRE(sniffer_stats.received_count == 6);
     REQUIRE(sniffer_stats.received_count >= 2);
     REQUIRE(sniffer_stats.received_invalid_count == 0);
@@ -90,7 +90,7 @@ TEST_CASE("Prober::probe") {
 
     auto [prober_stats, sniffer_stats] = probe(config);
     REQUIRE(prober_stats.sent == 9);
-    // Some replies are dropped on GitHub CI.
+    // TTL 2 does not reply on GitHub CI.
     // REQUIRE(sniffer_stats.received_count == 9);
     REQUIRE(sniffer_stats.received_count >= 3);
     REQUIRE(sniffer_stats.received_invalid_count == 0);

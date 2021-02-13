@@ -1,6 +1,6 @@
 #pragma once
 
-#include <netinet/ether.h>
+#include <net/ethernet.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/tcp.h>
@@ -17,6 +17,7 @@ class Packet {
     l3_protocol_ = l3_protocol;
     l4_protocol_ = l4_protocol;
 
+    size_t l2_header_size = sizeof(ether_header);
     size_t l3_header_size;
     size_t l4_header_size;
 
@@ -35,7 +36,7 @@ class Packet {
 
     switch (l4_protocol) {
       case IPPROTO_ICMP:
-        l4_header_size = sizeof(icmphdr);
+        l4_header_size = sizeof(icmp);
         break;
 
       case IPPROTO_TCP:
@@ -55,8 +56,10 @@ class Packet {
     }
 
     begin_ = buffer.data();
-    end_ = begin_ + l3_header_size + l4_header_size + payload_size;
-    l3_ = begin_;
+    end_ = begin_ + l2_header_size + l3_header_size + l4_header_size +
+           payload_size;
+    l2_ = begin_;
+    l3_ = l2_ + l2_header_size;
     l4_ = l3_ + l3_header_size;
     payload_ = l4_ + l4_header_size;
   }
@@ -65,11 +68,16 @@ class Packet {
 
   [[nodiscard]] std::byte *end() const noexcept { return end_; }
 
+  [[nodiscard]] std::byte *l2() const noexcept { return l2_; }
+
   [[nodiscard]] std::byte *l3() const noexcept { return l3_; }
 
   [[nodiscard]] std::byte *l4() const noexcept { return l4_; }
 
   [[nodiscard]] std::byte *payload() const noexcept { return payload_; }
+
+  // Size of L2 header + L2 payload.
+  [[nodiscard]] size_t l2_size() const noexcept { return end_ - l2_; }
 
   // Size of L3 header + L3 payload.
   [[nodiscard]] size_t l3_size() const noexcept { return end_ - l3_; }
@@ -85,6 +93,7 @@ class Packet {
  private:
   std::byte *begin_;
   std::byte *end_;
+  std::byte *l2_;
   std::byte *l3_;
   std::byte *l4_;
   std::byte *payload_;

@@ -15,11 +15,12 @@
  *
  * checksum.c - ipv4/ipv6 checksum calculation
  */
-#include <netinet/icmp6.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 #include <netinet/ip_icmp.h>
+// This must be included after netinet/in.h on macOS.
+#include <netinet/icmp6.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 
@@ -108,16 +109,16 @@ uint32_t ipv6_pseudo_header_checksum(const struct ip6_hdr* ip6, uint32_t len, ui
  *   ip      - the ipv4 header
  *   len     - the transport length (transport header + payload)
  */
-uint32_t ipv4_pseudo_header_checksum(const struct iphdr* ip, uint16_t len) {
+uint32_t ipv4_pseudo_header_checksum(const struct ip* ip4, uint16_t len) {
     uint16_t temp_protocol, temp_length;
 
-    temp_protocol = htons(ip->protocol);
+    temp_protocol = htons(ip4->ip_p);
     temp_length = htons(len);
 
     uint32_t current = 0;
 
-    current = ip_checksum_add(current, &(ip->saddr), sizeof(uint32_t));
-    current = ip_checksum_add(current, &(ip->daddr), sizeof(uint32_t));
+    current = ip_checksum_add(current, &(ip4->ip_src), sizeof(uint32_t));
+    current = ip_checksum_add(current, &(ip4->ip_dst), sizeof(uint32_t));
     current = ip_checksum_add(current, &temp_protocol, sizeof(uint16_t));
     current = ip_checksum_add(current, &temp_length, sizeof(uint16_t));
 

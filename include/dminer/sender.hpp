@@ -1,7 +1,12 @@
 #pragma once
 
 #include <netinet/ip.h>
+#ifdef __APPLE__
+#include <net/if.h>
+#include <net/ndrv.h>
+#elif __linux__
 #include <netpacket/packet.h>
+#endif
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 #include <tins/tins.h>
@@ -32,9 +37,14 @@ class Sender {
   Sender(const Tins::NetworkInterface &interface, const std::string &protocol)
       : buffer_{},
         l4_protocol_{l4_protocols.at(protocol)},
-        socket_{AF_PACKET, SOCK_DGRAM, htons(ETH_P_ALL)},
-        dst_mac_v4_{},
-        dst_mac_v6_{},
+#ifdef __APPLE__
+        socket_{AF_NDRV, SOCK_RAW, 0},
+#elif __linux__
+        socket_{AF_PACKET, SOCK_RAW, 0},
+#endif
+        if_{},
+        src_mac_{},
+        dst_mac_{},
         src_ip_v4{},
         src_ip_v6{} {
     // Find the IPv4/v6 gateway.
@@ -49,33 +59,39 @@ class Sender {
           e.what());
     }
 
-    // Set the IPv4 destination MAC address.
-    std::copy(gateway_mac.begin(), gateway_mac.end(), dst_mac_v4_.sll_addr);
-    dst_mac_v4_.sll_family = AF_PACKET;
-    dst_mac_v4_.sll_halen = ETHER_ADDR_LEN;
-    dst_mac_v4_.sll_ifindex = interface.id();
-    dst_mac_v4_.sll_protocol = htons(ETH_P_IP);
+    // Set the source/destination MAC addresses.
+    auto if_mac = interface.hw_address();
+    std::copy(if_mac.begin(), if_mac.end(), src_mac_.begin());
+    std::copy(gateway_mac.begin(), gateway_mac.end(), dst_mac_.begin());
 
-    // Set the IPv6 destination MAC address.
-    std::copy(gateway_mac.begin(), gateway_mac.end(), dst_mac_v6_.sll_addr);
-    dst_mac_v6_.sll_family = AF_PACKET;
-    dst_mac_v6_.sll_halen = ETHER_ADDR_LEN;
-    dst_mac_v6_.sll_ifindex = interface.id();
-    dst_mac_v6_.sll_protocol = htons(ETH_P_IPV6);
+    // Initialize the source interface kernel structures.
+#ifdef __APPLE__
+    auto if_name = interface.name();
+    std::copy(if_name.begin(), if_name.end(), if_.snd_name);
+    if_.snd_family = AF_NDRV;
+    if_.snd_len = sizeof(sockaddr_ndrv);
+    socket_.bind(&if_);
+#elif __linux__
+    std::copy(dst_mac_.begin(), dst_mac_.end(), if_.sll_addr);
+    if_.sll_family = AF_PACKET;
+    if_.sll_halen = ETHER_ADDR_LEN;
+    if_.sll_ifindex = interface.id();
+    if_.sll_protocol = 0;
+#endif
 
-    // Set the IPv4 source IP address.
+    // Set the source IPv4 address.
     src_ip_v4.sin_family = AF_INET;
     inet_pton(AF_INET,
               Utilities::source_ipv4_for(interface).to_string().c_str(),
               &src_ip_v4.sin_addr);
 
-    // Set the IPv6 source IP address.
+    // Set the source IPv6 address.
     src_ip_v6.sin6_family = AF_INET6;
     inet_pton(AF_INET6,
               Utilities::source_ipv6_for(interface).to_string().c_str(),
               &src_ip_v6.sin6_addr);
 
-    spdlog::info("dst_mac_v4={} dst_mac_v6={}", dst_mac_v4_, dst_mac_v6_);
+    spdlog::info("dst_mac={:02x}", fmt::join(dst_mac_, ":"));
     spdlog::info("src_ip_v4={} src_ip_v6={}", src_ip_v4.sin_addr,
                  src_ip_v6.sin6_addr);
   }
@@ -92,9 +108,11 @@ class Sender {
     std::fill(packet.begin(), packet.end(), std::byte{0});
 
     if (is_v4) {
+      Builder::Ethernet::init(packet, ETHERTYPE_IP, src_mac_, dst_mac_);
       Builder::IP::init(packet, l4_protocol_, src_ip_v4.sin_addr,
                         probe.sockaddr4().sin_addr, probe.ttl);
     } else {
+      Builder::Ethernet::init(packet, ETHERTYPE_IPV6, src_mac_, dst_mac_);
       Builder::IP::init(packet, l4_protocol_, src_ip_v6.sin6_addr,
                         probe.sockaddr6().sin6_addr, probe.ttl);
     }
@@ -121,16 +139,20 @@ class Sender {
         break;
     }
 
-    socket_.sendto(packet.l3(), packet.l3_size(), 0,
-                   is_v4 ? &dst_mac_v4_ : &dst_mac_v6_);
+    socket_.sendto(packet.l2(), packet.l2_size(), 0, &if_);
   }
 
  private:
   std::array<std::byte, 65536> buffer_;
   uint8_t l4_protocol_;
   Socket socket_;
-  sockaddr_ll dst_mac_v4_;
-  sockaddr_ll dst_mac_v6_;
+#ifdef __APPLE__
+  sockaddr_ndrv if_;
+#elif __linux__
+  sockaddr_ll if_;
+#endif
+  std::array<uint8_t, ETHER_ADDR_LEN> src_mac_;
+  std::array<uint8_t, ETHER_ADDR_LEN> dst_mac_;
   sockaddr_in src_ip_v4;
   sockaddr_in6 src_ip_v6;
 };

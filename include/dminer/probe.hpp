@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 
+#include "constants.hpp"
 #include "utilities.hpp"
 
 namespace dminer {
@@ -69,7 +70,8 @@ struct Probe {
             probe.dst_addr.s6_addr32[0] = 0;
             probe.dst_addr.s6_addr32[1] = 0;
             probe.dst_addr.s6_addr32[2] = 0xFFFF0000U;
-            probe.dst_addr.s6_addr32[3] = Utilities::htonl(std::stoul(token));
+            probe.dst_addr.s6_addr32[3] =
+                Utilities::hton<uint32_t>(std::stoul(token));
           }
           break;
         case 1:
@@ -99,7 +101,7 @@ struct Probe {
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = dst_addr.s6_addr32[3];
-    addr.sin_port = Utilities::htons(dst_port);
+    addr.sin_port = Utilities::hton<uint16_t>(dst_port);
     return addr;
   }
 
@@ -107,7 +109,7 @@ struct Probe {
     sockaddr_in6 addr{};
     addr.sin6_family = AF_INET6;
     addr.sin6_addr = dst_addr;
-    addr.sin6_port = Utilities::htons(dst_port);
+    addr.sin6_port = Utilities::hton<uint16_t>(dst_port);
     addr.sin6_flowinfo = 0;
     addr.sin6_scope_id = 0;
     return addr;

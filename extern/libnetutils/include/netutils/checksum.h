@@ -27,7 +27,7 @@ uint16_t ip_checksum_finish(uint32_t temp_sum);
 uint16_t ip_checksum(const void* data, int len);
 
 uint32_t ipv6_pseudo_header_checksum(const struct ip6_hdr* ip6, uint32_t len, uint8_t protocol);
-uint32_t ipv4_pseudo_header_checksum(const struct iphdr* ip, uint16_t len);
+uint32_t ipv4_pseudo_header_checksum(const struct ip* ip4, uint16_t len);
 
 uint16_t ip_checksum_adjust(uint16_t checksum, uint32_t old_hdr_sum, uint32_t new_hdr_sum);
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <netinet/ether.h>
+#include <net/ethernet.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/tcp.h>
@@ -10,6 +10,8 @@ extern "C" {
 #include <netutils/checksum.h>
 }
 
+#include <algorithm>
+#include <array>
 #include <span>
 
 #include "constants.hpp"
@@ -26,7 +28,7 @@ namespace dminer::Builder {
   // (1) Sum the pseudo header.
   uint32_t current = 0;
   if (packet.l3_protocol() == IPPROTO_IP) {
-    const auto ip_header = reinterpret_cast<iphdr *>(packet.l3());
+    const auto ip_header = reinterpret_cast<ip *>(packet.l3());
     current = ipv4_pseudo_header_checksum(
         ip_header, Utilities::cast<uint16_t>(packet.l4_size()));
   } else {
@@ -53,10 +55,24 @@ namespace dminer::Builder {
   if (target_le < original_le) {
     target_le += 0xFFFFU;
   }
-  return Utilities::htons(target_le - original_le);
+  return Utilities::hton<uint16_t>(target_le - original_le);
 }
 
 }  // namespace dminer::Builder
+
+/// Build the probes link-layer header.
+namespace dminer::Builder::Ethernet {
+
+inline void init(Packet packet, const uint16_t protocol,
+                 const std::array<uint8_t, ETHER_ADDR_LEN> &src_addr,
+                 const std::array<uint8_t, ETHER_ADDR_LEN> &dst_addr) {
+  auto eth_header = reinterpret_cast<ether_header *>(packet.l2());
+  std::copy(src_addr.begin(), src_addr.end(), eth_header->ether_shost);
+  std::copy(dst_addr.begin(), dst_addr.end(), eth_header->ether_dhost);
+  eth_header->ether_type = Utilities::hton<uint16_t>(protocol);
+}
+
+}  // namespace dminer::Builder::Ethernet
 
 /// Build IP probes.
 /// In the IP header, the type of service, protocol, source and destination
@@ -88,8 +104,8 @@ inline void init(Packet packet, const uint8_t protocol, const in_addr src_addr,
   ip_header->ip_src = src_addr;
   ip_header->ip_dst = dst_addr;
   ip_header->ip_ttl = ttl;
-  ip_header->ip_id = Utilities::htons(ttl);
-  ip_header->ip_len = Utilities::htons(packet.l3_size());
+  ip_header->ip_id = Utilities::hton<uint16_t>(ttl);
+  ip_header->ip_len = Utilities::hton<uint16_t>(packet.l3_size());
   ip_header->ip_sum = 0;
   ip_header->ip_sum = ip_checksum(ip_header, sizeof(ip));
 }
@@ -108,12 +124,12 @@ inline void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
   // https://homepages.dcc.ufmg.br/~cunha/papers/almeida17pam-mda6.pdf
   // 4 bits version, 8 bits TC, 20 bits flow-ID.
   // Version = 6, TC = 0, flow-ID = 0.
-  ip_header->ip6_flow = Utilities::htonl(0x60000000U);
+  ip_header->ip6_flow = Utilities::hton<uint32_t>(0x60000000U);
   ip_header->ip6_nxt = protocol;
   ip_header->ip6_src = src_addr;
   ip_header->ip6_dst = dst_addr;
   ip_header->ip6_hops = ttl;
-  ip_header->ip6_plen = Utilities::htons(packet.l4_size());
+  ip_header->ip6_plen = Utilities::hton<uint16_t>(packet.l4_size());
 }
 
 }  // namespace dminer::Builder::IP
@@ -141,18 +157,20 @@ inline void init(Packet packet, const uint16_t target_checksum,
                                 " bytes long to allow for a custom checksum"};
   }
 
-  auto icmp_header = reinterpret_cast<icmphdr *>(packet.l4());
-  icmp_header->type = 8;  // ICMP Echo Request
-  icmp_header->code = 0;  // ICMP Echo Request
-  icmp_header->checksum = 0;
-  icmp_header->un.echo.id = Utilities::htons(target_checksum);
-  icmp_header->un.echo.sequence = Utilities::htons(target_seq);
+  auto icmp_header = reinterpret_cast<icmp *>(packet.l4());
+  icmp_header->icmp_type = 8;  // ICMP Echo Request
+  icmp_header->icmp_code = 0;  // ICMP Echo Request
+  icmp_header->icmp_cksum = 0;
+  icmp_header->icmp_hun.ih_idseq.icd_id =
+      Utilities::hton<uint16_t>(target_checksum);
+  icmp_header->icmp_hun.ih_idseq.icd_seq =
+      Utilities::hton<uint16_t>(target_seq);
 
   // Encode the flow ID in the checksum.
-  const uint16_t original_checksum = ip_checksum(icmp_header, sizeof(icmphdr));
-  *reinterpret_cast<uint16_t *>(packet.payload()) =
-      tweak_payload(original_checksum, Utilities::htons(target_checksum));
-  icmp_header->checksum = Utilities::htons(target_checksum);
+  const uint16_t original_checksum = ip_checksum(icmp_header, sizeof(icmp));
+  *reinterpret_cast<uint16_t *>(packet.payload()) = tweak_payload(
+      original_checksum, Utilities::hton<uint16_t>(target_checksum));
+  icmp_header->icmp_cksum = Utilities::hton<uint16_t>(target_checksum);
 }
 
 }  // namespace dminer::Builder::ICMP
@@ -174,7 +192,7 @@ inline void init(Packet packet) {
   //    tcp_header->th_flags |= TH_ACK;
   tcp_header->th_x2 = 0;
   tcp_header->th_flags = 0;
-  tcp_header->th_win = Utilities::htons(50);
+  tcp_header->th_win = Utilities::hton<uint16_t>(50);
   tcp_header->th_urp = 0;
 }
 
@@ -195,8 +213,8 @@ inline void set_checksum(Packet packet) {
 inline void set_ports(Packet packet, const uint16_t src_port,
                       const uint16_t dst_port) {
   auto tcp_header = reinterpret_cast<tcphdr *>(packet.l4());
-  tcp_header->th_sport = Utilities::htons(src_port);
-  tcp_header->th_dport = Utilities::htons(dst_port);
+  tcp_header->th_sport = Utilities::hton<uint16_t>(src_port);
+  tcp_header->th_dport = Utilities::hton<uint16_t>(dst_port);
 }
 
 /// Encode two 16-bit values in the 32-bit sequence field ((seq1 << 16) + seq2).
@@ -207,7 +225,7 @@ inline void set_sequence(Packet packet, const uint16_t seq1,
                          const uint16_t seq2) {
   auto tcp_header = reinterpret_cast<tcphdr *>(packet.l4());
   uint32_t seq = (static_cast<uint32_t>(seq1) << 16) + seq2;
-  tcp_header->th_seq = Utilities::htonl(seq);
+  tcp_header->th_seq = Utilities::hton<uint32_t>(seq);
 }
 
 }  // namespace dminer::Builder::TCP
@@ -247,14 +265,14 @@ inline void set_checksum(Packet packet, const uint16_t target_checksum) {
   const uint16_t original_checksum = transport_checksum(packet);
   *reinterpret_cast<uint16_t *>(packet.payload()) =
       tweak_payload(original_checksum, htons(target_checksum));
-  udp_header->uh_sum = Utilities::htons(target_checksum);
+  udp_header->uh_sum = Utilities::hton<uint16_t>(target_checksum);
 }
 
 /// Set the length in the UDP header.
 /// @param packet the packet buffer, including the IP header.
 inline void set_length(Packet packet) {
   auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
-  udp_header->len = Utilities::htons(packet.l4_size());
+  udp_header->uh_ulen = Utilities::hton<uint16_t>(packet.l4_size());
 }
 
 /// Set the ports in the UDP header.
@@ -264,8 +282,8 @@ inline void set_length(Packet packet) {
 inline void set_ports(Packet packet, const uint16_t src_port,
                       const uint16_t dst_port) {
   auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
-  udp_header->uh_sport = Utilities::htons(src_port);
-  udp_header->uh_dport = Utilities::htons(dst_port);
+  udp_header->uh_sport = Utilities::hton<uint16_t>(src_port);
+  udp_header->uh_dport = Utilities::hton<uint16_t>(dst_port);
 }
 
 }  // namespace dminer::Builder::UDP

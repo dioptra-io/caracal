@@ -26,14 +26,14 @@ template <typename Type, typename Value>
       std::to_string(std::numeric_limits<Type>::max())};
 }
 
-template <typename Value>
-[[nodiscard]] inline constexpr uint16_t htons(const Value value) {
-  return ::htons(cast<uint16_t>(value));
-}
-
-template <typename Value>
-[[nodiscard]] inline constexpr uint32_t htonl(const Value value) {
-  return ::htonl(cast<uint32_t>(value));
+// We can't name those functions htons or htonl since these are macros on macOS.
+template <typename To, typename From>
+[[nodiscard]] inline constexpr To hton(const From value) {
+  if constexpr (std::is_same<To, uint16_t>::value) {
+    return htons(cast<uint16_t>(value));
+  } else if constexpr (std::is_same<To, uint32_t>::value) {
+    return htonl(cast<uint32_t>(value));
+  }
 }
 
 [[nodiscard]] inline uint16_t stou16(const std::string& str) {
