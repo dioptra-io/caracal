@@ -4,3 +4,4 @@ build/
 debug/
 docs/
 cmake-build-*/
+.DS_Store

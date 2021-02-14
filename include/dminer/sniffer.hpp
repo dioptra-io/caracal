@@ -95,7 +95,7 @@ class Sniffer {
     }
   }
 
-  [[nodiscard]] const Statistics::Sniffer &statistics() const {
+  [[nodiscard]] const Statistics::Sniffer &statistics() const noexcept {
     return statistics_;
   }
 

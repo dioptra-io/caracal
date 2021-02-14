@@ -36,6 +36,7 @@ class Sender {
  public:
   Sender(const Tins::NetworkInterface &interface, const std::string &protocol)
       : buffer_{},
+        l2_protocol_{L2PROTO_ETHERNET},
         l4_protocol_{l4_protocols.at(protocol)},
 #ifdef __APPLE__
         socket_{AF_NDRV, SOCK_RAW, 0},
@@ -47,9 +48,29 @@ class Sender {
         dst_mac_{},
         src_ip_v4{},
         src_ip_v6{} {
+    // Find the interface type:
+    // - Linux Ethernet link [Ethernet header -> IP header]
+    // - Linux Loopback link: same as Ethernet but with 00... MAC addresses
+    // - Linux IP link (e.g. VPN) [IP header]
+    // - macOS Ethernet link [Ethernet header -> IP header]
+    // - macOS Loopback link [BSD loopback header -> IP Header]
+#ifdef __APPLE__
+    if (interface.hw_address().to_string() == "00:00:00:00:00:00") {
+      l2_protocol_ = L2PROTO_BSDLOOPBACK;
+      spdlog::info("interface_type=bsd_loopback");
+    }
+#elif __linux__
+    if (!interface.is_loopback() &&
+        interface.hw_address().to_string() == "00:00:00:00:00:00") {
+      l2_protocol_ = L2PROTO_NONE;
+      spdlog::info("interface_type=l3");
+    }
+#endif
+
     // Find the IPv4/v6 gateway.
     Tins::HWAddress<6> gateway_mac{"00:00:00:00:00:00"};
     try {
+      spdlog::info("Resolving the gateway MAC address...");
       gateway_mac =
           Utilities::gateway_mac_for(interface, Tins::IPv4Address("8.8.8.8"));
     } catch (const std::runtime_error &e) {
@@ -103,18 +124,37 @@ class Sender {
     const uint16_t payload_length = probe.ttl + PAYLOAD_TWEAK_BYTES;
     const uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
     const uint16_t timestamp_enc = encode_timestamp(timestamp);
-    const Packet packet{buffer_, l3_protocol, l4_protocol_, payload_length};
+    const Packet packet{buffer_, l2_protocol_, l3_protocol, l4_protocol_,
+                        payload_length};
 
     std::fill(packet.begin(), packet.end(), std::byte{0});
 
-    if (is_v4) {
-      Builder::Ethernet::init(packet, ETHERTYPE_IP, src_mac_, dst_mac_);
-      Builder::IP::init(packet, l4_protocol_, src_ip_v4.sin_addr,
-                        probe.sockaddr4().sin_addr, probe.ttl);
-    } else {
-      Builder::Ethernet::init(packet, ETHERTYPE_IPV6, src_mac_, dst_mac_);
-      Builder::IP::init(packet, l4_protocol_, src_ip_v6.sin6_addr,
-                        probe.sockaddr6().sin6_addr, probe.ttl);
+    switch (l2_protocol_) {
+      case L2PROTO_BSDLOOPBACK:
+        Builder::Loopback::init(packet, is_v4);
+        break;
+
+      case L2PROTO_ETHERNET:
+        Builder::Ethernet::init(packet, is_v4, src_mac_, dst_mac_);
+        break;
+
+      default:
+        break;
+    }
+
+    switch (l3_protocol) {
+      case IPPROTO_IP:
+        Builder::IP::init(packet, l4_protocol_, src_ip_v4.sin_addr,
+                          probe.sockaddr4().sin_addr, probe.ttl);
+        break;
+
+      case IPPROTO_IPV6:
+        Builder::IP::init(packet, l4_protocol_, src_ip_v6.sin6_addr,
+                          probe.sockaddr6().sin6_addr, probe.ttl);
+        break;
+
+      default:
+        break;
     }
 
     switch (l4_protocol_) {
@@ -144,6 +184,7 @@ class Sender {
 
  private:
   std::array<std::byte, 65536> buffer_;
+  uint8_t l2_protocol_;
   uint8_t l4_protocol_;
   Socket socket_;
 #ifdef __APPLE__

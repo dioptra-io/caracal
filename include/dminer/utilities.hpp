@@ -3,46 +3,11 @@
 #include <arpa/inet.h>
 #include <tins/tins.h>
 
-#include <limits>
 #include <string>
 
+#include "constants.hpp"
+
 namespace dminer::Utilities {
-
-template <typename Type, typename Value>
-[[nodiscard]] inline constexpr Type cast(const Value value) {
-  // Compile-time fast-path if Value is included into Type.
-  if ((std::numeric_limits<Value>::min() >= std::numeric_limits<Type>::min()) &&
-      (std::numeric_limits<Value>::max() <= std::numeric_limits<Type>::max())) {
-    return static_cast<Type>(value);
-  }
-  // Runtime check otherwise.
-  if ((value >= std::numeric_limits<Type>::min()) &&
-      (value <= std::numeric_limits<Type>::max())) {
-    return static_cast<Type>(value);
-  }
-  throw std::invalid_argument{
-      "Value (" + std::to_string(value) + ") must be between " +
-      std::to_string(std::numeric_limits<Type>::min()) + " and " +
-      std::to_string(std::numeric_limits<Type>::max())};
-}
-
-// We can't name those functions htons or htonl since these are macros on macOS.
-template <typename To, typename From>
-[[nodiscard]] inline constexpr To hton(const From value) {
-  if constexpr (std::is_same<To, uint16_t>::value) {
-    return htons(cast<uint16_t>(value));
-  } else if constexpr (std::is_same<To, uint32_t>::value) {
-    return htonl(cast<uint32_t>(value));
-  }
-}
-
-[[nodiscard]] inline uint16_t stou16(const std::string& str) {
-  return cast<uint16_t>(std::stoul(str));
-}
-
-[[nodiscard]] inline uint8_t stou8(const std::string& str) {
-  return cast<uint8_t>(std::stoul(str));
-}
 
 [[nodiscard]] inline Tins::IPv4Address source_ipv4_for(
     const Tins::NetworkInterface& interface) {
@@ -74,6 +39,42 @@ template <typename To, typename From>
   Tins::PacketSender sender{interface};
   const auto gateway_ip = gateway_ip_for(destination);
   return Tins::Utils::resolve_hwaddr(gateway_ip, sender);
+}
+
+[[nodiscard]] inline std::string format_addr(const in6_addr& addr) noexcept {
+  char buf[INET6_ADDRSTRLEN] = {};
+  if (IN6_IS_ADDR_V4MAPPED(&addr)) {
+    inet_ntop(AF_INET, &addr.s6_addr32[3], buf, INET_ADDRSTRLEN);
+  } else {
+    inet_ntop(AF_INET6, &addr, buf, INET6_ADDRSTRLEN);
+  }
+  return std::string{buf};
+}
+
+inline void parse_addr(const std::string& src, in6_addr& dst) {
+  auto delim = src.find_first_of(".:");
+  if (delim != std::string::npos) {
+    if (src[delim] == ':') {
+      // IPv6 (x:x:x:x:x:x:x:x) or IPv4-mapped IPv6 (::ffff:d.d.d.d)
+      if (inet_pton(AF_INET6, src.c_str(), &dst) != 1) {
+        throw std::runtime_error("Invalid IPv6 or IPv4-mapped address: " + src);
+      }
+    } else {
+      // IPv4 dotted (d.d.d.d)
+      dst.s6_addr32[0] = 0;
+      dst.s6_addr32[1] = 0;
+      dst.s6_addr32[2] = 0xFFFF0000U;
+      if (inet_pton(AF_INET, src.c_str(), &dst.s6_addr32[3]) != 1) {
+        throw std::runtime_error("Invalid IPv4 address: " + src);
+      }
+    }
+  } else {
+    // IPv4 uint32
+    dst.s6_addr32[0] = 0;
+    dst.s6_addr32[1] = 0;
+    dst.s6_addr32[2] = 0xFFFF0000U;
+    dst.s6_addr32[3] = htonl(std::stoul(src));
+  }
 }
 
 }  // namespace dminer::Utilities

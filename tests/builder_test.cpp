@@ -8,6 +8,7 @@ extern "C" {
 #include <array>
 #include <catch2/catch_test_macros.hpp>
 #include <dminer/builder.hpp>
+#include <dminer/constants.hpp>
 #include <dminer/timestamp.hpp>
 
 using dminer::encode_timestamp;
@@ -16,6 +17,7 @@ using dminer::Builder::transport_checksum;
 using std::array;
 using std::byte;
 
+namespace Ethernet = dminer::Builder::Ethernet;
 namespace ICMP = dminer::Builder::ICMP;
 namespace IP = dminer::Builder::IP;
 namespace TCP = dminer::Builder::TCP;
@@ -66,8 +68,10 @@ TEST_CASE("Builder::ICMP") {
   uint16_t timestamp_enc = encode_timestamp(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, IPPROTO_IP, IPPROTO_ICMP, payload_len};
+  Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_ICMP,
+                payload_len};
 
+  Ethernet::init(packet, true, {0}, {0});
   IP::init(packet, IPPROTO_ICMP, src_addr, dst_addr, ttl);
   ICMP::init(packet, flow_id, timestamp_enc);
 
@@ -96,8 +100,9 @@ TEST_CASE("Builder::TCP") {
   uint16_t timestamp_enc = encode_timestamp(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, IPPROTO_IP, IPPROTO_TCP, payload_len};
+  Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_TCP, payload_len};
 
+  Ethernet::init(packet, true, {0}, {0});
   IP::init(packet, IPPROTO_TCP, src_addr, dst_addr, ttl);
   TCP::init(packet);
   TCP::set_ports(packet, src_port, dst_port);
@@ -130,8 +135,9 @@ TEST_CASE("Builder::UDP/v4") {
   uint16_t timestamp_enc = encode_timestamp(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, IPPROTO_IP, IPPROTO_UDP, payload_len};
+  Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_UDP, payload_len};
 
+  Ethernet::init(packet, true, {0}, {0});
   IP::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
   UDP::set_length(packet);
   UDP::set_ports(packet, src_port, dst_port);
@@ -162,8 +168,10 @@ TEST_CASE("Builder::UDP/v6") {
   uint16_t timestamp_enc = encode_timestamp(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, IPPROTO_IPV6, IPPROTO_UDP, payload_len};
+  Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IPV6, IPPROTO_UDP,
+                payload_len};
 
+  Ethernet::init(packet, true, {0}, {0});
   IP::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
   UDP::set_length(packet);
   UDP::set_ports(packet, src_port, dst_port);

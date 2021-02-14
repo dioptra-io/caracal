@@ -29,7 +29,7 @@ class RateLimiter {
     statistics_ = Statistics::RateLimiter{target_delta_};
   }
 
-  void wait() {
+  void wait() noexcept {
     curr_tp_ = steady_clock::now();
     current_delta_ = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
     statistics_.log_inter_call_delta(current_delta_);
@@ -56,11 +56,11 @@ class RateLimiter {
     last_tp_ = steady_clock::now();
   }
 
-  [[nodiscard]] const Statistics::RateLimiter &statistics() const {
+  [[nodiscard]] const Statistics::RateLimiter &statistics() const noexcept {
     return statistics_;
   }
 
-  [[nodiscard]] static nanoseconds sleep_precision() {
+  [[nodiscard]] static nanoseconds sleep_precision() noexcept {
     nanoseconds worst_case{0};
     for (auto i = 0; i < 5; i++) {
       auto start = steady_clock::now();
@@ -71,7 +71,7 @@ class RateLimiter {
     return worst_case;
   }
 
-  [[nodiscard]] static bool test(uint64_t target_rate) {
+  [[nodiscard]] static bool test(uint64_t target_rate) noexcept {
     RateLimiter rl{target_rate};
     auto start = steady_clock::now();
     for (unsigned int i = 0; i < target_rate; i++) {

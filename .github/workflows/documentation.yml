@@ -1,8 +1,7 @@
 name: Documentation
 on:
   push:
-    branches: ['refactor']
-    # branches: ['master']
+    branches: ['master']
 jobs:
   build:
     runs-on: ubuntu-latest

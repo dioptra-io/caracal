@@ -54,7 +54,9 @@ struct Reply {
   /// @}
 
   /// The /24 destination prefix, computed from \ref inner_dst_ip.
-  [[nodiscard]] uint32_t prefix() const { return (inner_dst_ip >> 8) << 8; }
+  [[nodiscard]] uint32_t prefix() const noexcept {
+    return (inner_dst_ip >> 8) << 8;
+  }
 
   /// Serialize the reply in the CSV format.
   /// @param include_rtt sets the RTT field to -1.0 if false.

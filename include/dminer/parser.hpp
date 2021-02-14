@@ -32,35 +32,35 @@ namespace dminer::Parser {
 using ip_hdr = ip;
 
 // TODO: Document these functions.
-inline void parse_outer(Reply& reply, const Tins::IP* ip) {
+inline void parse_outer(Reply& reply, const Tins::IP* ip) noexcept {
   reply.src_ip = be_to_host(uint32_t(ip->src_addr()));
   reply.dst_ip = be_to_host(uint32_t(ip->dst_addr()));
   reply.size = ip->tot_len();
   reply.ttl = ip->ttl();
 }
 
-inline void parse_outer(Reply& reply, const Tins::IPv6* ip) {
+inline void parse_outer(Reply& reply, const Tins::IPv6* ip) noexcept {
   // TODO
   reply.ttl = static_cast<uint8_t>(ip->hop_limit());
 }
 
-inline void parse_outer(Reply& reply, const Tins::ICMP* icmp) {
+inline void parse_outer(Reply& reply, const Tins::ICMP* icmp) noexcept {
   reply.icmp_code = icmp->code();
   reply.icmp_type = static_cast<uint8_t>(icmp->type());
 }
 
-inline void parse_outer(Reply& reply, const Tins::ICMPv6* icmp) {
+inline void parse_outer(Reply& reply, const Tins::ICMPv6* icmp) noexcept {
   reply.icmp_code = icmp->code();
   reply.icmp_type = static_cast<uint8_t>(icmp->type());
 }
 
-inline void parse_inner(Reply& reply, const Tins::IP* ip) {
+inline void parse_inner(Reply& reply, const Tins::IP* ip) noexcept {
   reply.inner_dst_ip = be_to_host(uint32_t(ip->dst_addr()));
   reply.inner_size = ip->tot_len();
   reply.inner_ttl = static_cast<uint8_t>(ip->id());
 }
 
-inline void parse_inner(Reply& reply, const Tins::IPv6* ip) {
+inline void parse_inner(Reply& reply, const Tins::IPv6* ip) noexcept {
   reply.src_ip = 0;  // TODO
   reply.dst_ip = 0;  // TODO
   reply.size = static_cast<uint16_t>(ip->size());
@@ -70,7 +70,8 @@ inline void parse_inner(Reply& reply, const Tins::IPv6* ip) {
   const uint8_t protocol = ip->next_header();
   // TODO: ICMPv6
   if (protocol == IPPROTO_ICMP) {
-    reply.inner_ttl = ip->payload_length() - ICMP_MINLEN - PAYLOAD_TWEAK_BYTES;
+    reply.inner_ttl =
+        ip->payload_length() - ICMP_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
   } else if (protocol == IPPROTO_TCP) {
     reply.inner_ttl =
         ip->payload_length() - sizeof(tcphdr) - PAYLOAD_TWEAK_BYTES;
@@ -83,7 +84,7 @@ inline void parse_inner(Reply& reply, const Tins::IPv6* ip) {
 }
 
 inline void parse_inner(Reply& reply, const Tins::ICMP* icmp,
-                        const uint64_t timestamp) {
+                        const uint64_t timestamp) noexcept {
   reply.inner_proto = IPPROTO_ICMP;
   reply.inner_src_port = icmp->id();
   reply.inner_dst_port = 0;  // Not encoded in ICMP probes.
@@ -91,7 +92,7 @@ inline void parse_inner(Reply& reply, const Tins::ICMP* icmp,
 }
 
 inline void parse_inner(Reply& /* reply */, const Tins::ICMPv6* /* icmp */,
-                        const uint64_t /* timestamp */) {
+                        const uint64_t /* timestamp */) noexcept {
   // TODO
   // reply.inner_proto = IPPROTO_ICMPV6;
   // reply.inner_src_port = icmp->id();
@@ -101,7 +102,7 @@ inline void parse_inner(Reply& /* reply */, const Tins::ICMPv6* /* icmp */,
 }
 
 inline void parse_inner(Reply& reply, const Tins::TCP* tcp,
-                        const uint64_t timestamp) {
+                        const uint64_t timestamp) noexcept {
   const auto seq1 = static_cast<uint16_t>(tcp->seq() >> 16);
   const auto seq2 = static_cast<uint16_t>(tcp->seq());
   reply.inner_proto = IPPROTO_TCP;
@@ -112,7 +113,7 @@ inline void parse_inner(Reply& reply, const Tins::TCP* tcp,
 }
 
 inline void parse_inner(Reply& reply, const Tins::UDP* udp,
-                        const uint64_t timestamp) {
+                        const uint64_t timestamp) noexcept {
   reply.inner_proto = IPPROTO_UDP;
   reply.inner_src_port = udp->sport();
   reply.inner_dst_port = udp->dport();
@@ -122,14 +123,14 @@ inline void parse_inner(Reply& reply, const Tins::UDP* udp,
 }
 
 // Retrieve the TTL encoded in the ICMP payload length.
-inline void parse_inner_ttl_icmp(Reply& reply, const Tins::IP* ip) {
+inline void parse_inner_ttl_icmp(Reply& reply, const Tins::IP* ip) noexcept {
   reply.inner_ttl_from_transport =
-      ip->tot_len() - sizeof(ip_hdr) - ICMP_MINLEN - PAYLOAD_TWEAK_BYTES;
+      ip->tot_len() - sizeof(ip_hdr) - ICMP_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
 }
 
 // TODO: Explain why this is needed.
 template <typename T>
-[[nodiscard]] optional<T> build_inner(const RawPDU* pdu) {
+[[nodiscard]] optional<T> build_inner(const RawPDU* pdu) noexcept {
   if (!pdu) {
     return nullopt;
   }
@@ -143,7 +144,8 @@ template <typename T>
 /// @param packet the packet to parse.
 /// @param estimate_rtt whether to estimate the RTT or not.
 /// @return the parsed reply.
-[[nodiscard]] inline optional<Reply> parse(const Tins::Packet& packet) {
+[[nodiscard]] inline optional<Reply> parse(
+    const Tins::Packet& packet) noexcept {
   const PDU* pdu = packet.pdu();
   if (!pdu) {
     return nullopt;

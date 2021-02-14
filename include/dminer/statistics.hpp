@@ -18,24 +18,26 @@ class CircularArray {
   using size_type = typename array_type::size_type;
   using const_iterator = typename array_type::const_iterator;
 
-  void push_back(T val) {
+  void push_back(T val) noexcept {
     values_[cursor_ % N] = val;
     cursor_++;
   }
 
-  [[nodiscard]] T accumulate() const {
+  [[nodiscard]] T accumulate() const noexcept {
     return std::accumulate(begin(), end(), T());
   }
 
-  [[nodiscard]] T average() const {
+  [[nodiscard]] T average() const noexcept {
     return size() > 0 ? (accumulate() / size()) : 0;
   }
 
-  [[nodiscard]] size_type size() const { return std::min(N, cursor_); }
+  [[nodiscard]] size_type size() const noexcept { return std::min(N, cursor_); }
 
-  [[nodiscard]] const_iterator begin() const { return values_.begin(); }
+  [[nodiscard]] const_iterator begin() const noexcept {
+    return values_.begin();
+  }
 
-  [[nodiscard]] const_iterator end() const {
+  [[nodiscard]] const_iterator end() const noexcept {
     return std::next(begin(), size());
   }
 
@@ -68,22 +70,22 @@ inline std::ostream& operator<<(std::ostream& os, Prober const& v) {
 struct RateLimiter {
   RateLimiter() : target_delta_{}, effective_{}, inter_call_{} {};
 
-  explicit RateLimiter(nanoseconds target_delta)
+  explicit RateLimiter(nanoseconds target_delta) noexcept
       : target_delta_{target_delta}, effective_{}, inter_call_{} {};
 
-  void log_effective_delta(nanoseconds delta) {
+  void log_effective_delta(nanoseconds delta) noexcept {
     effective_.push_back(delta.count());
   }
 
-  void log_inter_call_delta(nanoseconds delta) {
+  void log_inter_call_delta(nanoseconds delta) noexcept {
     inter_call_.push_back(delta.count());
   }
 
-  [[nodiscard]] double average_utilization() const {
+  [[nodiscard]] double average_utilization() const noexcept {
     return inter_call_.average() / target_delta_.count();
   }
 
-  [[nodiscard]] double average_rate() const {
+  [[nodiscard]] double average_rate() const noexcept {
     const auto average = effective_.average();
     return average > 0 ? (nanoseconds::period::den / average) : 0;
   }

@@ -7,26 +7,13 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string_view>
 
+#include "checked.hpp"
 #include "constants.hpp"
 #include "utilities.hpp"
 
 namespace dminer {
-
-// TODO: Remove this.
-// Quick hack from https://stackoverflow.com/a/966497,
-// to make tests pass, since inet_pton returns an error
-// on Linux when the address contains leading zeros.
-// e.g. 008.008.008.008 => 8.8.8.8.
-[[nodiscard]] inline std::string remove_leading_zeros(std::string s) {
-  std::replace(s.begin(), s.end(), '.', ' ');
-  std::istringstream iss(s);
-  int a, b, c, d;
-  iss >> a >> b >> c >> d;
-  std::ostringstream oss;
-  oss << a << '.' << b << '.' << c << '.' << d;
-  return oss.str();
-}
 
 /// A traceroute probe specification.
 struct Probe {
@@ -35,53 +22,24 @@ struct Probe {
   uint16_t dst_port;  ///< Destination port (host order)
   uint8_t ttl;        ///< Time-to-live
 
-  [[nodiscard]] bool operator==(const Probe &other) const {
-    return IN6_ARE_ADDR_EQUAL(&dst_addr, &other.dst_addr) &&
-           (src_port == other.src_port) && (dst_port == other.dst_port) &&
-           (ttl == other.ttl);
-  }
-
-  // TODO: from_csv(line, protocol).
   [[nodiscard]] static Probe from_csv(const std::string &line) {
     Probe probe{};
-    int index = 0;
-    std::istringstream lstream{line};
+    std::istringstream iss{line};
     std::string token;
-    while (std::getline(lstream, token, ',')) {
+    int index = 0;
+    while (std::getline(iss, token, ',')) {
       switch (index) {
         case 0:
-          // TODO: Move this parsing to utilities.
-          // IPv6 (x:x:x:x:x:x:x:x) or IPv4-mapped IPv6 (::ffff:d.d.d.d)
-          if (std::find(token.begin(), token.end(), ':') != token.end()) {
-            if (inet_pton(AF_INET6, token.c_str(), &probe.dst_addr) != 1) {
-              throw std::runtime_error("Invalid IPv6 or IPv4-mapped address: " +
-                                       token);
-            }
-            // IPv4 dotted (d.d.d.d)
-          } else if (std::find(token.begin(), token.end(), '.') !=
-                     token.end()) {
-            token = remove_leading_zeros(token);
-            if (inet_pton(AF_INET6, ("::ffff:" + token).c_str(),
-                          &probe.dst_addr) != 1) {
-              throw std::runtime_error("Invalid IPv4 addresss: " + token);
-            }
-          } else {
-            // IPv4 uint32
-            probe.dst_addr.s6_addr32[0] = 0;
-            probe.dst_addr.s6_addr32[1] = 0;
-            probe.dst_addr.s6_addr32[2] = 0xFFFF0000U;
-            probe.dst_addr.s6_addr32[3] =
-                Utilities::hton<uint32_t>(std::stoul(token));
-          }
+          Utilities::parse_addr(token, probe.dst_addr);
           break;
         case 1:
-          probe.src_port = Utilities::stou16(token);
+          probe.src_port = Checked::stou16(token);
           break;
         case 2:
-          probe.dst_port = Utilities::stou16(token);
+          probe.dst_port = Checked::stou16(token);
           break;
         case 3:
-          probe.ttl = Utilities::stou8(token);
+          probe.ttl = Checked::stou8(token);
           break;
         default:
           break;
@@ -94,53 +52,47 @@ struct Probe {
     return probe;
   }
 
-  [[nodiscard]] bool v4() const { return IN6_IS_ADDR_V4MAPPED(&dst_addr); }
+  [[nodiscard]] std::string to_csv() const noexcept {
+    auto addr = Utilities::format_addr(dst_addr);
+    return fmt::format("{},{},{},{}", addr, src_port, dst_port, ttl);
+  }
 
-  // TODO: Remove?
-  [[nodiscard]] sockaddr_in sockaddr4() const {
+  [[nodiscard]] bool operator==(const Probe &other) const noexcept {
+    return IN6_ARE_ADDR_EQUAL(&dst_addr, &other.dst_addr) &&
+           (src_port == other.src_port) && (dst_port == other.dst_port) &&
+           (ttl == other.ttl);
+  }
+
+  [[nodiscard]] bool v4() const noexcept {
+    return IN6_IS_ADDR_V4MAPPED(&dst_addr);
+  }
+
+  [[nodiscard]] sockaddr_in sockaddr4() const noexcept {
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = dst_addr.s6_addr32[3];
-    addr.sin_port = Utilities::hton<uint16_t>(dst_port);
+    addr.sin_port = htons(dst_port);
     return addr;
   }
 
-  [[nodiscard]] sockaddr_in6 sockaddr6() const {
+  [[nodiscard]] sockaddr_in6 sockaddr6() const noexcept {
     sockaddr_in6 addr{};
     addr.sin6_family = AF_INET6;
     addr.sin6_addr = dst_addr;
-    addr.sin6_port = Utilities::hton<uint16_t>(dst_port);
+    addr.sin6_port = htons(dst_port);
     addr.sin6_flowinfo = 0;
     addr.sin6_scope_id = 0;
     return addr;
   }
-
-  [[nodiscard]] std::string to_csv() const {
-    return fmt::format("{},{},{},{}", human_dst_addr(), src_port, dst_port,
-                       ttl);
-  }
-
-  [[nodiscard]] std::string human_dst_addr() const {
-    // TODO: Always print the v6 address?
-    char buf[INET6_ADDRSTRLEN] = {};
-    if (v4()) {
-      inet_ntop(AF_INET, &dst_addr.s6_addr32[3], buf, INET_ADDRSTRLEN);
-    } else {
-      inet_ntop(AF_INET6, &dst_addr, buf, INET6_ADDRSTRLEN);
-    }
-    return std::string{buf};
-  }
 };
 
 inline std::ostream &operator<<(std::ostream &os, Probe const &v) {
-  // TODO: Always print the v6 address?
-  os << v.src_port << ":";
+  auto addr = Utilities::format_addr(v.dst_addr);
   if (v.v4()) {
-    os << v.human_dst_addr();
+    os << fmt::format("{}:{}:{}@{}", v.src_port, addr, v.dst_port, v.ttl);
   } else {
-    os << "[" << v.human_dst_addr() << "]";
+    os << fmt::format("{}:[{}]:{}@{}", v.src_port, addr, v.dst_port, v.ttl);
   }
-  os << ":" << v.dst_port << "@" << +v.ttl;
   return os;
 }
 

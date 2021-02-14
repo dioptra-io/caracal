@@ -7,9 +7,9 @@ using dminer::Probe;
 TEST_CASE("Probe::from_csv") {
   BENCHMARK("IPv4 dotted") { return Probe::from_csv("0.0.0.0,1,2,3"); };
 
-  BENCHMARK("IPv4 dotted and padded") {
-    return Probe::from_csv("008.008.004.004,0010,1000,050");
-  };
+  //  BENCHMARK("IPv4 dotted and padded") {
+  //    return Probe::from_csv("008.008.004.004,0010,1000,050");
+  //  };
 
   BENCHMARK("IPv4 uint32") {
     return Probe::from_csv("134743044,0010,1000,050");

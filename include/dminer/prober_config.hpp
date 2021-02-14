@@ -14,6 +14,7 @@ namespace fs = std::filesystem;
 
 namespace dminer::Prober {
 
+/// Configuration of the prober.
 struct Config {
   uint64_t n_packets = 1;
   uint64_t probing_rate = 100;
