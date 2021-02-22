@@ -26,17 +26,24 @@ class Packet {
     size_t l3_header_size;
     size_t l4_header_size;
 
+    // Pad the beginning of the packet to align on a four-byte boundary.
+    // See https://lwn.net/Articles/89597/.
+    size_t padding;
+
     switch (l2_protocol) {
       case L2PROTO_BSDLOOPBACK:
         l2_header_size = sizeof(uint32_t);
+        padding = 0;
         break;
 
       case L2PROTO_ETHERNET:
         l2_header_size = sizeof(ether_header);
+        padding = 2;
         break;
 
       case L2PROTO_NONE:
         l2_header_size = 0;
+        padding = 0;
         break;
 
       default:
@@ -73,19 +80,19 @@ class Packet {
         throw std::invalid_argument{"Unsupported L4 protocol"};
     }
 
-    if (buffer.size() < (l3_header_size + l4_header_size + payload_size)) {
-      throw std::invalid_argument{"Packet buffer is too small"};
-    }
-
     begin_ = buffer.data();
-    l2_ = begin_;
+    l2_ = begin_ + padding;
     l3_ = l2_ + l2_header_size;
     l4_ = l3_ + l3_header_size;
     payload_ = l4_ + l4_header_size;
     end_ = payload_ + payload_size;
+
+    if (buffer.size() < static_cast<uint64_t>(end_ - begin_)) {
+      throw std::invalid_argument{"Packet buffer is too small"};
+    }
   }
 
-  /// A pointer to the first byte of the packet.
+  /// A pointer to the first byte of the packet (may include padding bytes).
   [[nodiscard]] std::byte *begin() const noexcept { return begin_; }
 
   /// A pointer past the last byte of the packet.
