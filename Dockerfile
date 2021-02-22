@@ -32,6 +32,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y -q --no-install-recommends \
         libboost-program-options1.74.0 \
+        libc-bin \
         libelf1 \
         libpcap0.8 \
         zlib1g && \
