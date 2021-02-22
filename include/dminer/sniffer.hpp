@@ -68,12 +68,15 @@ class Sniffer {
       if (reply) {
         spdlog::trace(reply.value());
         statistics_.icmp_messages_all.insert(reply->src_ip);
-        if (reply->src_ip != reply->inner_dst_ip) {
+        if ((reply->icmp_code == 11) &&
+            (reply->src_ip != reply->inner_dst_ip)) {
           statistics_.icmp_messages_path.insert(reply->src_ip);
         }
         output_csv_ << fmt::format("{},{},{}\n", reply->to_csv(),
                                    meta_round_.value_or("1"), "1");
       } else {
+        auto data = packet.pdu()->serialize();
+        spdlog::warn("invalid_packet_hex={:02x}", fmt::join(data, ""));
         statistics_.received_invalid_count++;
       }
 

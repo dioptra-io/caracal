@@ -137,7 +137,11 @@ template <typename T>
   const auto& inner_payload = pdu->payload();
   const auto inner_data = inner_payload.data();
   const auto inner_size = static_cast<uint32_t>(inner_payload.size());
-  return T(inner_data, inner_size);
+  try {
+    return T(inner_data, inner_size);
+  } catch (const Tins::malformed_packet&) {
+    return nullopt;
+  }
 }
 
 /// Parse a reply packet.
@@ -194,6 +198,9 @@ template <typename T>
         // IPv4 → ICMPv4 → IPv4 → UDP
         parse_inner(reply, inner_udp, timestamp);
       }
+    } else {
+      // Discard the packet if it doesn't contain an inner IP packet.
+      return nullopt;
     }
     // We're done for this kind of ICMP replies.
     return reply;
