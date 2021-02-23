@@ -1,13 +1,25 @@
 # Builder
-FROM ubuntu:21.04 as builder
+FROM ubuntu:20.04 as builder
+
+ENV CC=gcc-10 CXX=g++-10
 ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y -q --no-install-recommends \
+    software-properties-common && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN add-apt-repository -u ppa:ubuntu-toolchain-r/ppa && \
+    apt-get install -y -q --no-install-recommends \
+        gcc-10 g++-10 && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && \
     apt-get install -y -q --no-install-recommends \
         build-essential \
         cmake \
         gcovr \
-        libboost-program-options1.74-dev \
+        libboost-program-options1.71-dev \
         libelf1 \
         libpcap0.8-dev \
         zlib1g-dev && \
@@ -26,12 +38,12 @@ RUN mkdir -p /tmp/build/release && \
     cmake --build . --target diamond-miner-prober --parallel 8
 
 # Main
-FROM ubuntu:21.04
+FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y -q --no-install-recommends \
-        libboost-program-options1.74.0 \
+        libboost-program-options1.71.0 \
         libc-bin \
         libelf1 \
         libpcap0.8 \
