@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <dminer/probe.hpp>
 #include <dminer/utilities.hpp>
+#include <sstream>
 
 using dminer::Probe;
 using dminer::Utilities::format_addr;

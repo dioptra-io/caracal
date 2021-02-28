@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     ("input-file,i", po::value<string>()->value_name("file"), "File containing the probes to send")
     ("output-file-csv,o", po::value<string>()->value_name("file"), "File to which the captured replies will be written")
     ("output-file-pcap", po::value<string>()->value_name("file"), "File to which the captured replies will be written")
-    ("protocol,p", po::value<string>()->value_name("protocol")->default_value(config.protocol), "Protocol to use for probing (udp, tcp)")
+    ("protocol,p", po::value<string>()->value_name("protocol")->default_value(config.protocol), "Protocol to use for probing (icmp, tcp, udp)")
     ("probing-rate,r", po::value<int>()->value_name("pps")->default_value(config.probing_rate), "Probing rate in packets per second")
     ("interface,z", po::value<string>()->value_name("interface")->default_value(config.interface.name()), "Interface from which to send the packets")
     ("sniffer-buffer-size,B", po::value<int>()->value_name("kilobytes")->default_value(config.sniffer_buffer_size), "Size of the sniffer buffer in kB (equivalent of -B option in tcpdump)")

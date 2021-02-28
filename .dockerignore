@@ -1,4 +1,5 @@
 *
+!apps/
 !cmake/
 !data/
 !extern/

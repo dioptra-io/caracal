@@ -13,49 +13,55 @@ find_package(Tins REQUIRED)
 find_package(Threads REQUIRED)
 
 option(WITH_COVERAGE "Enable code coverage" OFF)
+option(WITH_LTO "Enable link time optimization" OFF)
 option(WITH_SANITIZER "Enable compiler sanitizers" OFF)
-configure_file(src/diamond-miner-config.h.in diamond-miner-config.h)
+configure_file(apps/diamond-miner-config.h.in diamond-miner-config.h)
 
 include(Catch)
 include(CTest)
 
+file(GLOB DMINER_LIBRARY_SOURCES src/*.cpp)
+file(GLOB DMINER_BENCH_SOURCES tests/*_bench.cpp)
+file(GLOB DMINER_TESTS_SOURCES tests/*_test.cpp)
+set(DMINER_PRIVATE_FLAGS -Wall -Wextra -pedantic)
+
 # Library
-add_library(diamond-miner INTERFACE)
-target_compile_features(diamond-miner INTERFACE cxx_std_20)
-target_include_directories(diamond-miner
-                           INTERFACE "${PROJECT_SOURCE_DIR}/include")
+add_library(diamond-miner ${DMINER_LIBRARY_SOURCES})
+target_compile_features(diamond-miner PUBLIC cxx_std_20)
+target_compile_options(diamond-miner PRIVATE ${DMINER_PRIVATE_FLAGS})
+target_include_directories(diamond-miner PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
-  diamond-miner INTERFACE NetUtils::NetUtils Patricia::Patricia tins
-                          spdlog::spdlog Threads::Threads)
+  diamond-miner PRIVATE NetUtils::NetUtils Patricia::Patricia spdlog::spdlog
+                        Threads::Threads)
+target_link_libraries(diamond-miner PUBLIC tins)
 
 # Executable (Prober)
-add_executable(diamond-miner-prober src/diamond-miner-prober.cpp)
-target_compile_options(diamond-miner-prober PRIVATE -Wall -Wextra -pedantic)
+add_executable(diamond-miner-prober apps/diamond-miner-prober.cpp)
+target_compile_options(diamond-miner-prober PRIVATE ${DMINER_PRIVATE_FLAGS})
 target_include_directories(diamond-miner-prober PRIVATE "${PROJECT_BINARY_DIR}")
 target_link_libraries(diamond-miner-prober PRIVATE Boost::program_options
-                                                   diamond-miner)
+                                                   spdlog::spdlog diamond-miner)
 
 # Executable (Reader)
-add_executable(diamond-miner-reader src/diamond-miner-reader.cpp)
-target_compile_options(diamond-miner-reader PRIVATE -Wall -Wextra -pedantic)
+add_executable(diamond-miner-reader apps/diamond-miner-reader.cpp)
+target_compile_options(diamond-miner-reader PRIVATE ${DMINER_PRIVATE_FLAGS})
 target_include_directories(diamond-miner-reader PRIVATE "${PROJECT_BINARY_DIR}")
 target_link_libraries(diamond-miner-reader PRIVATE Boost::program_options
-                                                   diamond-miner)
+                                                   spdlog::spdlog diamond-miner)
 
 # Executable (Benchmarks)
-file(GLOB BENCH_SOURCES tests/*_bench.cpp)
-add_executable(diamond-miner-bench ${BENCH_SOURCES})
-target_compile_options(diamond-miner-bench PRIVATE -Wall -Wextra -pedantic)
+add_executable(diamond-miner-bench ${DMINER_BENCH_SOURCES})
+target_compile_options(diamond-miner-bench PRIVATE ${DMINER_PRIVATE_FLAGS})
 target_link_libraries(diamond-miner-bench PRIVATE Catch2::Catch2WithMain
                                                   diamond-miner)
 catch_discover_tests(diamond-miner-bench)
 
 # Executable (Tests)
-file(GLOB TESTS_SOURCES tests/*_test.cpp)
-add_executable(diamond-miner-tests ${TESTS_SOURCES})
-target_compile_options(diamond-miner-tests PRIVATE -Wall -Wextra -pedantic)
-target_link_libraries(diamond-miner-tests PRIVATE Catch2::Catch2WithMain
-                                                  diamond-miner)
+add_executable(diamond-miner-tests ${DMINER_TESTS_SOURCES})
+target_compile_options(diamond-miner-tests PRIVATE ${DMINER_PRIVATE_FLAGS})
+target_link_libraries(
+  diamond-miner-tests PRIVATE Catch2::Catch2WithMain NetUtils::NetUtils
+                              spdlog::spdlog diamond-miner)
 catch_discover_tests(diamond-miner-tests)
 
 if(WITH_COVERAGE)
@@ -67,9 +73,21 @@ if(WITH_COVERAGE)
     EXECUTABLE
     diamond-miner-tests
     EXCLUDE
+    "${PROJECT_SOURCE_DIR}/apps/*"
     "${PROJECT_SOURCE_DIR}/extern/*"
-    "${PROJECT_SOURCE_DIR}/src/*"
     "${PROJECT_SOURCE_DIR}/tests/*")
+endif()
+
+if(WITH_LTO)
+  set_property(TARGET diamond-miner PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET diamond-miner-bench PROPERTY INTERPROCEDURAL_OPTIMIZATION
+                                                   TRUE)
+  set_property(TARGET diamond-miner-prober PROPERTY INTERPROCEDURAL_OPTIMIZATION
+                                                    TRUE)
+  set_property(TARGET diamond-miner-reader PROPERTY INTERPROCEDURAL_OPTIMIZATION
+                                                    TRUE)
+  set_property(TARGET diamond-miner-tests PROPERTY INTERPROCEDURAL_OPTIMIZATION
+                                                   TRUE)
 endif()
 
 if(WITH_SANITIZER)

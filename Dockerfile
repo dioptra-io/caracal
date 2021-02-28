@@ -34,7 +34,7 @@ RUN mkdir -p /tmp/build/debug && \
 
 RUN mkdir -p /tmp/build/release && \
     cd /tmp/build/release && \
-    cmake -DCMAKE_BUILD_TYPE=Release ../.. && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DWITH_LTO=ON ../.. && \
     cmake --build . --target diamond-miner-prober --parallel 8
 
 # Main
@@ -48,11 +48,7 @@ RUN apt-get update && \
         libelf1 \
         libpcap0.8 \
         zlib1g && \
-    rm -rf /var/lib/apt/lists/* && \
-    # Remove unneeded files
-    rm -rf /usr/include && \
-    rm -rf /usr/src && \
-    rm -rf /usr/share/doc
+    rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /tmp/build/release/diamond-miner-prober /usr/bin/diamond-miner-prober
 ENTRYPOINT ["diamond-miner-prober"]

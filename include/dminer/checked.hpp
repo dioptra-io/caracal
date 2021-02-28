@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 
 #include <limits>
+#include <stdexcept>
 #include <string>
 
 /// Common numerical functions with exceptions on invalid inputs.
@@ -12,28 +13,28 @@ namespace dminer::Checked {
 /// fit.
 /// If the value type is included in the destination type, then this is
 /// equivalent to a static_cast.
-/// @tparam Type the destination type.
-/// @tparam Value the source type.
+/// @tparam To the destination type.
+/// @tparam From the source type.
 /// @param value the value to cast.
 /// @return the value casted to the destination type.
-template <typename Type, typename Value>
-[[nodiscard]] inline constexpr Type numeric_cast(const Value value) {
+template <typename To, typename From>
+[[nodiscard]] inline constexpr To numeric_cast(const From value) {
   // Compile-time fast-path if Value is included into Type.
-  if constexpr ((std::numeric_limits<Value>::min() >=
-                 std::numeric_limits<Type>::min()) &&
-                (std::numeric_limits<Value>::max() <=
-                 std::numeric_limits<Type>::max())) {
-    return static_cast<Type>(value);
+  if constexpr ((std::numeric_limits<From>::min() >=
+                 std::numeric_limits<To>::min()) &&
+                (std::numeric_limits<From>::max() <=
+                 std::numeric_limits<To>::max())) {
+    return static_cast<To>(value);
   }
   // Dynamic check otherwise.
-  if ((value >= std::numeric_limits<Type>::min()) &&
-      (value <= std::numeric_limits<Type>::max())) {
-    return static_cast<Type>(value);
+  if ((value >= std::numeric_limits<To>::min()) &&
+      (value <= std::numeric_limits<To>::max())) {
+    return static_cast<To>(value);
   }
   throw std::invalid_argument{
       "Value (" + std::to_string(value) + ") must be between " +
-      std::to_string(std::numeric_limits<Type>::min()) + " and " +
-      std::to_string(std::numeric_limits<Type>::max())};
+      std::to_string(std::numeric_limits<To>::min()) + " and " +
+      std::to_string(std::numeric_limits<To>::max())};
 }
 
 /// Cast value and convert endianness from host order to network order.

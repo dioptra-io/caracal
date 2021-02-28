@@ -1,11 +1,6 @@
 #pragma once
 
-#include <arpa/inet.h>
-#include <spdlog/fmt/fmt.h>
-
 #include <string>
-
-#include "dminer/pretty.hpp"
 
 namespace dminer {
 
@@ -54,37 +49,14 @@ struct Reply {
   /// @}
 
   /// The /24 destination prefix, computed from \ref inner_dst_ip.
-  [[nodiscard]] uint32_t prefix() const noexcept {
-    return (inner_dst_ip >> 8) << 8;
-  }
+  [[nodiscard]] uint32_t prefix() const noexcept;
 
   /// Serialize the reply in the CSV format.
   /// @param include_rtt sets the RTT field to -1.0 if false.
   /// @return the reply in CSV format.
-  [[nodiscard]] std::string to_csv(const bool include_rtt = true) const {
-    return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{:.1f},{},{}", dst_ip,
-                       prefix(), inner_dst_ip, src_ip, inner_proto,
-                       inner_src_port, inner_dst_port, inner_ttl,
-                       inner_ttl_from_transport, icmp_type, icmp_code,
-                       include_rtt ? rtt : -1.0, ttl, size);
-  }
+  [[nodiscard]] std::string to_csv(bool include_rtt = true) const;
 };
 
-inline std::ostream& operator<<(std::ostream& os, Reply const& v) {
-  os << "src_ip=" << in_addr{htonl(v.src_ip)};
-  os << " dst_ip=" << in_addr{htonl(v.dst_ip)};
-  os << " ttl=" << +v.ttl;
-  os << " icmp_code=" << +v.icmp_code;
-  os << " icmp_type=" << +v.icmp_type;
-  os << " inner_dst_ip=" << in_addr{htonl(v.inner_dst_ip)};
-  os << " inner_size=" << v.inner_size;
-  os << " inner_ttl=" << +v.inner_ttl;
-  os << " inner_proto=" << +v.inner_proto;
-  os << " inner_src_port=" << v.inner_src_port;
-  os << " inner_dst_port=" << v.inner_dst_port;
-  os << " inner_ttl_from_transport=" << +v.inner_ttl_from_transport;
-  os << " rtt=" << v.rtt;
-  return os;
-}
+std::ostream& operator<<(std::ostream& os, Reply const& v);
 
 }  // namespace dminer
