@@ -55,7 +55,6 @@ void init(Packet packet, const bool is_v4) {
 
 }  // namespace dminer::Builder::Loopback
 
-/// Build the Ethernet header.
 namespace dminer::Builder::Ethernet {
 
 void init(Packet packet, const bool is_v4,
@@ -69,20 +68,8 @@ void init(Packet packet, const bool is_v4,
 
 }  // namespace dminer::Builder::Ethernet
 
-/// Build IP probes.
-/// In the IP header, the type of service, protocol, source and destination
-/// address fields are used for per-flow load-balancing.
-/// We also encode the TTL in the ID field in order to retrieve it in the ICMP
-/// destination unreachable/TTL exceeded messages since the TTL field is
-/// decreased/modified at each hop.
 namespace dminer::Builder::IP {
 
-/// Init the IPv4 header.
-/// @param packet the packet buffer, including the IP header.
-/// @param protocol the L4 protocol number.
-/// @param src_addr the source IPv4 address.
-/// @param dst_addr the destination IPv4 address.
-/// @param ttl the TTL.
 void init(Packet packet, const uint8_t protocol, const in_addr src_addr,
           const in_addr dst_addr, const uint8_t ttl) {
   auto ip_header = reinterpret_cast<ip *>(packet.l3());
@@ -99,12 +86,6 @@ void init(Packet packet, const uint8_t protocol, const in_addr src_addr,
   ip_header->ip_sum = ip_checksum(ip_header, sizeof(ip));
 }
 
-/// Init the IPv6 header.
-/// @param packet the packet buffer, including the IP header.
-/// @param protocol the L4 protocol number.
-/// @param src_addr the source IPv6 address.
-/// @param dst_addr the destination IPv6 address.
-/// @param ttl the TTL.
 void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
           const in6_addr dst_addr, const uint8_t ttl) {
   auto ip_header = reinterpret_cast<ip6_hdr *>(packet.l3());
@@ -123,22 +104,11 @@ void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
 
 }  // namespace dminer::Builder::IP
 
-/// Build ICMP echo probes.
-/// In the ICMP echo header, the code and checksum fields are used for per-flow
-/// load-balancing. We encode the flow ID in the checksum field to vary the flow
-/// ID, and in the id field. We encode the timestamp in the sequence field.
-/// Since echo replies, in contrast to destination unreachable messages, doesn't
-/// contain the original probe packet (including the original TTL and flow ID),
-/// we ignore them in the packet parser.
 namespace dminer::Builder::ICMP {
 
 // TODO: ICMPv6
 // TODO: Fix checksum for ICMPv6.
 
-/// Build an ICMP echo probe.
-/// @param packet the packet buffer, including the IP header.
-/// @param target_checksum the custom ICMP checksum, in host order.
-/// @param target_seq the custom sequence field, in host order.
 void init(Packet packet, const uint16_t target_checksum,
           const uint16_t target_seq) {
   if (packet.payload_size() < PAYLOAD_TWEAK_BYTES) {
@@ -163,14 +133,8 @@ void init(Packet packet, const uint16_t target_checksum,
 
 }  // namespace dminer::Builder::ICMP
 
-/// Build TCP probes.
-/// In the TCP header, the source and destination ports are used for per-flow
-/// load-balancing. We use those for encoding the flow ID, and we encode the
-/// timestamp as well as the TTL in the 32-bit sequence field.
 namespace dminer::Builder::TCP {
 
-/// Init the TCP header.
-/// @param packet the packet buffer, including the IP header.
 void init(Packet packet) {
   auto tcp_header = reinterpret_cast<tcphdr *>(packet.l4());
   tcp_header->th_ack = 0;
@@ -184,20 +148,12 @@ void init(Packet packet) {
   tcp_header->th_urp = 0;
 }
 
-/// Compute and set the checksum in the TCP header.
-/// The packet must not be modified afterward to ensure that the checksum is
-/// valid.
-/// @param packet the packet buffer, including the IP header.
 void set_checksum(Packet packet) {
   auto tcp_header = reinterpret_cast<tcphdr *>(packet.l4());
   tcp_header->th_sum = 0;
   tcp_header->th_sum = transport_checksum(packet);
 }
 
-/// Set the ports in the TCP header.
-/// @param packet the packet buffer, including the IP header.
-/// @param src_port the source port, in host order.
-/// @param dst_port the destination port, in host order.
 void set_ports(Packet packet, const uint16_t src_port,
                const uint16_t dst_port) {
   auto tcp_header = reinterpret_cast<tcphdr *>(packet.l4());
@@ -205,10 +161,6 @@ void set_ports(Packet packet, const uint16_t src_port,
   tcp_header->th_dport = htons(dst_port);
 }
 
-/// Encode two 16-bit values in the 32-bit sequence field ((seq1 << 16) + seq2).
-/// @param packet the packet buffer, including the IP header.
-/// @param seq1 the first value to encode, in host order.
-/// @param seq2 the second value to encode, in host order.
 void set_sequence(Packet packet, const uint16_t seq1, const uint16_t seq2) {
   auto tcp_header = reinterpret_cast<tcphdr *>(packet.l4());
   uint32_t seq = (static_cast<uint32_t>(seq1) << 16) + seq2;
@@ -217,29 +169,14 @@ void set_sequence(Packet packet, const uint16_t seq1, const uint16_t seq2) {
 
 }  // namespace dminer::Builder::TCP
 
-/// Build UDP probes.
-/// In the UDP header, the source and destination ports are used for per-flow
-/// load-balancing. We use those for encoding the flow ID, and we encode the
-/// timestamp in the checksum (which doesn't affect the flow ID).
-/// The TTL is encoded in the payload length, in addition to the TTL field in
-/// the IP header. The payload is all zeros, except two bytes used to ensure
-/// that the custom checksum is valid.
 namespace dminer::Builder::UDP {
 
-/// Compute and set the checksum in the UDP header.
-/// The packet must not be modified afterward to ensure that the checksum is
-/// valid.
-/// @param packet the packet buffer, including the IP header.
 void set_checksum(Packet packet) {
   auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
   udp_header->uh_sum = 0;
   udp_header->uh_sum = transport_checksum(packet);
 }
 
-/// Set a custom checksum in the UDP header, and ensure that the checksum is
-/// valid by tweaking the payload.
-/// @param packet the packet buffer, including the IP header.
-/// @param target_checksum the custom checksum, in host order.
 void set_checksum(Packet packet, const uint16_t target_checksum) {
   if (packet.payload_size() < PAYLOAD_TWEAK_BYTES) {
     // TODO: Builder::Exception::PayloadTooSmall exception ?
@@ -255,17 +192,11 @@ void set_checksum(Packet packet, const uint16_t target_checksum) {
   udp_header->uh_sum = htons(target_checksum);
 }
 
-/// Set the length in the UDP header.
-/// @param packet the packet buffer, including the IP header.
 void set_length(Packet packet) {
   auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
   udp_header->uh_ulen = Checked::hton<uint16_t>(packet.l4_size());
 }
 
-/// Set the ports in the UDP header.
-/// @param packet the packet buffer, including the IP header.
-/// @param src_port the source port, in host order.
-/// @param dst_port the destination port, in host order.
 void set_ports(Packet packet, const uint16_t src_port,
                const uint16_t dst_port) {
   auto udp_header = reinterpret_cast<udphdr *>(packet.l4());

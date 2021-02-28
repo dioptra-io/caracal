@@ -20,10 +20,8 @@ using std::optional;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 
-/// Parse traceroute replies.
 namespace dminer::Parser {
 
-/// Alias to avoid the `ip` struct to be hidden by the `ip` variable.
 using ip_hdr = ip;
 
 void parse_outer(Reply& reply, const Tins::IP* ip) noexcept {
@@ -82,7 +80,7 @@ void parse_inner(Reply& reply, const Tins::ICMP* icmp,
   reply.inner_proto = IPPROTO_ICMP;
   reply.inner_src_port = icmp->id();
   reply.inner_dst_port = 0;  // Not encoded in ICMP probes.
-  reply.rtt = decode_difference(timestamp, icmp->sequence()) / 10.0;
+  reply.rtt = Timestamp::difference(timestamp, icmp->sequence()) / 10.0;
 }
 
 void parse_inner(Reply& /* reply */, const Tins::ICMPv6* /* icmp */,
@@ -92,7 +90,7 @@ void parse_inner(Reply& /* reply */, const Tins::ICMPv6* /* icmp */,
   // reply.inner_src_port = icmp->id();
   // reply.inner_dst_port = 0;            // Not encoded in ICMP probes.
   // reply.inner_ttl_from_transport = 0;  // Not encoded in ICMP probes.
-  // reply.rtt = decode_difference(timestamp, icmp->sequence()) / 10.0;
+  // reply.rtt = Timestamp::difference(timestamp, icmp->sequence()) / 10.0;
 }
 
 void parse_inner(Reply& reply, const Tins::TCP* tcp,
@@ -103,7 +101,7 @@ void parse_inner(Reply& reply, const Tins::TCP* tcp,
   reply.inner_src_port = tcp->sport();
   reply.inner_dst_port = tcp->dport();
   reply.inner_ttl_from_transport = static_cast<uint8_t>(seq2);
-  reply.rtt = decode_difference(timestamp, seq1) / 10.0;
+  reply.rtt = Timestamp::difference(timestamp, seq1) / 10.0;
 }
 
 void parse_inner(Reply& reply, const Tins::UDP* udp,
@@ -113,7 +111,7 @@ void parse_inner(Reply& reply, const Tins::UDP* udp,
   reply.inner_dst_port = udp->dport();
   reply.inner_ttl_from_transport =
       udp->length() - sizeof(udphdr) - PAYLOAD_TWEAK_BYTES;
-  reply.rtt = decode_difference(timestamp, udp->checksum()) / 10.0;
+  reply.rtt = Timestamp::difference(timestamp, udp->checksum()) / 10.0;
 }
 
 // Retrieve the TTL encoded in the ICMP payload length.
@@ -122,10 +120,6 @@ void parse_inner_ttl_icmp(Reply& reply, const Tins::IP* ip) noexcept {
       ip->tot_len() - sizeof(ip_hdr) - ICMP_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
 }
 
-/// Parse a reply packet.
-/// @param packet the packet to parse.
-/// @param estimate_rtt whether to estimate the RTT or not.
-/// @return the parsed reply.
 optional<Reply> parse(const Tins::Packet& packet) noexcept {
   const PDU* pdu = packet.pdu();
   if (!pdu) {
@@ -134,7 +128,8 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
 
   Reply reply{};
   const uint64_t timestamp =
-      duration_cast<tenth_ms>(microseconds(packet.timestamp())).count();
+      duration_cast<Timestamp::tenth_ms>(microseconds(packet.timestamp()))
+          .count();
 
   const auto ip4 = pdu->find_pdu<Tins::IP>();
   const auto ip6 = pdu->find_pdu<Tins::IPv6>();

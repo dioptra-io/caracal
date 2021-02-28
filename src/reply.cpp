@@ -10,9 +10,6 @@ namespace dminer {
 
 uint32_t Reply::prefix() const noexcept { return (inner_dst_ip >> 8) << 8; }
 
-/// Serialize the reply in the CSV format.
-/// @param include_rtt sets the RTT field to -1.0 if false.
-/// @return the reply in CSV format.
 std::string Reply::to_csv(const bool include_rtt) const {
   return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{:.1f},{},{}", dst_ip,
                      prefix(), inner_dst_ip, src_ip, inner_proto,

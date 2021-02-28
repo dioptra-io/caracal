@@ -16,7 +16,6 @@ extern "C" {
 #include <dminer/constants.hpp>
 #include <dminer/timestamp.hpp>
 
-using dminer::encode_timestamp;
 using dminer::Packet;
 using dminer::Builder::transport_checksum;
 using std::array;
@@ -27,6 +26,7 @@ namespace ICMP = dminer::Builder::ICMP;
 namespace IP = dminer::Builder::IP;
 namespace TCP = dminer::Builder::TCP;
 namespace UDP = dminer::Builder::UDP;
+namespace Timestamp = dminer::Timestamp;
 
 bool validate_ip_checksum(Packet buffer) {
   const auto ip_header = reinterpret_cast<ip*>(buffer.l3());
@@ -70,7 +70,7 @@ TEST_CASE("Builder::ICMP") {
   uint16_t flow_id = 24000;
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
-  uint16_t timestamp_enc = encode_timestamp(123456);
+  uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
   Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_ICMP,
@@ -102,7 +102,7 @@ TEST_CASE("Builder::TCP") {
   uint16_t dst_port = 33434;
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
-  uint16_t timestamp_enc = encode_timestamp(123456);
+  uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
   Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_TCP, payload_len};
@@ -137,7 +137,7 @@ TEST_CASE("Builder::UDP/v4") {
   uint16_t dst_port = 33434;
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
-  uint16_t timestamp_enc = encode_timestamp(123456);
+  uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
   Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_UDP, payload_len};
@@ -170,7 +170,7 @@ TEST_CASE("Builder::UDP/v6") {
   uint16_t dst_port = 33434;
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
-  uint16_t timestamp_enc = encode_timestamp(123456);
+  uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
   Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IPV6, IPPROTO_UDP,

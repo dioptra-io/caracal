@@ -3,28 +3,25 @@
 #include <dminer/timestamp.hpp>
 #include <thread>
 
-using dminer::decode_difference;
-using dminer::decode_timestamp;
-using dminer::encode_timestamp;
-using dminer::tenth_ms;
-using dminer::to_timestamp;
+namespace Timestamp = dminer::Timestamp;
 
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 
 TEST_CASE("timestamp") {
-  auto enc = encode_timestamp(to_timestamp<tenth_ms>(steady_clock::now()));
+  auto enc = Timestamp::encode(
+      Timestamp::cast<Timestamp::tenth_ms>(steady_clock::now()));
   std::this_thread::sleep_for(milliseconds(250));
-  auto diff =
-      decode_difference(to_timestamp<tenth_ms>(steady_clock::now()), enc);
+  auto diff = Timestamp::difference(
+      Timestamp::cast<Timestamp::tenth_ms>(steady_clock::now()), enc);
   // We allow some tolerance for systems where sleep_for is not precise (e.g.
   // macOS).
   REQUIRE(diff / 10 >= 245);
   REQUIRE(diff / 10 <= 255);
 
   for (uint64_t i = 0; i < 65535; i++) {
-    auto dec = decode_timestamp(131069 + i, encode_timestamp(131069));
+    auto dec = Timestamp::decode(131069 + i, Timestamp::encode(131069));
     REQUIRE(dec == 131069);
   }
 

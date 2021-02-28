@@ -88,43 +88,30 @@ Packet::Packet(const std::span<std::byte> buffer, const uint8_t l2_protocol,
   }
 }
 
-/// A pointer to the first byte of the packet (may include padding bytes).
 std::byte* Packet::begin() const noexcept { return begin_; }
 
-/// A pointer past the last byte of the packet.
 std::byte* Packet::end() const noexcept { return end_; }
 
-/// A pointer to the first byte of the layer 2.
 std::byte* Packet::l2() const noexcept { return l2_; }
 
-/// A pointer to the first byte of the layer 3.
 std::byte* Packet::l3() const noexcept { return l3_; }
 
-/// A pointer to the first byte if the layer 4.
 std::byte* Packet::l4() const noexcept { return l4_; }
 
-/// A pointer to the first byte of the payload.
 std::byte* Packet::payload() const noexcept { return payload_; }
 
-/// Size of the packet starting from the L2 header.
 size_t Packet::l2_size() const noexcept { return end_ - l2_; }
 
-/// Size of the packet starting from the L3 header.
 size_t Packet::l3_size() const noexcept { return end_ - l3_; }
 
-/// Size of the packet starting from the L4 header.
 size_t Packet::l4_size() const noexcept { return end_ - l4_; }
 
-/// Size of the packet starting from the payload.
 size_t Packet::payload_size() const noexcept { return end_ - payload_; }
 
-/// Layer 2 protocol.
 uint8_t Packet::l2_protocol() const noexcept { return l2_protocol_; }
 
-/// Layer 3 protocol.
 uint8_t Packet::l3_protocol() const noexcept { return l3_protocol_; }
 
-/// Layer 4 protocol.
 uint8_t Packet::l4_protocol() const noexcept { return l4_protocol_; }
 
 }  // namespace dminer

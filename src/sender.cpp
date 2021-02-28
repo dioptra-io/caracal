@@ -118,8 +118,9 @@ void Sender::send(const Probe &probe) {
   const uint8_t l3_protocol = is_v4 ? IPPROTO_IP : IPPROTO_IPV6;
   // We reserve two bytes in the payload to tweak the checksum.
   const uint16_t payload_length = probe.ttl + PAYLOAD_TWEAK_BYTES;
-  const uint64_t timestamp = to_timestamp<tenth_ms>(system_clock::now());
-  const uint16_t timestamp_enc = encode_timestamp(timestamp);
+  const uint64_t timestamp =
+      Timestamp::cast<Timestamp::tenth_ms>(system_clock::now());
+  const uint16_t timestamp_enc = Timestamp::encode(timestamp);
   const Packet packet{buffer_, l2_protocol_, l3_protocol, l4_protocol_,
                       payload_length};
 
