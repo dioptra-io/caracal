@@ -25,16 +25,14 @@ RUN apt-get update && \
         zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
 
-ADD . /tmp
+COPY . /tmp
 
-RUN mkdir -p /tmp/build/debug && \
-    cd /tmp/build/debug && \
-    cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON ../.. && \
+WORKDIR /tmp/build/debug
+RUN cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON ../.. && \
     cmake --build . --target diamond-miner-tests --parallel 8
 
-RUN mkdir -p /tmp/build/release && \
-    cd /tmp/build/release && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DWITH_LTO=ON ../.. && \
+WORKDIR /tmp/build/release
+RUN cmake -DCMAKE_BUILD_TYPE=Release -DWITH_LTO=ON ../.. && \
     cmake --build . --target diamond-miner-prober --parallel 8
 
 # Main
