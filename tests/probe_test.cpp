@@ -18,6 +18,7 @@ TEST_CASE("Probe::from_csv") {
     Probe probe = Probe::from_csv("0.0.0.0,1,2,3");
     REQUIRE(to_string(probe) == "1:0.0.0.0:2@3");
     REQUIRE(format_addr(probe.dst_addr) == "0.0.0.0");
+    REQUIRE(Probe::from_csv(probe.to_csv()) == probe);
     REQUIRE(probe.dst_addr.s6_addr[3] == 0);
     REQUIRE(probe.src_port == 1);
     REQUIRE(probe.dst_port == 2);
@@ -30,6 +31,7 @@ TEST_CASE("Probe::from_csv") {
     Probe probe = Probe::from_csv("134743044,0010,1000,050");
     REQUIRE(to_string(probe) == "10:8.8.4.4:1000@50");
     REQUIRE(format_addr(probe.dst_addr) == "8.8.4.4");
+    REQUIRE(Probe::from_csv(probe.to_csv()) == probe);
     REQUIRE(probe.src_port == 10);
     REQUIRE(probe.dst_port == 1000);
     REQUIRE(probe.ttl == 50);
@@ -40,6 +42,7 @@ TEST_CASE("Probe::from_csv") {
     Probe probe = Probe::from_csv("::ffff:8.8.4.4,10,1000,50");
     REQUIRE(to_string(probe) == "10:8.8.4.4:1000@50");
     REQUIRE(format_addr(probe.dst_addr) == "8.8.4.4");
+    REQUIRE(Probe::from_csv(probe.to_csv()) == probe);
     REQUIRE(probe.src_port == 10);
     REQUIRE(probe.dst_port == 1000);
     REQUIRE(probe.ttl == 50);
@@ -50,6 +53,7 @@ TEST_CASE("Probe::from_csv") {
     Probe probe = Probe::from_csv("2001:4860:4860::8888,10,1000,50");
     REQUIRE(to_string(probe) == "10:[2001:4860:4860::8888]:1000@50");
     REQUIRE(format_addr(probe.dst_addr) == "2001:4860:4860::8888");
+    REQUIRE(Probe::from_csv(probe.to_csv()) == probe);
     REQUIRE(probe.v4() == false);
     REQUIRE(probe.src_port == 10);
     REQUIRE(probe.dst_port == 1000);
@@ -59,6 +63,8 @@ TEST_CASE("Probe::from_csv") {
   SECTION("Invalid") {
     // Missing fields
     REQUIRE_THROWS(Probe::from_csv("8.8.8.8,1,2"));
+    // Extra fields
+    REQUIRE_THROWS(Probe::from_csv("8.8.8.8,1,2,3,4"));
     // Invalid values
     REQUIRE_THROWS(Probe::from_csv("a,b,c,d"));
     // Out-of-range values

@@ -20,4 +20,8 @@ TEST_CASE("parse_addr") {
   REQUIRE(format_addr(parse_addr("::ffff:8.8.4.4")) == "8.8.4.4");
   REQUIRE(format_addr(parse_addr("2001:4860:4860::8888")) ==
           "2001:4860:4860::8888");
+
+  // Invalid values
+  REQUIRE_THROWS(parse_addr("8.8.4.4.0"));
+  REQUIRE_THROWS(parse_addr("2001:4860:4860::8888::0000"));
 }
