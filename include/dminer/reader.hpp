@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 /// Read and convert PCAP files.
 namespace dminer::Reader {
 
-Statistics::Sniffer read(fs::path &input_file, fs::path &output_file,
-                         std::string &round);
+Statistics::Sniffer read(const fs::path &input_file,
+                         const fs::path &output_file, const std::string &round);
 
 }  // namespace dminer::Reader
