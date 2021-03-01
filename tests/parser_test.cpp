@@ -12,9 +12,9 @@ using dminer::Parser::parse;
 
 namespace fs = std::filesystem;
 
-auto data = fs::path{__FILE__}.parent_path() / ".." / "data";
+static auto data = fs::path{__FILE__}.parent_path() / ".." / "data";
 
-auto read_lines(const std::string& file) {
+inline auto read_lines(const std::string& file) {
   std::ifstream f{file};
   std::string line;
   std::vector<std::string> lines;
@@ -24,7 +24,7 @@ auto read_lines(const std::string& file) {
   return lines;
 }
 
-auto parse_file(const std::string& file) {
+inline auto parse_file(const std::string& file) {
   Tins::FileSniffer sniffer{file};
   std::vector<dminer::Reply> res;
 
@@ -41,7 +41,7 @@ auto parse_file(const std::string& file) {
 }
 
 // host_addr: address in host order.
-auto to_string(uint32_t host_addr) {
+inline auto to_string(uint32_t host_addr) {
   in_addr addr{ntohl(host_addr)};
   char buf[INET_ADDRSTRLEN] = {};
   inet_ntop(AF_INET, &addr, buf, INET_ADDRSTRLEN);
