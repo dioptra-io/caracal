@@ -7,7 +7,7 @@
 using dminer::Checked::hton;
 using dminer::Checked::numeric_cast;
 
-TEST_CASE("numeric_cast") {
+TEST_CASE("Checked::numeric_cast") {
   constexpr uint8_t u8 = 255;
   constexpr uint16_t u8_16 = 255;
   constexpr uint16_t u16 = 65535;
@@ -31,7 +31,7 @@ TEST_CASE("numeric_cast") {
   REQUIRE_THROWS_AS(numeric_cast<uint8_t>(u16), std::invalid_argument);
 }
 
-TEST_CASE("hton") {
+TEST_CASE("Checked::hton") {
   constexpr uint16_t u16 = 65534;
   constexpr uint32_t u32 = 4294967294;
 

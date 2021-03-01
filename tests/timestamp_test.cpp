@@ -9,7 +9,7 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 
-TEST_CASE("timestamp") {
+TEST_CASE("Timestamp") {
   auto enc = Timestamp::encode(
       Timestamp::cast<Timestamp::tenth_ms>(steady_clock::now()));
   std::this_thread::sleep_for(milliseconds(250));

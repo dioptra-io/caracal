@@ -31,8 +31,8 @@ class Sniffer {
  private:
   Tins::Sniffer sniffer_;
   std::ofstream output_csv_;
-  std::optional<std::string> meta_round_;
   std::optional<Tins::PacketWriter> output_pcap_;
+  std::optional<std::string> meta_round_;
   std::thread thread_;
   Statistics::Sniffer statistics_;
 };

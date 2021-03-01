@@ -83,19 +83,19 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     try {
       p = Probe::from_csv(line);
     } catch (const std::exception& e) {
-      spdlog::warn(e.what());
+      spdlog::warn("line={} error={}", line, e.what());
       continue;
     }
     stats.read++;
 
     // TTL filter
     if (config.filter_min_ttl && (p.ttl < *config.filter_min_ttl)) {
-      spdlog::trace("Filtered probe {} (TTL too low)", p);
+      spdlog::trace("probe={} filter=ttl_too_low", p);
       stats.filtered_lo_ttl++;
       continue;
     }
     if (config.filter_max_ttl && (p.ttl > *config.filter_max_ttl)) {
-      spdlog::trace("Filtered probe {} (TTL too high)", p);
+      spdlog::trace("probe={} filter=ttl_too_high", p);
       stats.filtered_hi_ttl++;
       continue;
     }
@@ -105,7 +105,7 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     // TODO: IPv6
     if (config.prefix_excl_file &&
         (prefix_excl_trie.get(p.dst_addr.s6_addr32[3]) != nullptr)) {
-      spdlog::trace("Filtered probe {} (excluded prefix)", p);
+      spdlog::trace("probe={} filter=prefix_excluded", p);
       stats.filtered_prefix_excl++;
       continue;
     }
@@ -114,7 +114,7 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     // TODO: IPv6
     if (config.prefix_incl_file &&
         (prefix_incl_trie.get(p.dst_addr.s6_addr32[3]) == nullptr)) {
-      spdlog::trace("Filtered probe {} (not included prefix)", p);
+      spdlog::trace("probe={} filter=prefix_not_included", p);
       stats.filtered_prefix_not_incl++;
       continue;
     }

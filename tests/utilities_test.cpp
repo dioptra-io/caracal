@@ -13,7 +13,7 @@ inline in6_addr parse_addr(const std::string& src) {
   return dst;
 }
 
-TEST_CASE("parse_addr") {
+TEST_CASE("Utilities::parse_addr") {
   REQUIRE(format_addr(parse_addr("192.168.123.254")) == "192.168.123.254");
   REQUIRE(format_addr(parse_addr("134743044")) == "8.8.4.4");
   REQUIRE(format_addr(parse_addr("8.8.4.4")) == "8.8.4.4");
