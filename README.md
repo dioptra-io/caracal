@@ -17,6 +17,14 @@ docker run matthieugouel/diamond-miner-prober --help
 :warning: You may get incorrect results on Docker on macOS.
 Docker and/or macOS seems to rewrite some fields of the IP header that we use to encode probe informations.
 
+## NSDI 2020 paper
+
+Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).  
+Since then, the code has been refactored and separated in the [diamond-miner-core](https://github.com/dioptra-io/diamond-miner-core) and [diamond-miner-prober](https://github.com/dioptra-io/diamond-miner-prober) repositories.  
+The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/diamond-miner-prober/releases/tag/nsdi2020) tag.
+
+## Development
+
 ### Building from source
 
 This program compiles only on Linux, where it uses [`AF_PACKET`](https://man7.org/linux/man-pages/man7/packet.7.html) to send raw packets,
