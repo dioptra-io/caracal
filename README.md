@@ -45,19 +45,20 @@ cmake .. && cmake --build .
 
 #### Options
 
-Option  | Default  | Description
-:-------|:---------|:------------
-`CMAKE_BUILD_TYPE` | `Debug` | Set to `Release` for a production build.
-`WITH_COVERAGE` | `OFF` | Whether to enable code coverage report or not.
-`WITH_SANITIZER` | `OFF` | Whether to enable compiler sanitizers or not.
+Option             | Default  | Description
+:------------------|:---------|:------------
+`CMAKE_BUILD_TYPE` | `Debug`  | Set to `Release` for a production build.
+`WITH_COVERAGE`    | `OFF`    | Whether to enable code coverage report or not.
+`WITH_LTO`         | `OFF`    | Whether to enable link time optimization or not.
+`WITH_SANITIZER`   | `OFF`    | Whether to enable compiler sanitizers or not.
 
 Use `-DOPTION=Value` to set an option.
 For example: `cmake -DCMAKE_BUILD_TYPE=Release ..`
 
 #### Targets
 
-Target | Description
-:------|:-----------
+Target                 | Description
+:----------------------|:-----------
 `diamond-miner-prober` | Prober
 `diamond-miner-reader` | PCAP parser
 `diamond-miner-tests`  | Unit tests
