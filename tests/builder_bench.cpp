@@ -13,7 +13,6 @@ using std::byte;
 namespace Ethernet = dminer::Builder::Ethernet;
 namespace ICMP = dminer::Builder::ICMP;
 namespace IP = dminer::Builder::IP;
-namespace TCP = dminer::Builder::TCP;
 namespace UDP = dminer::Builder::UDP;
 
 TEST_CASE("Builder") {
@@ -34,18 +33,6 @@ TEST_CASE("Builder") {
     Ethernet::init(packet, true, {0}, {0});
     IP::init(packet, IPPROTO_ICMP, src_addr, dst_addr, ttl);
     ICMP::init(packet, flow_id, timestamp_enc);
-    return packet;
-  };
-
-  BENCHMARK("Builder::TCP") {
-    Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_ICMP,
-                  payload_len};
-    Ethernet::init(packet, true, {0}, {0});
-    IP::init(packet, IPPROTO_TCP, src_addr, dst_addr, ttl);
-    TCP::init(packet);
-    TCP::set_ports(packet, src_port, dst_port);
-    TCP::set_sequence(packet, timestamp_enc, ttl);
-    TCP::set_checksum(packet);
     return packet;
   };
 

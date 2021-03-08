@@ -90,36 +90,6 @@ void init(Packet packet, uint16_t target_checksum, uint16_t target_seq);
 
 }  // namespace dminer::Builder::ICMP
 
-/// Build TCP probes.
-/// In the TCP header, the source and destination ports are used for per-flow
-/// load-balancing. We use those for encoding the flow ID, and we encode the
-/// timestamp as well as the TTL in the 32-bit sequence field.
-namespace dminer::Builder::TCP {
-
-/// Init the TCP header.
-/// @param packet the packet buffer, including the IP header.
-void init(Packet packet);
-
-/// Compute and set the checksum in the TCP header.
-/// The packet must not be modified afterward to ensure that the checksum is
-/// valid.
-/// @param packet the packet buffer, including the IP header.
-void set_checksum(Packet packet);
-
-/// Set the ports in the TCP header.
-/// @param packet the packet buffer, including the IP header.
-/// @param src_port the source port, in host order.
-/// @param dst_port the destination port, in host order.
-void set_ports(Packet packet, uint16_t src_port, uint16_t dst_port);
-
-/// Encode two 16-bit values in the 32-bit sequence field ((seq1 << 16) + seq2).
-/// @param packet the packet buffer, including the IP header.
-/// @param seq1 the first value to encode, in host order.
-/// @param seq2 the second value to encode, in host order.
-void set_sequence(Packet packet, uint16_t seq1, uint16_t seq2);
-
-}  // namespace dminer::Builder::TCP
-
 /// Build UDP probes.
 /// In the UDP header, the source and destination ports are used for per-flow
 /// load-balancing. We use those for encoding the flow ID, and we encode the

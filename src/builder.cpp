@@ -1,7 +1,6 @@
 #include <net/ethernet.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
-#include <netinet/tcp.h>
 #include <netinet/udp.h>
 
 extern "C" {
@@ -132,42 +131,6 @@ void init(Packet packet, const uint16_t target_checksum,
 }
 
 }  // namespace dminer::Builder::ICMP
-
-namespace dminer::Builder::TCP {
-
-void init(Packet packet) {
-  auto tcp_header = reinterpret_cast<tcphdr *>(packet.l4());
-  tcp_header->th_ack = 0;
-  tcp_header->th_off = 5;
-  // Do not send TCP SYN because of SYN Flood, do not put any TCP flags
-  //    tcp_header->th_flags |= TH_SYN;
-  //    tcp_header->th_flags |= TH_ACK;
-  tcp_header->th_x2 = 0;
-  tcp_header->th_flags = 0;
-  tcp_header->th_win = htons(50);
-  tcp_header->th_urp = 0;
-}
-
-void set_checksum(Packet packet) {
-  auto tcp_header = reinterpret_cast<tcphdr *>(packet.l4());
-  tcp_header->th_sum = 0;
-  tcp_header->th_sum = transport_checksum(packet);
-}
-
-void set_ports(Packet packet, const uint16_t src_port,
-               const uint16_t dst_port) {
-  auto tcp_header = reinterpret_cast<tcphdr *>(packet.l4());
-  tcp_header->th_sport = htons(src_port);
-  tcp_header->th_dport = htons(dst_port);
-}
-
-void set_sequence(Packet packet, const uint16_t seq1, const uint16_t seq2) {
-  auto tcp_header = reinterpret_cast<tcphdr *>(packet.l4());
-  uint32_t seq = (static_cast<uint32_t>(seq1) << 16) + seq2;
-  tcp_header->th_seq = htonl(seq);
-}
-
-}  // namespace dminer::Builder::TCP
 
 namespace dminer::Builder::UDP {
 

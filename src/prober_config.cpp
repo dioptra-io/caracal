@@ -31,7 +31,7 @@ void Config::set_probing_rate(const int rate) {
 }
 
 void Config::set_protocol(const string& s) {
-  if (s == "icmp" || s == "tcp" || s == "udp") {
+  if (s == "icmp" || s == "udp") {
     protocol = s;
   } else {
     throw std::invalid_argument(s + " is not a valid protocol");

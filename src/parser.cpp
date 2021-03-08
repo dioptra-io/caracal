@@ -1,5 +1,4 @@
 #include <netinet/ip.h>
-#include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <tins/tins.h>
 
@@ -64,9 +63,6 @@ void parse_inner(Reply& reply, const Tins::IPv6* ip) noexcept {
   if (protocol == IPPROTO_ICMP) {
     reply.inner_ttl =
         ip->payload_length() - ICMP_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
-  } else if (protocol == IPPROTO_TCP) {
-    reply.inner_ttl =
-        ip->payload_length() - sizeof(tcphdr) - PAYLOAD_TWEAK_BYTES;
   } else if (protocol == IPPROTO_UDP) {
     reply.inner_ttl =
         ip->payload_length() - sizeof(udphdr) - PAYLOAD_TWEAK_BYTES;
@@ -91,17 +87,6 @@ void parse_inner(Reply& /* reply */, const Tins::ICMPv6* /* icmp */,
   // reply.inner_dst_port = 0;            // Not encoded in ICMP probes.
   // reply.inner_ttl_from_transport = 0;  // Not encoded in ICMP probes.
   // reply.rtt = Timestamp::difference(timestamp, icmp->sequence()) / 10.0;
-}
-
-void parse_inner(Reply& reply, const Tins::TCP* tcp,
-                 const uint64_t timestamp) noexcept {
-  const auto seq1 = static_cast<uint16_t>(tcp->seq() >> 16);
-  const auto seq2 = static_cast<uint16_t>(tcp->seq());
-  reply.inner_proto = IPPROTO_TCP;
-  reply.inner_src_port = tcp->sport();
-  reply.inner_dst_port = tcp->dport();
-  reply.inner_ttl_from_transport = static_cast<uint8_t>(seq2);
-  reply.rtt = Timestamp::difference(timestamp, seq1) / 10.0;
 }
 
 void parse_inner(Reply& reply, const Tins::UDP* udp,
@@ -157,15 +142,11 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
       // IPv4 → ICMPv4 → IPv4
       parse_inner(reply, &inner_ip.value());
       const auto inner_icmp = inner_ip->find_pdu<Tins::ICMP>();
-      const auto inner_tcp = inner_ip->find_pdu<Tins::TCP>();
       const auto inner_udp = inner_ip->find_pdu<Tins::UDP>();
       if (inner_icmp) {
         // IPv4 → ICMPv4 → IPv4 → ICMPv4
         parse_inner(reply, inner_icmp, timestamp);
         parse_inner_ttl_icmp(reply, &inner_ip.value());
-      } else if (inner_tcp) {
-        // IPv4 → ICMPv4 → IPv4 → TCP
-        parse_inner(reply, inner_tcp, timestamp);
       } else if (inner_udp) {
         // IPv4 → ICMPv4 → IPv4 → UDP
         parse_inner(reply, inner_udp, timestamp);
@@ -188,14 +169,10 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
       // IPv6 → ICMPv6 → IPv6
       parse_inner(reply, &inner_ip.value());
       const auto inner_icmp = inner_ip->find_pdu<Tins::ICMP>();
-      const auto inner_tcp = inner_ip->find_pdu<Tins::TCP>();
       const auto inner_udp = inner_ip->find_pdu<Tins::UDP>();
       if (inner_icmp) {
         // IPv6 → ICMPv6 → IPv6 → ICMPv6
         parse_inner(reply, inner_icmp, timestamp);
-      } else if (inner_tcp) {
-        // IPv6 → ICMPv6 → IPv6 → TCP
-        parse_inner(reply, inner_tcp, timestamp);
       } else if (inner_udp) {
         // IPv6 → ICMPv6 → IPv6 → UDP
         parse_inner(reply, inner_udp, timestamp);
@@ -220,7 +197,7 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
     return nullopt;
   }
 
-  // TODO: TCP (resets?) and UDP replies.
+  // TODO: UDP replies.
   return nullopt;
 }
 

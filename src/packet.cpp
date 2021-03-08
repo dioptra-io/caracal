@@ -1,7 +1,6 @@
 #include <net/ethernet.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
-#include <netinet/tcp.h>
 #include <netinet/udp.h>
 
 #include <dminer/constants.hpp>
@@ -62,10 +61,6 @@ Packet::Packet(const std::span<std::byte> buffer, const uint8_t l2_protocol,
   switch (l4_protocol) {
     case IPPROTO_ICMP:
       l4_header_size = ICMP_HEADER_SIZE;
-      break;
-
-    case IPPROTO_TCP:
-      l4_header_size = sizeof(tcphdr);
       break;
 
     case IPPROTO_UDP:

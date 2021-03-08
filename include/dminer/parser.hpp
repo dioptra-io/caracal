@@ -25,8 +25,6 @@ void parse_inner(Reply& reply, Tins::ICMP* icmp, uint64_t timestamp) noexcept;
 void parse_inner(Reply& /* reply */, Tins::ICMPv6* /* icmp */,
                  uint64_t /* timestamp */) noexcept;
 
-void parse_inner(Reply& reply, Tins::TCP* tcp, uint64_t timestamp) noexcept;
-
 void parse_inner(Reply& reply, Tins::UDP* udp, uint64_t timestamp) noexcept;
 
 // Retrieve the TTL encoded in the ICMP payload length.

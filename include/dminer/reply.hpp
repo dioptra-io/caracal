@@ -31,7 +31,7 @@ struct Reply {
   uint8_t inner_proto;    ///< The protocol of the probe packet.
   /// @}
 
-  /// @name Probe attributes (IP → ICMP → IP → ICMP/TCP/UDP)
+  /// @name Probe attributes (IP → ICMP → IP → ICMP/UDP)
   /// @{
   uint16_t inner_src_port;  ///< The source port of the probe packet.
                             ///< For ICMP probes, we encode the source port

@@ -29,7 +29,7 @@ namespace dminer {
 
 // TODO: Include the protocol in the probe struct instead?
 static const std::map<std::string, uint8_t> l4_protocols = {
-    {"icmp", IPPROTO_ICMP}, {"tcp", IPPROTO_TCP}, {"udp", IPPROTO_UDP}};
+    {"icmp", IPPROTO_ICMP}, {"udp", IPPROTO_UDP}};
 
 Sender::Sender(const Tins::NetworkInterface &interface,
                const std::string &protocol)
@@ -157,13 +157,6 @@ void Sender::send(const Probe &probe) {
   switch (l4_protocol_) {
     case IPPROTO_ICMP:
       Builder::ICMP::init(packet, probe.src_port, timestamp_enc);
-      break;
-
-    case IPPROTO_TCP:
-      Builder::TCP::init(packet);
-      Builder::TCP::set_ports(packet, probe.src_port, probe.dst_port);
-      Builder::TCP::set_sequence(packet, timestamp_enc, probe.ttl);
-      Builder::TCP::set_checksum(packet);
       break;
 
     case IPPROTO_UDP:
