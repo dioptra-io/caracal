@@ -8,6 +8,10 @@
 This is the prober component of [Diamond-Miner](https://www.usenix.org/conference/nsdi20/presentation/vermeulen). It is
 a stateless ICMP/UDP IPv4/v6 Paris traceroute engine written in modern C++ and targeting a probing rate of 100k+ packets per second.
 
+![Demonstration of the prober usage](data/cast.svg)
+
+_NOTE: In this screencast, IPv6 addresses from replies are printed as 0.0.0.0, this will be fixed in a future version._
+
 ## Quickstart
 
 ```bash
