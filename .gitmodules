@@ -7,3 +7,6 @@
 [submodule "extern/libtins"]
 	path = extern/libtins
 	url = https://github.com/mfontanini/libtins.git
+[submodule "extern/liblpm"]
+	path = extern/liblpm
+	url = https://github.com/rmind/liblpm.git

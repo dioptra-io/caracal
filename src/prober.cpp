@@ -2,7 +2,7 @@
 #include <spdlog/spdlog.h>
 
 #include <chrono>
-#include <dminer/constants.hpp>
+#include <dminer/lpm.hpp>
 #include <dminer/probe.hpp>
 #include <dminer/prober.hpp>
 #include <dminer/prober_config.hpp>
@@ -10,7 +10,7 @@
 #include <dminer/sender.hpp>
 #include <dminer/sniffer.hpp>
 #include <dminer/statistics.hpp>
-#include <patricia.hpp>
+#include <iostream>
 #include <tuple>
 
 namespace dminer::Prober {
@@ -30,18 +30,17 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
         "system.");
   }
 
-  // Filter tries, only v4 at the moment
-  Patricia prefix_excl_trie{32};
-  Patricia prefix_incl_trie{32};
+  LPM prefix_excl;
+  LPM prefix_incl;
 
   if (config.prefix_excl_file) {
     spdlog::info("Loading excluded prefixes...");
-    prefix_excl_trie.populateBlock(AF_INET, config.prefix_excl_file->c_str());
+    prefix_excl.insert_file(*config.prefix_excl_file);
   }
 
   if (config.prefix_incl_file) {
     spdlog::info("Loading included prefixes...");
-    prefix_incl_trie.populateBlock(AF_INET, config.prefix_incl_file->c_str());
+    prefix_incl.insert_file(*config.prefix_incl_file);
   }
 
   // Sniffer
@@ -102,18 +101,14 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
 
     // Prefix filter
     // Do not send probes to excluded prefixes (deny list).
-    // TODO: IPv6
-    if (config.prefix_excl_file &&
-        (prefix_excl_trie.get(p.dst_addr.s6_addr32[3]) != nullptr)) {
+    if (config.prefix_excl_file && prefix_excl.lookup(p.dst_addr)) {
       spdlog::trace("probe={} filter=prefix_excluded", p);
       stats.filtered_prefix_excl++;
       continue;
     }
     // Do not send probes to *not* included prefixes.
     // i.e. send probes only to included prefixes (allow list).
-    // TODO: IPv6
-    if (config.prefix_incl_file &&
-        (prefix_incl_trie.get(p.dst_addr.s6_addr32[3]) == nullptr)) {
+    if (config.prefix_incl_file && !prefix_incl.lookup(p.dst_addr)) {
       spdlog::trace("probe={} filter=prefix_not_included", p);
       stats.filtered_prefix_not_incl++;
       continue;

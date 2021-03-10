@@ -35,9 +35,6 @@ This program compiles only on Linux, where it uses [`AF_PACKET`](https://man7.or
 and on macOS, where it uses [`AF_NDRV`](http://newosxbook.com/bonus/vol1ch16.html).
 It runs on x86-64 and ARM systems.
 
-Note that it has been specifically designed for Linux,
-so you may get inferior performance on macOS (especially due to syscall costs).
-
 ```bash
 # macOS
 brew install cmake gcovr boost
@@ -81,19 +78,29 @@ To build a specific target, use `cmake --build . --target TARGET`.
 
 ```bibtex
 @inproceedings {DiamondMiner2020,
-author = {Kevin Vermeulen and Justin P. Rohrer and Robert Beverly and Olivier Fourmaux and Timur Friedman},
-title = {Diamond-Miner: Comprehensive Discovery of the Internet{\textquoteright}s Topology Diamonds },
-booktitle = {17th {USENIX} Symposium on Networked Systems Design and Implementation ({NSDI} 20)},
-year = {2020},
-isbn = {978-1-939133-13-7},
-address = {Santa Clara, CA},
-pages = {479--493},
-url = {https://www.usenix.org/conference/nsdi20/presentation/vermeulen},
-publisher = {{USENIX} Association},
-month = feb,
+  author = {Kevin Vermeulen and Justin P. Rohrer and Robert Beverly and Olivier Fourmaux and Timur Friedman},
+  title = {Diamond-Miner: Comprehensive Discovery of the Internet{\textquoteright}s Topology Diamonds },
+  booktitle = {17th {USENIX} Symposium on Networked Systems Design and Implementation ({NSDI} 20)},
+  year = {2020},
+  isbn = {978-1-939133-13-7},
+  address = {Santa Clara, CA},
+  pages = {479--493},
+  url = {https://www.usenix.org/conference/nsdi20/presentation/vermeulen},
+  publisher = {{USENIX} Association},
+  month = feb,
 }
 ```
 
-### TODO
+## Dependencies
 
-- add a license (caution: patricia is under GPLv3)
+This software is released under the MIT license, in accordance with the license of its dependencies.
+
+Name                                             | License                                                               | Usage
+-------------------------------------------------|-----------------------------------------------------------------------|------
+[Boost](https://www.boost.org)                   | [Boost Software License 1.0](https://opensource.org/licenses/BSL-1.0) | Boost::program_options for CLI arguments parsing
+[Catch2](https://github.com/catchorg/Catch2)     | [Boost Software License 1.0](https://opensource.org/licenses/BSL-1.0) | Unit tests and benchmarks
+[libnetutils](https://android.googlesource.com/platform/system/core/+/master/libnetutils) | [Apache 2.0](https://opensource.org/licenses/Apache-2.0) | IP checksum computation
+[liblpm](https://github.com/rmind/liblpm)        | [2-clause BSD](https://opensource.org/licenses/BSD-2-Clause)          | Longest-prefix matching
+[spdlog](https://github.com/gabime/spdlog)       | [MIT](https://opensource.org/licenses/MIT)                            | Logging
+[libtins](https://github.com/mfontanini/libtins) | [2-clause BSD](https://opensource.org/licenses/BSD-2-Clause)          | Packet parsing
+
