@@ -6,7 +6,7 @@
 [![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/matthieugouel/diamond-miner-prober?logo=docker&logoColor=white)](https://hub.docker.com/r/matthieugouel/diamond-miner-prober)
 
 This is the prober component of [Diamond-Miner](https://www.usenix.org/conference/nsdi20/presentation/vermeulen). It is
-a stateless ICMP/UDP IPv4/v6 Paris traceroute engine written in modern C++ and targeting a probing rate of 100k+ packets per second.
+a stateless ICMP/UDP IPv4/v6 Paris traceroute engine written in modern C++ achieving probing rates of 1M+ packets per second.
 
 ![Demonstration of the prober usage](data/cast.svg)
 
