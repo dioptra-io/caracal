@@ -10,6 +10,7 @@ extern "C" {
 }
 
 #include <array>
+#include <catch2/benchmark/catch_benchmark.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <dminer/builder.hpp>
 #include <dminer/constants.hpp>
@@ -82,6 +83,15 @@ TEST_CASE("Builder::ICMP") {
   REQUIRE(icmp.checksum() == flow_id);
   REQUIRE(icmp.id() == flow_id);
   REQUIRE(icmp.sequence() == timestamp_enc);
+
+  BENCHMARK("Builder::ICMP") {
+    Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_ICMP,
+                  payload_len};
+    Ethernet::init(packet, true, {0}, {0});
+    IP::init(packet, IPPROTO_ICMP, src_addr, dst_addr, ttl);
+    ICMP::init(packet, flow_id, timestamp_enc);
+    return packet;
+  };
 }
 
 TEST_CASE("Builder::UDP/v4") {
@@ -115,6 +125,17 @@ TEST_CASE("Builder::UDP/v4") {
   REQUIRE(udp.sport() == src_port);
   REQUIRE(udp.dport() == dst_port);
   REQUIRE(udp.checksum() == timestamp_enc);
+
+  BENCHMARK("Builder::UDP/v4") {
+    Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_ICMP,
+                  payload_len};
+    Ethernet::init(packet, true, {0}, {0});
+    IP::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
+    UDP::set_length(packet);
+    UDP::set_ports(packet, src_port, dst_port);
+    UDP::set_checksum(packet, timestamp_enc);
+    return packet;
+  };
 }
 
 TEST_CASE("Builder::UDP/v6") {

@@ -1,3 +1,4 @@
+#include <catch2/benchmark/catch_benchmark.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <dminer/probe.hpp>
 #include <dminer/utilities.hpp>
@@ -24,6 +25,7 @@ TEST_CASE("Probe::from_csv") {
     REQUIRE(probe.dst_port == 2);
     REQUIRE(probe.ttl == 3);
     REQUIRE(probe.v4() == true);
+    BENCHMARK("IPv4 dotted") { return Probe::from_csv("0.0.0.0,1,2,3"); };
   }
 
   SECTION("IPv4 uint32") {
@@ -36,6 +38,10 @@ TEST_CASE("Probe::from_csv") {
     REQUIRE(probe.dst_port == 1000);
     REQUIRE(probe.ttl == 50);
     REQUIRE(probe.v4() == true);
+
+    BENCHMARK("IPv4 uint32") {
+      return Probe::from_csv("134743044,0010,1000,050");
+    };
   }
 
   SECTION("IPv4-mapped IPv6") {
@@ -47,6 +53,10 @@ TEST_CASE("Probe::from_csv") {
     REQUIRE(probe.dst_port == 1000);
     REQUIRE(probe.ttl == 50);
     REQUIRE(probe.v4() == true);
+
+    BENCHMARK("IPv4-mapped IPv6") {
+      return Probe::from_csv("::ffff:8.8.4.4,10,1000,50");
+    };
   }
 
   SECTION("IPv6") {
@@ -58,6 +68,10 @@ TEST_CASE("Probe::from_csv") {
     REQUIRE(probe.src_port == 10);
     REQUIRE(probe.dst_port == 1000);
     REQUIRE(probe.ttl == 50);
+
+    BENCHMARK("IPv6") {
+      return Probe::from_csv("2001:4860:4860::8888,10,1000,50");
+    };
   }
 
   SECTION("Invalid") {

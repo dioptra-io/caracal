@@ -55,14 +55,6 @@ target_link_libraries(
                                diamond-miner
 )
 
-# Executable (Benchmarks)
-add_executable(diamond-miner-bench ${DMINER_BENCH_SOURCES})
-target_compile_options(diamond-miner-bench PRIVATE ${DMINER_PRIVATE_FLAGS})
-target_link_libraries(
-  diamond-miner-bench PRIVATE Catch2::Catch2WithMain diamond-miner
-)
-catch_discover_tests(diamond-miner-bench)
-
 # Executable (Tests)
 add_executable(diamond-miner-tests ${DMINER_TESTS_SOURCES})
 target_compile_options(diamond-miner-tests PRIVATE ${DMINER_PRIVATE_FLAGS})

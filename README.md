@@ -73,8 +73,7 @@ Target                 | Description
 :----------------------|:-----------
 `diamond-miner-prober` | Prober
 `diamond-miner-reader` | PCAP parser
-`diamond-miner-tests`  | Unit tests
-`diamond-miner-bench`  | Performance tests
+`diamond-miner-tests`  | Unit and performance tests
 
 To build a specific target, use `cmake --build . --target TARGET`.
 
