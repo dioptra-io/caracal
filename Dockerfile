@@ -18,7 +18,9 @@ RUN apt-get update && \
     apt-get install -y -q --no-install-recommends \
         build-essential \
         cmake \
+        doxygen \
         gcovr \
+        graphviz \
         libboost-program-options1.71-dev \
         libelf1 \
         libpcap0.8-dev \
@@ -29,7 +31,8 @@ COPY . /tmp
 
 WORKDIR /tmp/build/debug
 RUN cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON ../.. && \
-    cmake --build . --target diamond-miner-tests --parallel 8
+    cmake --build . --target diamond-miner-tests --parallel 8 && \
+    cmake --build . --target diamond-miner-docs
 
 WORKDIR /tmp/build/release
 RUN cmake -DCMAKE_BUILD_TYPE=Release -DWITH_LTO=ON ../.. && \

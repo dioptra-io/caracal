@@ -17,6 +17,7 @@ configure_file(apps/diamond-miner-config.h.in diamond-miner-config.h)
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Catch2 REQUIRED)
+find_package(Doxygen COMPONENTS dot)
 find_package(NetUtils REQUIRED)
 find_package(LPM REQUIRED)
 find_package(spdlog REQUIRED)
@@ -87,6 +88,11 @@ if(WITH_SANITIZER)
   set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined"
   )
+endif()
+
+# Documentation
+if(DOXYGEN_FOUND)
+  doxygen_add_docs(diamond-miner-docs "${PROJECT_SOURCE_DIR}/include/dminer")
 endif()
 
 # Install

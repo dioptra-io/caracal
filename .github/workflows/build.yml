@@ -17,6 +17,16 @@ jobs:
         run: docker run diamond-miner-prober --help
       - name: Run unit tests
         run: docker run --name debug -w /tmp/build/debug debug make coverage
+      - name: Copy documentation
+        run: docker cp debug:/tmp/build/debug/html html
+      - name: Upload documentation
+        if: success()
+        uses: crazy-max/ghaction-github-pages@v2
+        with:
+          target_branch: gh-pages
+          build_dir: html
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload coverage
         run: |
           docker cp debug:/tmp/build/debug/coverage.xml .
