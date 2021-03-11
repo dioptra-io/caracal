@@ -29,21 +29,43 @@ The code as it was at the time of the publication is available in the [`nsdi2020
 
 ## Development
 
-### Building from source
+### Prerequisites
 
-This program compiles only on Linux, where it uses [`AF_PACKET`](https://man7.org/linux/man-pages/man7/packet.7.html) to send raw packets,
+This program compiles on Linux, where it uses [`AF_PACKET`](https://man7.org/linux/man-pages/man7/packet.7.html) to send raw packets,
 and on macOS, where it uses [`AF_NDRV`](http://newosxbook.com/bonus/vol1ch16.html).
-It runs on x86-64 and ARM systems.
+It runs on x86-64 and ARM64 systems.
+
+#### Build tools
+
+To build this project, CMake and a compiler implementing C++20 are required.  
+Optionnally, Doxygen can be used to generate the API documentation, and Gcovr to compute the test coverage.
 
 ```bash
 # macOS
-brew install cmake gcovr boost
+brew install cmake doxygen gcovr graphviz
+
+# Ubuntu 20.04
+add-apt-repository -u ppa:ubuntu-toolchain-r/ppa
+apt install build-essential cmake doxygen gcovr graphviz gcc-10 g++-10
 
 # Ubuntu 21.04+
-# (We require GCC 10+ for C++20 support)
-apt-get install build-essential cmake gcovr libboost-program-options-dev \
-    libelf1 libpcap-dev zlib1g-dev
+apt install build-essential cmake doxygen gcovr graphviz
 ```
+
+#### External dependencies
+
+All the runtime dependencies are statically linked (the sources are in [`/extern`](/extern)), excepted for Boost and libpcap which are dynamically linked as it's not easy to integrate Boost.Build with CMake.  
+In the future we aim to statically link all the dependencies.
+
+```bash
+# macOS
+brew install boost
+
+# Ubuntu 20.04+
+apt install libboost-program-options-dev libelf1 libpcap-dev zlib1g-dev
+```
+
+### Building from source
 
 ```bash
 git clone --recursive git@github.com:dioptra-io/diamond-miner-prober.git
