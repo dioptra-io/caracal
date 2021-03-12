@@ -40,13 +40,6 @@ void Config::set_protocol(const string& s) {
 
 void Config::set_interface(const string& s) { interface = s; }
 
-void Config::set_sniffer_buffer_size(const int size) {
-  if (size <= 0) {
-    throw std::domain_error("sniffer_buffer_size must be > 0");
-  }
-  sniffer_buffer_size = static_cast<uint64_t>(size);
-}
-
 void Config::set_sniffer_wait_time(const int seconds) {
   if (seconds < 0) {
     throw std::domain_error("sniffer_wait_time must be >= 0");
@@ -108,7 +101,6 @@ std::ostream& operator<<(std::ostream& os, Config const& v) {
   os << "Prober::Config{";
   os << "\n\tn_packets=" << v.n_packets;
   os << ",\n\tprobing_rate=" << v.probing_rate;
-  os << ",\n\tsniffer_buffer_size=" << v.sniffer_buffer_size;
   os << ",\n\tsniffer_wait_time=" << v.sniffer_wait_time;
   os << ",\n\tprotocol=" << v.protocol;
   os << ",\n\tinterface=" << v.interface.name() << ":"

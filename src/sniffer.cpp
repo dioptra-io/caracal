@@ -19,7 +19,6 @@ namespace dminer {
 Sniffer::Sniffer(const Tins::NetworkInterface &interface,
                  const std::optional<fs::path> &output_file_csv,
                  const std::optional<fs::path> &output_file_pcap,
-                 const uint64_t buffer_size,
                  const std::optional<std::string> &meta_round,
                  const uint16_t destination_port)
     : sniffer_{interface.name()}, meta_round_{meta_round}, statistics_{} {
@@ -34,7 +33,7 @@ Sniffer::Sniffer(const Tins::NetworkInterface &interface,
   Tins::SnifferConfiguration config;
   // TODO: What happens the buffer is full?
   // TODO: Log buffer full / dropped packets?
-  config.set_buffer_size(buffer_size * 1024);
+  config.set_buffer_size(32 * 1024 * 1024);
   config.set_filter(filter);
   config.set_immediate_mode(true);
 

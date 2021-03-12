@@ -34,7 +34,6 @@ int main(int argc, char** argv) {
     ("protocol,p", po::value<string>()->value_name("protocol")->default_value(config.protocol), "Protocol to use for probing (icmp, udp)")
     ("probing-rate,r", po::value<int>()->value_name("pps")->default_value(config.probing_rate), "Probing rate in packets per second")
     ("interface,z", po::value<string>()->value_name("interface")->default_value(config.interface.name()), "Interface from which to send the packets")
-    ("sniffer-buffer-size,B", po::value<int>()->value_name("kilobytes")->default_value(config.sniffer_buffer_size), "Size of the sniffer buffer in kB (equivalent of -B option in tcpdump)")
     ("sniffer-wait-time,W", po::value<int>()->value_name("seconds")->default_value(config.sniffer_wait_time), "Time in seconds to wait after sending the probes to stop the sniffer")
     ("log-level,L", po::value<string>()->value_name("level")->default_value("info"), "Minimum log level (trace, debug, info, warning, error, fatal)")
     ("max-probes,P", po::value<int>()->value_name("count"), "Maximum number of probes to send (unlimited by default)")
@@ -88,10 +87,6 @@ int main(int argc, char** argv) {
 
     if (vm.count("interface")) {
       config.set_interface(vm["interface"].as<string>());
-    }
-
-    if (vm.count("sniffer-buffer-size")) {
-      config.set_sniffer_buffer_size(vm["sniffer-buffer-size"].as<int>());
     }
 
     if (vm.count("sniffer-wait-time")) {

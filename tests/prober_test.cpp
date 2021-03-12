@@ -46,7 +46,6 @@ TEST_CASE("Prober::probe") {
   config.set_filter_min_ttl(1);
   config.set_filter_max_ttl(6);
   config.set_probing_rate(100);
-  config.set_sniffer_buffer_size(20000);
   config.set_sniffer_wait_time(1);
   config.set_protocol(protocol);
   config.set_n_packets(3);

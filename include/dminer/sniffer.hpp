@@ -16,7 +16,7 @@ class Sniffer {
  public:
   Sniffer(const Tins::NetworkInterface &interface,
           const std::optional<fs::path> &output_file_csv,
-          const std::optional<fs::path> &output_file_pcap, uint64_t buffer_size,
+          const std::optional<fs::path> &output_file_pcap,
           const std::optional<std::string> &meta_round,
           uint16_t destination_port);
 
