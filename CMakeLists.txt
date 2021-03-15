@@ -73,6 +73,10 @@ if(WITH_COVERAGE)
     coverage
     EXECUTABLE
     diamond-miner-tests
+    --benchmark-warmup-time
+    0
+    --benchmark-samples
+    1
     EXCLUDE
     "${PROJECT_SOURCE_DIR}/apps/*"
     "${PROJECT_SOURCE_DIR}/extern/*"

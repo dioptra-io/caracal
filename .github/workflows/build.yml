@@ -16,9 +16,9 @@ jobs:
       - name: Test Docker image
         run: docker run diamond-miner-prober --help
       - name: Run unit tests
-        run: docker run --name debug -w /tmp/build/debug debug make coverage
+        run: docker run --name debug -w /tmp/build-debug debug make coverage
       - name: Copy documentation
-        run: docker cp debug:/tmp/build/debug/html html
+        run: docker cp debug:/tmp/build-debug/html html
       - name: Upload documentation
         if: success()
         uses: crazy-max/ghaction-github-pages@v2
@@ -29,5 +29,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload coverage
         run: |
-          docker cp debug:/tmp/build/debug/coverage.xml .
+          docker cp debug:/tmp/build-debug/coverage.xml .
           bash <(curl -s https://codecov.io/bash)

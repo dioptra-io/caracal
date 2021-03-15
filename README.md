@@ -37,19 +37,21 @@ It runs on x86-64 and ARM64 systems.
 
 #### Build tools
 
-To build this project, CMake and a compiler implementing C++20 are required.
+To build this project, CMake, Conan, and a compiler implementing C++20 are required.
 Optionnally, Doxygen can be used to generate the API documentation, and Gcovr to compute the test coverage.
 
 ```bash
 # macOS
-brew install cmake doxygen gcovr graphviz
+brew install cmake conan doxygen gcovr graphviz
 
 # Ubuntu 20.04
 add-apt-repository -u ppa:ubuntu-toolchain-r/ppa
 apt install build-essential cmake doxygen gcovr graphviz gcc-10 g++-10
+pip install conan
 
 # Ubuntu 21.04+
 apt install build-essential cmake doxygen gcovr graphviz
+pip install conan
 ```
 
 #### External dependencies
@@ -63,7 +65,7 @@ The only exceptions are libc and libstdc++ which are dynamically linked.
 git clone --recursive git@github.com:dioptra-io/diamond-miner-prober.git
 cd diamond-miner-prober
 mkdir build && cd build
-cmake .. && cmake --build .
+conan install .. && cmake .. && cmake --build .
 ```
 
 #### Options
