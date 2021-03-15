@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 project(diamond-miner VERSION 0.2.5)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 
 set(DMINER_PRIVATE_FLAGS -Wall -Wextra -pedantic)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -33,8 +34,7 @@ target_compile_features(diamond-miner PUBLIC cxx_std_20)
 target_compile_options(diamond-miner PRIVATE ${DMINER_PRIVATE_FLAGS})
 target_include_directories(diamond-miner PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
-  diamond-miner PRIVATE NetUtils::NetUtils spdlog::spdlog
-                        Threads::Threads
+  diamond-miner PRIVATE NetUtils::NetUtils spdlog::spdlog Threads::Threads
 )
 target_link_libraries(diamond-miner PUBLIC LPM::LPM tins)
 

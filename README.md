@@ -23,8 +23,8 @@ Docker and/or macOS seems to rewrite some fields of the IP header that we use to
 
 ## NSDI 2020 paper
 
-Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).  
-Since then, the code has been refactored and separated in the [diamond-miner-core](https://github.com/dioptra-io/diamond-miner-core) and [diamond-miner-prober](https://github.com/dioptra-io/diamond-miner-prober) repositories.  
+Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
+Since then, the code has been refactored and separated in the [diamond-miner-core](https://github.com/dioptra-io/diamond-miner-core) and [diamond-miner-prober](https://github.com/dioptra-io/diamond-miner-prober) repositories.
 The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/diamond-miner-prober/releases/tag/nsdi2020) tag.
 
 ## Development
@@ -37,7 +37,7 @@ It runs on x86-64 and ARM64 systems.
 
 #### Build tools
 
-To build this project, CMake and a compiler implementing C++20 are required.  
+To build this project, CMake and a compiler implementing C++20 are required.
 Optionnally, Doxygen can be used to generate the API documentation, and Gcovr to compute the test coverage.
 
 ```bash
@@ -54,16 +54,8 @@ apt install build-essential cmake doxygen gcovr graphviz
 
 #### External dependencies
 
-All the runtime dependencies are statically linked (the sources are in [`/extern`](/extern)), excepted for Boost and libpcap which are dynamically linked as it's not easy to integrate Boost.Build with CMake.  
-In the future we aim to statically link all the dependencies.
-
-```bash
-# macOS
-brew install boost
-
-# Ubuntu 20.04+
-apt install libboost-program-options-dev libelf1 libpcap-dev zlib1g-dev
-```
+All the runtime dependencies are statically linked: they are either fetched with [Conan](https://conan.io) if available, or built from the sources in [`/extern`](/extern)).
+The only exceptions are libc and libstdc++ which are dynamically linked.
 
 ### Building from source
 

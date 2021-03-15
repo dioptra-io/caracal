@@ -1,9 +1,6 @@
 [submodule "extern/Catch2"]
 	path = extern/Catch2
 	url = https://github.com/catchorg/Catch2.git
-[submodule "extern/spdlog"]
-	path = extern/spdlog
-	url = https://github.com/gabime/spdlog.git
 [submodule "extern/libtins"]
 	path = extern/libtins
 	url = https://github.com/mfontanini/libtins.git
