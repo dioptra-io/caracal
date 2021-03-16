@@ -19,10 +19,10 @@ configure_file(apps/diamond-miner-config.h.in diamond-miner-config.h)
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Catch2 REQUIRED)
 find_package(Doxygen COMPONENTS dot)
-find_package(NetUtils REQUIRED)
+find_package(libtins REQUIRED)
 find_package(LPM REQUIRED)
+find_package(NetUtils REQUIRED)
 find_package(spdlog REQUIRED)
-find_package(Tins REQUIRED)
 find_package(Threads REQUIRED)
 
 include(Catch)
@@ -36,7 +36,7 @@ target_include_directories(diamond-miner PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
   diamond-miner PRIVATE NetUtils::NetUtils spdlog::spdlog Threads::Threads
 )
-target_link_libraries(diamond-miner PUBLIC LPM::LPM tins)
+target_link_libraries(diamond-miner PUBLIC libtins::libtins LPM::LPM)
 
 # Executable (Prober)
 add_executable(diamond-miner-prober apps/diamond-miner-prober.cpp)

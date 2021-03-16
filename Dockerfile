@@ -14,7 +14,10 @@ RUN apt-get update && \
 
 RUN pip3 install conan && \
     conan profile new default --detect && \
-    conan profile update settings.compiler.libcxx=libstdc++11 default
+    conan profile update settings.build_type=Release default && \
+    conan profile update settings.compiler.libcxx=libstdc++11 default && \
+    conan profile update settings.libtins:compiler.cppstd=11 default
+    # ^ See https://github.com/conan-io/conan/issues/6157#issuecomment-599141680
 
 # Pre-build/fetch dependencies from conan
 COPY conanfile.txt /tmp/conanfile.txt
@@ -22,12 +25,6 @@ RUN conan install --build=missing /tmp
 
 # Build the rest of the project
 COPY . /tmp
-
-# Temporary hack until libtins 4.3 is available in Conan-Center.
-RUN apt-get update && \
-    apt-get install -y -q --no-install-recommends \
-        libpcap-dev && \
-    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp/build-debug
 RUN conan install .. && \

@@ -65,7 +65,8 @@ The only exceptions are libc and libstdc++ which are dynamically linked.
 git clone --recursive git@github.com:dioptra-io/diamond-miner-prober.git
 cd diamond-miner-prober
 mkdir build && cd build
-conan install .. && cmake .. && cmake --build .
+conan install .. -s libtins:compiler.cppstd=11 ..
+cmake .. && cmake --build .
 ```
 
 #### Options
