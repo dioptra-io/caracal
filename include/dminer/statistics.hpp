@@ -1,8 +1,11 @@
 #pragma once
 
+#include <netinet/in.h>
+
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <dminer/constants.hpp>
 #include <numeric>
 #include <ostream>
 #include <unordered_set>
@@ -10,6 +13,32 @@
 using std::chrono::nanoseconds;
 
 namespace dminer::Statistics {
+
+// Operators for using in6_addr in an unordered_map
+template <class T>
+inline void hash_combine(std::size_t& seed, const T& v) {
+  std::hash<T> hasher;
+  seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+class in6_addr_equal_to {
+ public:
+  bool operator()(const in6_addr& lhs, const in6_addr& rhs) const {
+    return IN6_ARE_ADDR_EQUAL(&lhs, &rhs);
+  }
+};
+
+class in6_addr_hash {
+ public:
+  size_t operator()(const in6_addr& addr) const noexcept {
+    size_t seed = 0;
+    hash_combine(seed, addr.s6_addr32[0]);
+    hash_combine(seed, addr.s6_addr32[1]);
+    hash_combine(seed, addr.s6_addr32[2]);
+    hash_combine(seed, addr.s6_addr32[3]);
+    return seed;
+  }
+};
 
 template <typename T, size_t N>
 class CircularArray {
@@ -78,8 +107,10 @@ struct RateLimiter {
 struct Sniffer {
   uint64_t received_count = 0;
   uint64_t received_invalid_count = 0;
-  std::unordered_set<uint32_t> icmp_messages_all;
-  std::unordered_set<uint32_t> icmp_messages_path;
+  std::unordered_set<in6_addr, in6_addr_hash, in6_addr_equal_to>
+      icmp_messages_all;
+  std::unordered_set<in6_addr, in6_addr_hash, in6_addr_equal_to>
+      icmp_messages_path;
 };
 
 std::ostream& operator<<(std::ostream& os, Prober const& v);

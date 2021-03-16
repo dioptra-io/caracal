@@ -9,8 +9,8 @@ namespace dminer {
 struct Reply {
   /// @name Reply attributes (IP)
   /// @{
-  uint32_t src_ip;  ///< The source IP of the reply packet.
-  uint32_t dst_ip;  ///< The destination IP of the reply packet.
+  in6_addr src_ip;  ///< The source IP of the reply packet.
+  in6_addr dst_ip;  ///< The destination IP of the reply packet.
   uint16_t size;    ///< The size in bytes of the reply packet.
   uint8_t ttl;      ///< The TTL of the reply packet.
   /// @}
@@ -23,7 +23,7 @@ struct Reply {
 
   /// @name Probe attributes (IP → ICMP → IP)
   /// @{
-  uint32_t inner_dst_ip;  ///< The IP that was targeted by the probe,
+  in6_addr inner_dst_ip;  ///< The IP that was targeted by the probe,
                           ///< if we received a reply from this IP,
                           ///< then \ref src_ip == \ref inner_dst_ip.
   uint16_t inner_size;    ///< The size in bytes of the probe packet.
@@ -47,9 +47,6 @@ struct Reply {
   /// @{
   double rtt;  ///< The estimated round-trip time, in milliseconds.
   /// @}
-
-  /// The /24 destination prefix, computed from \ref inner_dst_ip.
-  [[nodiscard]] uint32_t prefix() const noexcept;
 
   /// Serialize the reply in the CSV format.
   /// @param include_rtt sets the RTT field to -1.0 if false.

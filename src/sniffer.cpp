@@ -24,7 +24,7 @@ Sniffer::Sniffer(const Tins::NetworkInterface &interface,
     : sniffer_{interface.name()}, meta_round_{meta_round}, statistics_{} {
   auto filter = fmt::format(
       "(dst {} or dst {}) and ((icmp and icmp[icmptype] != icmp-echo) or "
-      "(icmp6 and icmp6[icmptype] != icmp-echo) or "
+      "(icmp6 and icmp6[icmp6type] != icmp6-echo) or "
       "(src port {}))",
       Utilities::source_ipv4_for(interface).to_string(),
       Utilities::source_ipv6_for(interface).to_string(), destination_port);
@@ -63,7 +63,8 @@ void Sniffer::start() noexcept {
     if (reply) {
       spdlog::trace(reply.value());
       statistics_.icmp_messages_all.insert(reply->src_ip);
-      if ((reply->icmp_code == 11) && (reply->src_ip != reply->inner_dst_ip)) {
+      if ((reply->icmp_code == 11) &&
+          (IN6_ARE_ADDR_EQUAL(&reply->src_ip, &reply->inner_dst_ip))) {
         statistics_.icmp_messages_path.insert(reply->src_ip);
       }
       output_csv_ << fmt::format("{},{},{}\n", reply->to_csv(),

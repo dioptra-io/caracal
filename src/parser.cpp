@@ -23,15 +23,27 @@ namespace dminer::Parser {
 
 using ip_hdr = ip;
 
+void copy(const Tins::IPv4Address &src, in6_addr &dst) noexcept {
+  dst.s6_addr32[0] = 0;
+  dst.s6_addr32[1] = 0;
+  dst.s6_addr32[2] = 0xFFFF0000U;
+  dst.s6_addr32[3] = uint32_t(src);
+}
+
+void copy(const Tins::IPv6Address &src, in6_addr &dst) noexcept {
+  src.copy(dst.s6_addr);
+}
+
 void parse_outer(Reply& reply, const Tins::IP* ip) noexcept {
-  reply.src_ip = be_to_host(uint32_t(ip->src_addr()));
-  reply.dst_ip = be_to_host(uint32_t(ip->dst_addr()));
+  copy(ip->src_addr(), reply.src_ip);
+  copy(ip->dst_addr(), reply.dst_ip);
   reply.size = ip->tot_len();
   reply.ttl = ip->ttl();
 }
 
 void parse_outer(Reply& reply, const Tins::IPv6* ip) noexcept {
-  // TODO
+  copy(ip->src_addr(), reply.src_ip);
+  copy(ip->dst_addr(), reply.dst_ip);
   reply.ttl = static_cast<uint8_t>(ip->hop_limit());
 }
 
@@ -46,28 +58,30 @@ void parse_outer(Reply& reply, const Tins::ICMPv6* icmp) noexcept {
 }
 
 void parse_inner(Reply& reply, const Tins::IP* ip) noexcept {
-  reply.inner_dst_ip = be_to_host(uint32_t(ip->dst_addr()));
+  copy(ip->dst_addr(), reply.inner_dst_ip);
   reply.inner_size = ip->tot_len();
   reply.inner_ttl = static_cast<uint8_t>(ip->id());
 }
 
 void parse_inner(Reply& reply, const Tins::IPv6* ip) noexcept {
-  reply.src_ip = 0;  // TODO
-  reply.dst_ip = 0;  // TODO
+  copy(ip->dst_addr(), reply.inner_dst_ip);
   reply.size = static_cast<uint16_t>(ip->size());
 
   // Can't store the TTL in the id field (see Builder::IP::init),
   // so we compute it from the payload length.
   const uint8_t protocol = ip->next_header();
-  // TODO: ICMPv6
-  if (protocol == IPPROTO_ICMP) {
-    reply.inner_ttl =
-        ip->payload_length() - ICMP_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
-  } else if (protocol == IPPROTO_UDP) {
-    reply.inner_ttl =
-        ip->payload_length() - sizeof(udphdr) - PAYLOAD_TWEAK_BYTES;
-  } else {
-    reply.inner_ttl = 0;
+  switch (protocol) {
+    case IPPROTO_ICMPV6:
+      reply.inner_ttl =
+          ip->payload_length() - ICMPV6_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
+
+    case IPPROTO_UDP:
+      reply.inner_ttl =
+          ip->payload_length() - sizeof(udphdr) - PAYLOAD_TWEAK_BYTES;
+      break;
+
+    default:
+      reply.inner_ttl = 0;
   }
 }
 
@@ -103,6 +117,11 @@ void parse_inner(Reply& reply, const Tins::UDP* udp,
 void parse_inner_ttl_icmp(Reply& reply, const Tins::IP* ip) noexcept {
   reply.inner_ttl_from_transport =
       ip->tot_len() - sizeof(ip_hdr) - ICMP_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
+}
+
+void parse_inner_ttl_icmp(Reply& reply, const Tins::IPv6* ip) noexcept {
+  reply.inner_ttl_from_transport =
+      ip->payload_length() - ICMPV6_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
 }
 
 optional<Reply> parse(const Tins::Packet& packet) noexcept {
@@ -193,8 +212,10 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
 
   // ICMPv6 Echo Reply
   if (icmp6 && (icmp6->type() == Tins::ICMPv6::ECHO_REPLY)) {
-    // Discard ICMPv6 echo replies for now.
-    return nullopt;
+    parse_outer(reply, icmp6);
+    parse_inner(reply, icmp6, timestamp);
+    parse_inner_ttl_icmp(reply, ip6);
+    return reply;
   }
 
   // TODO: UDP replies.

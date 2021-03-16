@@ -30,6 +30,8 @@ void parse_inner(Reply& reply, Tins::UDP* udp, uint64_t timestamp) noexcept;
 // Retrieve the TTL encoded in the ICMP payload length.
 void parse_inner_ttl_icmp(Reply& reply, Tins::IP* ip) noexcept;
 
+void parse_inner_ttl_icmp(Reply& reply, Tins::IPv6* ip) noexcept;
+
 // TODO: Explain why this is needed.
 template <typename T>
 [[nodiscard]] std::optional<T> build_inner(const Tins::RawPDU* pdu) noexcept {

@@ -1,5 +1,5 @@
-#include <arpa/inet.h>
 #include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
 
 #include <dminer/pretty.hpp>
 #include <dminer/reply.hpp>
@@ -8,23 +8,20 @@
 
 namespace dminer {
 
-uint32_t Reply::prefix() const noexcept { return (inner_dst_ip >> 8) << 8; }
-
 std::string Reply::to_csv(const bool include_rtt) const {
-  return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{:.1f},{},{}", dst_ip,
-                     prefix(), inner_dst_ip, src_ip, inner_proto,
-                     inner_src_port, inner_dst_port, inner_ttl,
-                     inner_ttl_from_transport, icmp_type, icmp_code,
-                     include_rtt ? rtt : -1.0, ttl, size);
+  return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},{:.1f}", dst_ip,
+                     inner_dst_ip, inner_src_port, inner_dst_port, inner_ttl,
+                     inner_ttl_from_transport, src_ip, inner_proto, icmp_type,
+                     icmp_code, ttl, size, include_rtt ? rtt : -1.0);
 }
 
 std::ostream& operator<<(std::ostream& os, Reply const& v) {
-  os << "src_ip=" << in_addr{htonl(v.src_ip)};
-  os << " dst_ip=" << in_addr{htonl(v.dst_ip)};
+  os << "src_ip=" << v.src_ip;
+  os << " dst_ip=" << v.dst_ip;
   os << " ttl=" << +v.ttl;
   os << " icmp_code=" << +v.icmp_code;
   os << " icmp_type=" << +v.icmp_type;
-  os << " inner_dst_ip=" << in_addr{htonl(v.inner_dst_ip)};
+  os << " inner_dst_ip=" << v.inner_dst_ip;
   os << " inner_size=" << v.inner_size;
   os << " inner_ttl=" << +v.inner_ttl;
   os << " inner_proto=" << +v.inner_proto;

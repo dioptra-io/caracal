@@ -2,6 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <dminer/parser.hpp>
+#include <dminer/utilities.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -9,6 +10,7 @@
 #include <vector>
 
 using dminer::Parser::parse;
+using dminer::Utilities::format_addr;
 
 namespace fs = std::filesystem;
 
@@ -40,14 +42,6 @@ inline auto parse_file(const std::string& file) {
   return res;
 }
 
-// host_addr: address in host order.
-inline auto to_string(uint32_t host_addr) {
-  in_addr addr{ntohl(host_addr)};
-  char buf[INET_ADDRSTRLEN] = {};
-  inet_ntop(AF_INET, &addr, buf, INET_ADDRSTRLEN);
-  return std::string{buf};
-}
-
 // Bunch of replies to UDP probes, parsed with the original "reader" code.
 TEST_CASE("Parser::parse/sample") {
   auto ref = read_lines(data / "sample_results.csv");
@@ -66,13 +60,13 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(to_string(reply.src_ip) == "72.14.204.68");
-    REQUIRE(to_string(reply.dst_ip) == "192.168.1.5");
+    REQUIRE(format_addr(reply.src_ip) == "72.14.204.68");
+    REQUIRE(format_addr(reply.dst_ip) == "192.168.1.5");
     REQUIRE(reply.size == 56);
     REQUIRE(reply.ttl == 250);
     REQUIRE(reply.icmp_type == 11);
     REQUIRE(reply.icmp_code == 0);
-    REQUIRE(to_string(reply.inner_dst_ip) == "8.8.8.8");
+    REQUIRE(format_addr(reply.inner_dst_ip) == "8.8.8.8");
     REQUIRE(reply.inner_size == 36);
     REQUIRE(reply.inner_ttl == 6);
     REQUIRE(reply.inner_proto == 1);
@@ -87,13 +81,13 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(to_string(reply.src_ip) == "8.8.8.8");
-    REQUIRE(to_string(reply.dst_ip) == "192.168.1.5");
+    REQUIRE(format_addr(reply.src_ip) == "8.8.8.8");
+    REQUIRE(format_addr(reply.dst_ip) == "192.168.1.5");
     REQUIRE(reply.size == 40);
     REQUIRE(reply.ttl == 117);
     REQUIRE(reply.icmp_type == 0);
     REQUIRE(reply.icmp_code == 0);
-    REQUIRE(reply.inner_dst_ip == 0);
+    REQUIRE(format_addr(reply.inner_dst_ip) == "::");
     REQUIRE(reply.inner_size == 0);
     REQUIRE(reply.inner_ttl == 0);
     REQUIRE(reply.inner_proto == 1);
@@ -111,13 +105,13 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(to_string(reply.src_ip) == "72.14.204.68");
-    REQUIRE(to_string(reply.dst_ip) == "192.168.1.5");
+    REQUIRE(format_addr(reply.src_ip) == "72.14.204.68");
+    REQUIRE(format_addr(reply.dst_ip) == "192.168.1.5");
     REQUIRE(reply.size == 56);
     REQUIRE(reply.ttl == 250);
     REQUIRE(reply.icmp_type == 11);
     REQUIRE(reply.icmp_code == 0);
-    REQUIRE(to_string(reply.inner_dst_ip) == "8.8.8.8");
+    REQUIRE(format_addr(reply.inner_dst_ip) == "8.8.8.8");
     REQUIRE(reply.inner_size == 36);
     REQUIRE(reply.inner_ttl == 6);
     REQUIRE(reply.inner_proto == 17);
