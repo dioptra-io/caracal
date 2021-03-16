@@ -44,9 +44,8 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   }
 
   // Sniffer
-  Sniffer sniffer{config.interface,        config.output_file_csv,
-                  config.output_file_pcap,
-                  config.meta_round,       33434};
+  Sniffer sniffer{config.interface, config.output_file_csv,
+                  config.output_file_pcap, config.meta_round, 33434};
   sniffer.start();
 
   // Sender

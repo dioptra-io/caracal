@@ -23,14 +23,14 @@ namespace dminer::Parser {
 
 using ip_hdr = ip;
 
-void copy(const Tins::IPv4Address &src, in6_addr &dst) noexcept {
+void copy(const Tins::IPv4Address& src, in6_addr& dst) noexcept {
   dst.s6_addr32[0] = 0;
   dst.s6_addr32[1] = 0;
   dst.s6_addr32[2] = 0xFFFF0000U;
   dst.s6_addr32[3] = uint32_t(src);
 }
 
-void copy(const Tins::IPv6Address &src, in6_addr &dst) noexcept {
+void copy(const Tins::IPv6Address& src, in6_addr& dst) noexcept {
   src.copy(dst.s6_addr);
 }
 

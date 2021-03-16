@@ -70,6 +70,6 @@ bool LPM::lookup(const in6_addr &addr) {
   }
 }
 
-void *LPM::tag = (void *)0x42;
+void *LPM::tag = reinterpret_cast<void *>(0x42);
 
 }  // namespace dminer

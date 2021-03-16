@@ -29,4 +29,4 @@ class LPM {
   static void *tag;
 };
 
-}
+}  // namespace dminer
