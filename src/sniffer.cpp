@@ -67,8 +67,8 @@ void Sniffer::start() noexcept {
           (IN6_ARE_ADDR_EQUAL(&reply->src_ip, &reply->inner_dst_ip))) {
         statistics_.icmp_messages_path.insert(reply->src_ip);
       }
-      output_csv_ << fmt::format("{},{},{}\n", reply->to_csv(),
-                                 meta_round_.value_or("1"), "1");
+      output_csv_ << fmt::format("{},{}\n", reply->to_csv(),
+                                 meta_round_.value_or("1"));
     } else {
       auto data = packet.pdu()->serialize();
       spdlog::warn("invalid_packet_hex={:02x}", fmt::join(data, ""));
