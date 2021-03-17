@@ -22,6 +22,7 @@ extern "C" {
 
 using dminer::Packet;
 using dminer::Builder::transport_checksum;
+using dminer::Utilities::format_addr;
 using dminer::Utilities::parse_addr;
 
 using std::array;
@@ -131,10 +132,11 @@ TEST_CASE("Builder::ICMPv6") {
 
   auto ip6 =
       Tins::IPv6(reinterpret_cast<uint8_t*>(packet.l3()), packet.l3_size());
-  REQUIRE(IN6_ARE_ADDR_EQUAL(
-      reinterpret_cast<in6_addr*>(ip6.src_addr().begin()), &src_addr));
-  REQUIRE(IN6_ARE_ADDR_EQUAL(
-      reinterpret_cast<in6_addr*>(ip6.dst_addr().begin()), &dst_addr));
+  in6_addr new_src_addr{}, new_dst_addr{};
+  ip6.src_addr().copy(new_src_addr.s6_addr);
+  ip6.dst_addr().copy(new_dst_addr.s6_addr);
+  REQUIRE(IN6_ARE_ADDR_EQUAL(&new_src_addr, &src_addr));
+  REQUIRE(IN6_ARE_ADDR_EQUAL(&new_dst_addr, &dst_addr));
   REQUIRE(ip6.hop_limit() == ttl);
 
   auto icmp6 = ip6.rfind_pdu<Tins::ICMPv6>();
@@ -208,16 +210,16 @@ TEST_CASE("Builder::UDP/v6") {
 
   REQUIRE(validate_udp_checksum(packet));
 
-  auto ip =
+  auto ip6 =
       Tins::IPv6(reinterpret_cast<uint8_t*>(packet.l3()), packet.l3_size());
-  // TODO:
-  // REQUIRE(ip.src_addr().to_string() uint32_t(ip.src_addr()) ==
-  // src_addr.s_addr); REQUIRE(uint32_t(ip.dst_addr()) == dst_addr.s_addr);
-  // ip.id
-  // REQUIRE(int(ip.flow_label()) == ttl);
-  REQUIRE(ip.hop_limit() == ttl);
+  in6_addr new_src_addr{}, new_dst_addr{};
+  ip6.src_addr().copy(new_src_addr.s6_addr);
+  ip6.dst_addr().copy(new_dst_addr.s6_addr);
+  REQUIRE(IN6_ARE_ADDR_EQUAL(&new_src_addr, &src_addr));
+  REQUIRE(IN6_ARE_ADDR_EQUAL(&new_dst_addr, &dst_addr));
+  REQUIRE(ip6.hop_limit() == ttl);
 
-  auto udp = ip.rfind_pdu<Tins::UDP>();
+  auto udp = ip6.rfind_pdu<Tins::UDP>();
   REQUIRE(udp.sport() == src_port);
   REQUIRE(udp.dport() == dst_port);
   REQUIRE(udp.checksum() == timestamp_enc);
