@@ -5,6 +5,9 @@
 #include <netinet/udp.h>
 #include <tins/tins.h>
 
+// Must be included after netinet/ip.h on macOS.
+#include <netinet/icmp6.h>
+
 extern "C" {
 #include <netutils/checksum.h>
 }
@@ -15,14 +18,18 @@ extern "C" {
 #include <dminer/builder.hpp>
 #include <dminer/constants.hpp>
 #include <dminer/timestamp.hpp>
+#include <dminer/utilities.hpp>
 
 using dminer::Packet;
 using dminer::Builder::transport_checksum;
+using dminer::Utilities::parse_addr;
+
 using std::array;
 using std::byte;
 
 namespace Ethernet = dminer::Builder::Ethernet;
 namespace ICMP = dminer::Builder::ICMP;
+namespace ICMPv6 = dminer::Builder::ICMPv6;
 namespace IP = dminer::Builder::IP;
 namespace UDP = dminer::Builder::UDP;
 namespace Timestamp = dminer::Timestamp;
@@ -42,6 +49,15 @@ bool validate_icmp_checksum(Packet buffer) {
   icmp_header->icmp_cksum = 0;
   const uint16_t correct = ip_checksum(buffer.l4(), buffer.l4_size());
   icmp_header->icmp_cksum = original;
+  return original == correct;
+}
+
+bool validate_icmp6_checksum(Packet buffer) {
+  const auto icmp6_header = reinterpret_cast<icmp6_hdr*>(buffer.l4());
+  const uint16_t original = icmp6_header->icmp6_cksum;
+  icmp6_header->icmp6_cksum = 0;
+  const uint16_t correct = transport_checksum(buffer);
+  icmp6_header->icmp6_cksum = original;
   return original == correct;
 }
 
@@ -92,6 +108,39 @@ TEST_CASE("Builder::ICMP") {
     ICMP::init(packet, flow_id, timestamp_enc);
     return packet;
   };
+}
+
+TEST_CASE("Builder::ICMPv6") {
+  in6_addr src_addr{}, dst_addr{};
+  parse_addr("2a04:8ec0:0:164:620c:e59a:daf8:21e9", src_addr);
+  parse_addr("2001:4860:4860::8888", dst_addr);
+  uint16_t flow_id = 24000;
+  uint8_t ttl = 8;
+  uint16_t payload_len = 10;
+  uint16_t timestamp_enc = Timestamp::encode(123456);
+
+  array<byte, 65536> buffer{};
+  Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IPV6, IPPROTO_ICMPV6,
+                payload_len};
+
+  Ethernet::init(packet, true, {0}, {0});
+  IP::init(packet, IPPROTO_ICMPV6, src_addr, dst_addr, ttl);
+  ICMPv6::init(packet, flow_id, timestamp_enc);
+
+  REQUIRE(validate_icmp6_checksum(packet));
+
+  auto ip6 =
+      Tins::IPv6(reinterpret_cast<uint8_t*>(packet.l3()), packet.l3_size());
+  REQUIRE(IN6_ARE_ADDR_EQUAL(
+      reinterpret_cast<in6_addr*>(ip6.src_addr().begin()), &src_addr));
+  REQUIRE(IN6_ARE_ADDR_EQUAL(
+      reinterpret_cast<in6_addr*>(ip6.dst_addr().begin()), &dst_addr));
+  REQUIRE(ip6.hop_limit() == ttl);
+
+  auto icmp6 = ip6.rfind_pdu<Tins::ICMPv6>();
+  REQUIRE(icmp6.checksum() == flow_id);
+  REQUIRE(icmp6.identifier() == flow_id);
+  REQUIRE(icmp6.sequence() == timestamp_enc);
 }
 
 TEST_CASE("Builder::UDP/v4") {

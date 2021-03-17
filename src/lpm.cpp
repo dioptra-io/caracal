@@ -8,6 +8,21 @@ extern "C" {
 
 namespace dminer {
 
+void ipv4_mapped_to_ipv4(uint32_t *addr, size_t *len, uint32_t *preflen) {
+  // Internally LPM uses raw IPv4 and not IPv4-mapped IPv6 addresses.
+  // TODO: Simplify this by implementing our own lpm_strtobin.
+  if (IN6_IS_ADDR_V4MAPPED(reinterpret_cast<in6_addr *>(addr))) {
+    addr[0] = addr[3];
+    addr[1] = 0;
+    addr[2] = 0;
+    addr[3] = 0;
+    *len = 4;
+    if (*preflen == 128) {
+      *preflen = 32;
+    }
+  }
+}
+
 LPM::LPM() {
   lpm = lpm_create();
   if (lpm == nullptr) {
@@ -24,6 +39,7 @@ void LPM::insert(const std::string &s) {
   if (lpm_strtobin(s.c_str(), &addr, &len, &preflen) != 0) {
     throw std::runtime_error("LPM: failed to parse " + s);
   }
+  ipv4_mapped_to_ipv4(addr, &len, &preflen);
   if (lpm_insert(lpm, &addr, len, preflen, tag) != 0) {
     throw std::runtime_error("LPM: failed to insert " + s);
   }
@@ -59,6 +75,7 @@ bool LPM::lookup(const std::string &s) {
   if (lpm_strtobin(s.c_str(), &addr, &len, &preflen) != 0) {
     throw std::runtime_error("LPM: failed to parse " + s);
   }
+  ipv4_mapped_to_ipv4(addr, &len, &preflen);
   return lpm_lookup(lpm, &addr, len) == tag;
 }
 

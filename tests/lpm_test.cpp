@@ -10,6 +10,7 @@ TEST_CASE("LPM") {
   std::ofstream ofs;
   ofs.open("zzz_input.csv");
   ofs << "192.168.150.0/24\n";
+  ofs << "::ffff:192.168.160.0/24\n";
   ofs << "abcd:abcd::/32\n";
   ofs << "aaaa:bbbb:cccc::/48\n";
   ofs.close();
@@ -21,6 +22,10 @@ TEST_CASE("LPM") {
   REQUIRE(lpm.lookup("192.168.150.42"));
   REQUIRE(lpm.lookup("192.168.150.255"));
   REQUIRE(!lpm.lookup("192.168.151.1"));
+  REQUIRE(lpm.lookup("192.168.160.1"));
+  REQUIRE(lpm.lookup("::ffff:192.168.160.1"));
+  REQUIRE(!lpm.lookup("192.168.161.1"));
+  REQUIRE(!lpm.lookup("::ffff:192.168.161.1"));
   REQUIRE(lpm.lookup("abcd:abcd::1"));
   REQUIRE(!lpm.lookup("abcd:1234::1"));
   REQUIRE(lpm.lookup("aaaa:bbbb:cccc::1"));
