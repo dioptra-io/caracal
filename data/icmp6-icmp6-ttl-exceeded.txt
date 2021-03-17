@@ -1,0 +1,79 @@
+No.     Time               Source                Destination           Protocol Length Info
+     13 14:26:04.866978    2a04:8ec0:0:164:620c:e59a:daf8:21e9 2001:4860:4860::8888  ICMPv6   66     Echo (ping) request id=0x5dc0, seq=24309, hop limit=2 (no response found!)
+
+Frame 13: 66 bytes on wire (528 bits), 66 bytes captured (528 bits)
+Ethernet II, Src: HewlettP_58:c6:44 (f4:30:b9:58:c6:44), Dst: Cisco_49:05:3f (6c:8b:d3:49:05:3f)
+Internet Protocol Version 6, Src: 2a04:8ec0:0:164:620c:e59a:daf8:21e9, Dst: 2001:4860:4860::8888
+    0110 .... = Version: 6
+    .... 0000 0000 .... .... .... .... .... = Traffic Class: 0x00 (DSCP: CS0, ECN: Not-ECT)
+    .... .... .... 0000 0000 0000 0000 0000 = Flow Label: 0x00000
+    Payload Length: 12
+    Next Header: ICMPv6 (58)
+    Hop Limit: 2
+    Source Address: 2a04:8ec0:0:164:620c:e59a:daf8:21e9
+    Destination Address: 2001:4860:4860::8888
+    [Source GeoIP: FR]
+    [Destination GeoIP: US]
+Internet Control Message Protocol v6
+    Type: Echo (ping) request (128)
+    Code: 0
+    Checksum: 0x5dc0 [correct]
+    [Checksum Status: Good]
+    Identifier: 0x5dc0
+    Sequence: 24309
+    [No response seen]
+        [Expert Info (Warning/Sequence): No response seen to ICMPv6 request in frame 13]
+            [No response seen to ICMPv6 request in frame 13]
+            [Severity level: Warning]
+            [Group: Sequence]
+    Data (4 bytes)
+
+0000  2d 47 00 00                                       -G..
+        Data: 2d470000
+        [Length: 4]
+
+No.     Time               Source                Destination           Protocol Length Info
+     14 14:26:04.867543    2a04:8ec0:0:a::1:119  2a04:8ec0:0:164:620c:e59a:daf8:21e9 ICMPv6   114    Time Exceeded (hop limit exceeded in transit)
+
+Frame 14: 114 bytes on wire (912 bits), 114 bytes captured (912 bits)
+Ethernet II, Src: Cisco_49:05:3f (6c:8b:d3:49:05:3f), Dst: HewlettP_58:c6:44 (f4:30:b9:58:c6:44)
+Internet Protocol Version 6, Src: 2a04:8ec0:0:a::1:119, Dst: 2a04:8ec0:0:164:620c:e59a:daf8:21e9
+    0110 .... = Version: 6
+    .... 0000 0000 .... .... .... .... .... = Traffic Class: 0x00 (DSCP: CS0, ECN: Not-ECT)
+    .... .... .... 0000 0000 0000 0000 0000 = Flow Label: 0x00000
+    Payload Length: 60
+    Next Header: ICMPv6 (58)
+    Hop Limit: 63
+    Source Address: 2a04:8ec0:0:a::1:119
+    Destination Address: 2a04:8ec0:0:164:620c:e59a:daf8:21e9
+    [Source GeoIP: FR]
+    [Destination GeoIP: FR]
+Internet Control Message Protocol v6
+    Type: Time Exceeded (3)
+    Code: 0 (hop limit exceeded in transit)
+    Checksum: 0xaa27 [correct]
+    [Checksum Status: Good]
+    Reserved: 00000000
+    Internet Protocol Version 6, Src: 2a04:8ec0:0:164:620c:e59a:daf8:21e9, Dst: 2001:4860:4860::8888
+        0110 .... = Version: 6
+        .... 0000 0000 .... .... .... .... .... = Traffic Class: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        .... .... .... 0000 0000 0000 0000 0000 = Flow Label: 0x00000
+        Payload Length: 12
+        Next Header: ICMPv6 (58)
+        Hop Limit: 1
+        Source Address: 2a04:8ec0:0:164:620c:e59a:daf8:21e9
+        Destination Address: 2001:4860:4860::8888
+        [Source GeoIP: FR]
+        [Destination GeoIP: US]
+    Internet Control Message Protocol v6
+        Type: Echo (ping) request (128)
+        Code: 0
+        Checksum: 0x5dc0 [unverified] [in ICMP error packet]
+        [Checksum Status: Unverified]
+        Identifier: 0x5dc0
+        Sequence: 24309
+        Data (4 bytes)
+
+0000  2d 47 00 00                                       -G..
+            Data: 2d470000
+            [Length: 4]

@@ -79,9 +79,6 @@ void init(Packet packet, uint8_t protocol, in6_addr src_addr, in6_addr dst_addr,
 /// we ignore them in the packet parser.
 namespace dminer::Builder::ICMP {
 
-// TODO: ICMPv6
-// TODO: Fix checksum for ICMPv6.
-
 /// Build an ICMP echo probe.
 /// @param packet the packet buffer, including the IP header.
 /// @param target_checksum the custom ICMP checksum, in host order.
@@ -89,6 +86,12 @@ namespace dminer::Builder::ICMP {
 void init(Packet packet, uint16_t target_checksum, uint16_t target_seq);
 
 }  // namespace dminer::Builder::ICMP
+
+namespace dminer::Builder::ICMPv6 {
+
+void init(Packet packet, uint16_t target_checksum, uint16_t target_payload);
+
+}
 
 /// Build UDP probes.
 /// In the UDP header, the source and destination ports are used for per-flow

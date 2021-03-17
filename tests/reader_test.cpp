@@ -5,7 +5,6 @@
 #include <dminer/reader.hpp>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -32,7 +31,7 @@ TEST_CASE("Reader::read") {
 
   REQUIRE(res.size() == ref.size());
   for (uint64_t i = 0; i < res.size(); i++) {
-    REQUIRE(res[i] == ref[i] + ",1,1");
+    REQUIRE(res[i] == ref[i] + ",1");
   }
 
   fs::remove("zzz_output.csv");

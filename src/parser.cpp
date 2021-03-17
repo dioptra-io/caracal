@@ -44,6 +44,7 @@ void parse_outer(Reply& reply, const Tins::IP* ip) noexcept {
 void parse_outer(Reply& reply, const Tins::IPv6* ip) noexcept {
   copy(ip->src_addr(), reply.src_ip);
   copy(ip->dst_addr(), reply.dst_ip);
+  reply.size = ip->payload_length();
   reply.ttl = static_cast<uint8_t>(ip->hop_limit());
 }
 
@@ -65,7 +66,7 @@ void parse_inner(Reply& reply, const Tins::IP* ip) noexcept {
 
 void parse_inner(Reply& reply, const Tins::IPv6* ip) noexcept {
   copy(ip->dst_addr(), reply.inner_dst_ip);
-  reply.size = static_cast<uint16_t>(ip->size());
+  reply.inner_size = ip->payload_length();
 
   // Can't store the TTL in the id field (see Builder::IP::init),
   // so we compute it from the payload length.
@@ -74,6 +75,7 @@ void parse_inner(Reply& reply, const Tins::IPv6* ip) noexcept {
     case IPPROTO_ICMPV6:
       reply.inner_ttl =
           ip->payload_length() - ICMPV6_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
+      break;
 
     case IPPROTO_UDP:
       reply.inner_ttl =
@@ -82,6 +84,7 @@ void parse_inner(Reply& reply, const Tins::IPv6* ip) noexcept {
 
     default:
       reply.inner_ttl = 0;
+      break;
   }
 }
 
@@ -93,14 +96,12 @@ void parse_inner(Reply& reply, const Tins::ICMP* icmp,
   reply.rtt = Timestamp::difference(timestamp, icmp->sequence()) / 10.0;
 }
 
-void parse_inner(Reply& /* reply */, const Tins::ICMPv6* /* icmp */,
-                 const uint64_t /* timestamp */) noexcept {
-  // TODO
-  // reply.inner_proto = IPPROTO_ICMPV6;
-  // reply.inner_src_port = icmp->id();
-  // reply.inner_dst_port = 0;            // Not encoded in ICMP probes.
-  // reply.inner_ttl_from_transport = 0;  // Not encoded in ICMP probes.
-  // reply.rtt = Timestamp::difference(timestamp, icmp->sequence()) / 10.0;
+void parse_inner(Reply& reply, const Tins::ICMPv6* icmp,
+                 const uint64_t timestamp) noexcept {
+  reply.inner_proto = IPPROTO_ICMPV6;
+  reply.inner_src_port = icmp->identifier();
+  reply.inner_dst_port = 0;  // Not encoded in ICMP probes.
+  reply.rtt = Timestamp::difference(timestamp, icmp->sequence()) / 10.0;
 }
 
 void parse_inner(Reply& reply, const Tins::UDP* udp,
@@ -187,11 +188,12 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
     if (inner_ip) {
       // IPv6 → ICMPv6 → IPv6
       parse_inner(reply, &inner_ip.value());
-      const auto inner_icmp = inner_ip->find_pdu<Tins::ICMP>();
+      const auto inner_icmp = inner_ip->find_pdu<Tins::ICMPv6>();
       const auto inner_udp = inner_ip->find_pdu<Tins::UDP>();
       if (inner_icmp) {
         // IPv6 → ICMPv6 → IPv6 → ICMPv6
         parse_inner(reply, inner_icmp, timestamp);
+        parse_inner_ttl_icmp(reply, &inner_ip.value());
       } else if (inner_udp) {
         // IPv6 → ICMPv6 → IPv6 → UDP
         parse_inner(reply, inner_udp, timestamp);

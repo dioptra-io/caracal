@@ -3,6 +3,9 @@
 #include <netinet/ip_icmp.h>
 #include <netinet/udp.h>
 
+// Must be included after netinet/ip.h on macOS.
+#include <netinet/icmp6.h>
+
 extern "C" {
 #include <netutils/checksum.h>
 }
@@ -13,6 +16,14 @@ extern "C" {
 #include <dminer/packet.hpp>
 
 namespace dminer::Builder {
+
+void assert_payload_size(Packet packet, size_t min_size) {
+  if (packet.payload_size() < min_size) {
+    auto msg = "The payload must be at-least " + std::to_string(min_size) +
+               " bytes long to allow for a custom checksum";
+    throw std::invalid_argument{msg};
+  }
+}
 
 uint16_t transport_checksum(Packet packet) {
   // (1) Sum the pseudo header.
@@ -105,16 +116,9 @@ void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
 
 namespace dminer::Builder::ICMP {
 
-// TODO: ICMPv6
-// TODO: Fix checksum for ICMPv6.
-
 void init(Packet packet, const uint16_t target_checksum,
           const uint16_t target_seq) {
-  if (packet.payload_size() < PAYLOAD_TWEAK_BYTES) {
-    throw std::invalid_argument{"The payload must be at-least " +
-                                std::to_string(PAYLOAD_TWEAK_BYTES) +
-                                " bytes long to allow for a custom checksum"};
-  }
+  assert_payload_size(packet, PAYLOAD_TWEAK_BYTES);
 
   auto icmp_header = reinterpret_cast<icmp *>(packet.l4());
   icmp_header->icmp_type = 8;  // ICMP Echo Request
@@ -132,6 +136,29 @@ void init(Packet packet, const uint16_t target_checksum,
 
 }  // namespace dminer::Builder::ICMP
 
+namespace dminer::Builder::ICMPv6 {
+
+void init(Packet packet, const uint16_t target_checksum,
+          const uint16_t target_seq) {
+  assert_payload_size(packet, PAYLOAD_TWEAK_BYTES);
+
+  auto icmp6_header = reinterpret_cast<icmp6_hdr *>(packet.l4());
+  icmp6_header->icmp6_type = 128;  // ICMPv6 Echo Request
+  icmp6_header->icmp6_code = 0;    // ICMPv6 Echo Request
+  icmp6_header->icmp6_cksum = 0;
+  icmp6_header->icmp6_id = htons(target_checksum);
+  icmp6_header->icmp6_seq = htons(target_seq);
+
+  // Encode the flow ID in the checksum.
+  // NOTE: The checksum computation is *different* from ICMPv4.
+  const uint16_t original_checksum = transport_checksum(packet);
+  *reinterpret_cast<uint16_t *>(packet.payload()) =
+      tweak_payload(original_checksum, htons(target_checksum));
+  icmp6_header->icmp6_cksum = htons(target_checksum);
+}
+
+}  // namespace dminer::Builder::ICMPv6
+
 namespace dminer::Builder::UDP {
 
 void set_checksum(Packet packet) {
@@ -141,12 +168,7 @@ void set_checksum(Packet packet) {
 }
 
 void set_checksum(Packet packet, const uint16_t target_checksum) {
-  if (packet.payload_size() < PAYLOAD_TWEAK_BYTES) {
-    // TODO: Builder::Exception::PayloadTooSmall exception ?
-    throw std::invalid_argument{"The payload must be at-least " +
-                                std::to_string(PAYLOAD_TWEAK_BYTES) +
-                                " bytes long to allow for a custom checksum"};
-  }
+  assert_payload_size(packet, PAYLOAD_TWEAK_BYTES);
   auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
   udp_header->uh_sum = 0;
   const uint16_t original_checksum = transport_checksum(packet);

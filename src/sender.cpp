@@ -116,12 +116,17 @@ Sender::Sender(const Tins::NetworkInterface &interface,
 void Sender::send(const Probe &probe) {
   const bool is_v4 = probe.v4();
   const uint8_t l3_protocol = is_v4 ? IPPROTO_IP : IPPROTO_IPV6;
+  uint8_t l4_protocol = l4_protocol_;
+  // For IPv6 we use ICMPv6 instead of ICMP
+  if (!is_v4 && l4_protocol_ == IPPROTO_ICMP) {
+    l4_protocol = IPPROTO_ICMPV6;
+  }
   // We reserve two bytes in the payload to tweak the checksum.
   const uint16_t payload_length = probe.ttl + PAYLOAD_TWEAK_BYTES;
   const uint64_t timestamp =
       Timestamp::cast<Timestamp::tenth_ms>(system_clock::now());
   const uint16_t timestamp_enc = Timestamp::encode(timestamp);
-  const Packet packet{buffer_, l2_protocol_, l3_protocol, l4_protocol_,
+  const Packet packet{buffer_, l2_protocol_, l3_protocol, l4_protocol,
                       payload_length};
 
   std::fill(packet.begin(), packet.end(), std::byte{0});
@@ -141,12 +146,12 @@ void Sender::send(const Probe &probe) {
 
   switch (l3_protocol) {
     case IPPROTO_IP:
-      Builder::IP::init(packet, l4_protocol_, src_ip_v4.sin_addr,
+      Builder::IP::init(packet, l4_protocol, src_ip_v4.sin_addr,
                         probe.sockaddr4().sin_addr, probe.ttl);
       break;
 
     case IPPROTO_IPV6:
-      Builder::IP::init(packet, l4_protocol_, src_ip_v6.sin6_addr,
+      Builder::IP::init(packet, l4_protocol, src_ip_v6.sin6_addr,
                         probe.sockaddr6().sin6_addr, probe.ttl);
       break;
 
@@ -154,9 +159,13 @@ void Sender::send(const Probe &probe) {
       break;
   }
 
-  switch (l4_protocol_) {
+  switch (l4_protocol) {
     case IPPROTO_ICMP:
       Builder::ICMP::init(packet, probe.src_port, timestamp_enc);
+      break;
+
+    case IPPROTO_ICMPV6:
+      Builder::ICMPv6::init(packet, probe.src_port, timestamp_enc);
       break;
 
     case IPPROTO_UDP:

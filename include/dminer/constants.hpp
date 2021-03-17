@@ -8,11 +8,10 @@
 /// Number of bytes used in the payload to correct the checksum.
 #define PAYLOAD_TWEAK_BYTES 2
 
-/// `sizeof(icmp)` returns 28, but we use only the minimal 8 byte header.
+/// `sizeof(icmp)` returns 28, but we use only the 8 byte header.
 #define ICMP_HEADER_SIZE 8
 
-/// `sizeof(icmp6_hdr)` returns 8, but we use only the 4 byte header.
-#define ICMPV6_HEADER_SIZE 4
+#define ICMPV6_HEADER_SIZE 8
 
 // in6_addr.s6_addr32 is not defined on macOS.
 #ifdef __APPLE__

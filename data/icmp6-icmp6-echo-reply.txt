@@ -1,0 +1,60 @@
+No.     Time               Source                Destination           Protocol Length Info
+      4 14:22:18.563850    2a04:8ec0:0:164:620c:e59a:daf8:21e9 2001:4860:4860::8888  ICMPv6   72     Echo (ping) request id=0x5dc0, seq=55003, hop limit=8 (reply in 5)
+
+Frame 4: 72 bytes on wire (576 bits), 72 bytes captured (576 bits)
+Ethernet II, Src: HewlettP_58:c6:44 (f4:30:b9:58:c6:44), Dst: Cisco_49:05:3f (6c:8b:d3:49:05:3f)
+Internet Protocol Version 6, Src: 2a04:8ec0:0:164:620c:e59a:daf8:21e9, Dst: 2001:4860:4860::8888
+    0110 .... = Version: 6
+    .... 0000 0000 .... .... .... .... .... = Traffic Class: 0x00 (DSCP: CS0, ECN: Not-ECT)
+    .... .... .... 0000 0000 0000 0000 0000 = Flow Label: 0x00000
+    Payload Length: 18
+    Next Header: ICMPv6 (58)
+    Hop Limit: 8
+    Source Address: 2a04:8ec0:0:164:620c:e59a:daf8:21e9
+    Destination Address: 2001:4860:4860::8888
+    [Source GeoIP: FR]
+    [Destination GeoIP: US]
+Internet Control Message Protocol v6
+    Type: Echo (ping) request (128)
+    Code: 0
+    Checksum: 0x5dc0 [correct]
+    [Checksum Status: Good]
+    Identifier: 0x5dc0
+    Sequence: 55003
+    [Response In: 5]
+    Data (10 bytes)
+
+0000  b5 5a 00 00 00 00 00 00 00 00                     .Z........
+        Data: b55a0000000000000000
+        [Length: 10]
+
+No.     Time               Source                Destination           Protocol Length Info
+      5 14:22:18.565191    2001:4860:4860::8888  2a04:8ec0:0:164:620c:e59a:daf8:21e9 ICMPv6   72     Echo (ping) reply id=0x5dc0, seq=55003, hop limit=118 (request in 4)
+
+Frame 5: 72 bytes on wire (576 bits), 72 bytes captured (576 bits)
+Ethernet II, Src: Cisco_49:05:3f (6c:8b:d3:49:05:3f), Dst: HewlettP_58:c6:44 (f4:30:b9:58:c6:44)
+Internet Protocol Version 6, Src: 2001:4860:4860::8888, Dst: 2a04:8ec0:0:164:620c:e59a:daf8:21e9
+    0110 .... = Version: 6
+    .... 1000 0000 .... .... .... .... .... = Traffic Class: 0x80 (DSCP: CS4, ECN: Not-ECT)
+    .... .... .... 0000 0000 0000 0000 0000 = Flow Label: 0x00000
+    Payload Length: 18
+    Next Header: ICMPv6 (58)
+    Hop Limit: 118
+    Source Address: 2001:4860:4860::8888
+    Destination Address: 2a04:8ec0:0:164:620c:e59a:daf8:21e9
+    [Source GeoIP: US]
+    [Destination GeoIP: FR]
+Internet Control Message Protocol v6
+    Type: Echo (ping) reply (129)
+    Code: 0
+    Checksum: 0x5cc0 [correct]
+    [Checksum Status: Good]
+    Identifier: 0x5dc0
+    Sequence: 55003
+    [Response To: 4]
+    [Response Time: 1.341 ms]
+    Data (10 bytes)
+
+0000  b5 5a 00 00 00 00 00 00 00 00                     .Z........
+        Data: b55a0000000000000000
+        [Length: 10]

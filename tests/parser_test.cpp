@@ -69,10 +69,10 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(format_addr(reply.inner_dst_ip) == "8.8.8.8");
     REQUIRE(reply.inner_size == 36);
     REQUIRE(reply.inner_ttl == 6);
+    REQUIRE(reply.inner_ttl_from_transport == 6);
     REQUIRE(reply.inner_proto == 1);
     REQUIRE(reply.inner_src_port == 24000);
     REQUIRE(reply.inner_dst_port == 0);
-    REQUIRE(reply.inner_ttl_from_transport == 6);
     REQUIRE(reply.rtt == 6.6);
   }
 
@@ -90,11 +90,55 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(format_addr(reply.inner_dst_ip) == "::");
     REQUIRE(reply.inner_size == 0);
     REQUIRE(reply.inner_ttl == 0);
+    REQUIRE(reply.inner_ttl_from_transport == 10);
     REQUIRE(reply.inner_proto == 1);
     REQUIRE(reply.inner_src_port == 24000);
     REQUIRE(reply.inner_dst_port == 0);
-    REQUIRE(reply.inner_ttl_from_transport == 10);
     REQUIRE(reply.rtt == 6.9);
+  }
+}
+
+TEST_CASE("Parser::parse/ICMPv6") {
+  SECTION("ICMPv6 TTL Exceeded") {
+    auto res = parse_file(data / "icmp6-icmp6-ttl-exceeded.pcap");
+    REQUIRE(res.size() == 1);
+
+    auto reply = res[0];
+    REQUIRE(format_addr(reply.src_ip) == "2a04:8ec0:0:a::1:119");
+    REQUIRE(format_addr(reply.dst_ip) == "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
+    REQUIRE(reply.size == 60);
+    REQUIRE(reply.ttl == 63);
+    REQUIRE(reply.icmp_type == 3);
+    REQUIRE(reply.icmp_code == 0);
+    REQUIRE(format_addr(reply.inner_dst_ip) == "2001:4860:4860::8888");
+    REQUIRE(reply.inner_size == 12);
+    REQUIRE(reply.inner_ttl == 2);
+    REQUIRE(reply.inner_ttl_from_transport == 2);
+    REQUIRE(reply.inner_proto == 58);
+    REQUIRE(reply.inner_src_port == 24000);
+    REQUIRE(reply.inner_dst_port == 0);
+    REQUIRE(reply.rtt == 0.6);
+  }
+
+  SECTION("ICMPv6 Echo Reply") {
+    auto res = parse_file(data / "icmp6-icmp6-echo-reply.pcap");
+    REQUIRE(res.size() == 1);
+
+    auto reply = res[0];
+    REQUIRE(format_addr(reply.src_ip) == "2001:4860:4860::8888");
+    REQUIRE(format_addr(reply.dst_ip) == "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
+    REQUIRE(reply.size == 18);
+    REQUIRE(reply.ttl == 118);
+    REQUIRE(reply.icmp_type == 129);
+    REQUIRE(reply.icmp_code == 0);
+    REQUIRE(format_addr(reply.inner_dst_ip) == "::");
+    REQUIRE(reply.inner_size == 0);
+    REQUIRE(reply.inner_ttl == 0);
+    REQUIRE(reply.inner_ttl_from_transport == 8);
+    REQUIRE(reply.inner_proto == 58);
+    REQUIRE(reply.inner_src_port == 24000);
+    REQUIRE(reply.inner_dst_port == 0);
+    REQUIRE(reply.rtt == 1.3);
   }
 }
 
@@ -114,10 +158,31 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(format_addr(reply.inner_dst_ip) == "8.8.8.8");
     REQUIRE(reply.inner_size == 36);
     REQUIRE(reply.inner_ttl == 6);
+    REQUIRE(reply.inner_ttl_from_transport == 6);
     REQUIRE(reply.inner_proto == 17);
     REQUIRE(reply.inner_src_port == 24000);
     REQUIRE(reply.inner_dst_port == 33434);
-    REQUIRE(reply.inner_ttl_from_transport == 6);
     REQUIRE(reply.rtt == 8.3);
+  }
+
+  SECTION("ICMPv6 TTL Exceeded") {
+    auto res = parse_file(data / "udp-icmp6-ttl-exceeded.pcap");
+    REQUIRE(res.size() == 1);
+
+    auto reply = res[0];
+    REQUIRE(format_addr(reply.src_ip) == "2a04:8ec0:0:a::1:119");
+    REQUIRE(format_addr(reply.dst_ip) == "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
+    REQUIRE(reply.size == 60);
+    REQUIRE(reply.ttl == 63);
+    REQUIRE(reply.icmp_type == 3);
+    REQUIRE(reply.icmp_code == 0);
+    REQUIRE(format_addr(reply.inner_dst_ip) == "2001:4860:4860::8888");
+    REQUIRE(reply.inner_size == 12);
+    REQUIRE(reply.inner_ttl == 2);
+    REQUIRE(reply.inner_ttl_from_transport == 2);
+    REQUIRE(reply.inner_proto == 17);
+    REQUIRE(reply.inner_src_port == 24000);
+    REQUIRE(reply.inner_dst_port == 33434);
+    REQUIRE(reply.rtt == 0.6);
   }
 }

@@ -59,6 +59,10 @@ Packet::Packet(const std::span<std::byte> buffer, const uint8_t l2_protocol,
   }
 
   switch (l4_protocol) {
+    case IPPROTO_ICMPV6:
+      l4_header_size = ICMPV6_HEADER_SIZE;
+      break;
+
     case IPPROTO_ICMP:
       l4_header_size = ICMP_HEADER_SIZE;
       break;
