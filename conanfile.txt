@@ -1,6 +1,6 @@
 [requires]
 boost/1.75.0
-libpcap/1.10.0
+libtins/4.3
 spdlog/1.8.2
 
 [generators]

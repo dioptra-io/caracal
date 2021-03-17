@@ -19,10 +19,10 @@ configure_file(apps/diamond-miner-config.h.in diamond-miner-config.h)
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Catch2 REQUIRED)
 find_package(Doxygen COMPONENTS dot)
-find_package(NetUtils REQUIRED)
+find_package(libtins REQUIRED)
 find_package(LPM REQUIRED)
+find_package(NetUtils REQUIRED)
 find_package(spdlog REQUIRED)
-find_package(Tins REQUIRED)
 find_package(Threads REQUIRED)
 
 include(Catch)
@@ -33,30 +33,36 @@ add_library(diamond-miner ${DMINER_LIBRARY_SOURCES})
 target_compile_features(diamond-miner PUBLIC cxx_std_20)
 target_compile_options(diamond-miner PRIVATE ${DMINER_PRIVATE_FLAGS})
 target_include_directories(diamond-miner PUBLIC "${PROJECT_SOURCE_DIR}/include")
-target_link_libraries(diamond-miner PRIVATE NetUtils::NetUtils spdlog::spdlog
-                                            Threads::Threads)
-target_link_libraries(diamond-miner PUBLIC LPM::LPM tins)
+target_link_libraries(
+  diamond-miner PRIVATE NetUtils::NetUtils spdlog::spdlog Threads::Threads
+)
+target_link_libraries(diamond-miner PUBLIC libtins::libtins LPM::LPM)
 
 # Executable (Prober)
 add_executable(diamond-miner-prober apps/diamond-miner-prober.cpp)
 target_compile_options(diamond-miner-prober PRIVATE ${DMINER_PRIVATE_FLAGS})
 target_include_directories(diamond-miner-prober PRIVATE "${PROJECT_BINARY_DIR}")
-target_link_libraries(diamond-miner-prober PRIVATE Boost::program_options
-                                                   spdlog::spdlog diamond-miner)
+target_link_libraries(
+  diamond-miner-prober PRIVATE Boost::program_options spdlog::spdlog
+                               diamond-miner
+)
 
 # Executable (Reader)
 add_executable(diamond-miner-reader apps/diamond-miner-reader.cpp)
 target_compile_options(diamond-miner-reader PRIVATE ${DMINER_PRIVATE_FLAGS})
 target_include_directories(diamond-miner-reader PRIVATE "${PROJECT_BINARY_DIR}")
-target_link_libraries(diamond-miner-reader PRIVATE Boost::program_options
-                                                   spdlog::spdlog diamond-miner)
+target_link_libraries(
+  diamond-miner-reader PRIVATE Boost::program_options spdlog::spdlog
+                               diamond-miner
+)
 
 # Executable (Tests)
 add_executable(diamond-miner-tests ${DMINER_TESTS_SOURCES})
 target_compile_options(diamond-miner-tests PRIVATE ${DMINER_PRIVATE_FLAGS})
 target_link_libraries(
   diamond-miner-tests PRIVATE Catch2::Catch2WithMain NetUtils::NetUtils
-                              spdlog::spdlog diamond-miner)
+                              spdlog::spdlog diamond-miner
+)
 catch_discover_tests(diamond-miner-tests)
 
 if(WITH_COVERAGE)
@@ -74,7 +80,8 @@ if(WITH_COVERAGE)
     EXCLUDE
     "${PROJECT_SOURCE_DIR}/apps/*"
     "${PROJECT_SOURCE_DIR}/extern/*"
-    "${PROJECT_SOURCE_DIR}/tests/*")
+    "${PROJECT_SOURCE_DIR}/tests/*"
+  )
 endif()
 
 if(WITH_LTO)
@@ -83,7 +90,8 @@ endif()
 
 if(WITH_SANITIZER)
   set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined")
+      "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined"
+  )
 endif()
 
 # Documentation
