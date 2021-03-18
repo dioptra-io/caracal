@@ -24,7 +24,11 @@ inline auto read_lines(const std::string& file) {
 
 TEST_CASE("Reader::read") {
   spdlog::cfg::helpers::load_levels("trace");
-  read(data / "sample_results.pcap", "zzz_output.csv", "1", false);
+
+  auto statistics =
+      read(data / "sample_results.pcap", "zzz_output.csv", "1", false);
+  REQUIRE(!statistics.icmp_messages_all.empty());
+  REQUIRE(!statistics.icmp_messages_path.empty());
 
   auto ref = read_lines(data / "sample_results.csv");
   auto res = read_lines("zzz_output.csv");

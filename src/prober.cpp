@@ -145,6 +145,7 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   std::this_thread::sleep_for(std::chrono::seconds(config.sniffer_wait_time));
   sniffer.stop();
 
+  log_stats();
   return {stats, sniffer.statistics()};
 }
 

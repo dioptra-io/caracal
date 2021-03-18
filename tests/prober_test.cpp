@@ -65,6 +65,8 @@ TEST_CASE("Prober::probe") {
     // REQUIRE(sniffer_stats.received_count == 6);
     REQUIRE(sniffer_stats.received_count >= 2);
     REQUIRE(sniffer_stats.received_invalid_count == 0);
+    REQUIRE(!sniffer_stats.icmp_messages_all.empty());
+    REQUIRE(!sniffer_stats.icmp_messages_path.empty());
   }
 
   SECTION("Include list with missing new line") {
