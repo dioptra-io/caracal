@@ -51,11 +51,24 @@ void parse_outer(Reply& reply, const Tins::IPv6* ip) noexcept {
 void parse_outer(Reply& reply, const Tins::ICMP* icmp) noexcept {
   reply.icmp_code = icmp->code();
   reply.icmp_type = static_cast<uint8_t>(icmp->type());
+  for (const auto& ext : icmp->extensions().extensions()) {
+    parse_outer(reply, ext);
+  }
 }
 
 void parse_outer(Reply& reply, const Tins::ICMPv6* icmp) noexcept {
   reply.icmp_code = icmp->code();
   reply.icmp_type = static_cast<uint8_t>(icmp->type());
+  // TODO: Test for IPv6.
+  for (const auto& ext : icmp->extensions().extensions()) {
+    parse_outer(reply, ext);
+  }
+}
+
+void parse_outer(Reply& reply, const Tins::ICMPExtension& ext) noexcept {
+  // MPLS Label Stack, see https://tools.ietf.org/html/rfc4950 (sec. 7)
+  Tins::MPLS mpls(ext);
+  reply.mpls_labels.push_back(mpls.label());
 }
 
 void parse_inner(Reply& reply, const Tins::IP* ip) noexcept {

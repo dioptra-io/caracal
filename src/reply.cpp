@@ -21,6 +21,7 @@ std::ostream& operator<<(std::ostream& os, Reply const& v) {
   os << " ttl=" << +v.ttl;
   os << " icmp_code=" << +v.icmp_code;
   os << " icmp_type=" << +v.icmp_type;
+  os << " mpls_labels=" << fmt::format("{}", fmt::join(v.mpls_labels, ","));
   os << " inner_dst_ip=" << v.inner_dst_ip;
   os << " inner_size=" << v.inner_size;
   os << " inner_ttl=" << +v.inner_ttl;

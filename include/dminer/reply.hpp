@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace dminer {
 
@@ -18,8 +19,10 @@ struct Reply {
 
   /// @name Reply attributes (IP → ICMP)
   /// @{
-  uint8_t icmp_code;  ///< ICMP code (0 if not an ICMP reply)
-  uint8_t icmp_type;  ///< ICMP type (0 if not an ICMP reply)
+  uint8_t icmp_code;                  ///< ICMP code (0 if not an ICMP reply)
+  uint8_t icmp_type;                  ///< ICMP type (0 if not an ICMP reply)
+  std::vector<uint32_t> mpls_labels;  ///< MPLS labels contained in the
+                                      ///< ICMP extension.
   /// @}
 
   /// @name Probe attributes (IP → ICMP → IP)
