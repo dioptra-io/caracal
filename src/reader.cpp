@@ -31,7 +31,8 @@ Statistics::Sniffer read(const fs::path& input_file,
 
     if (reply) {
       statistics.icmp_messages_all.insert(reply->src_ip);
-      if (!IN6_ARE_ADDR_EQUAL(&reply->src_ip, &reply->inner_dst_ip)) {
+      if ((reply->icmp_type == 3 || reply->icmp_type == 11) &&
+          (!IN6_ARE_ADDR_EQUAL(&reply->src_ip, &reply->inner_dst_ip))) {
         statistics.icmp_messages_path.insert(reply->src_ip);
       }
       output_csv << fmt::format("{},{}\n", reply->to_csv(include_rtt), round);
