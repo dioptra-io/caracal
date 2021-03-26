@@ -62,10 +62,9 @@ void Sniffer::start() noexcept {
 
     if (reply) {
       spdlog::trace(reply.value());
-      statistics_.icmp_messages_all.insert(reply->src_ip);
-      if ((reply->icmp_type == 3 || reply->icmp_type == 11) &&
-          (!IN6_ARE_ADDR_EQUAL(&reply->src_ip, &reply->inner_dst_ip))) {
-        statistics_.icmp_messages_path.insert(reply->src_ip);
+      statistics_.icmp_messages_all.insert(reply->reply_src_addr);
+      if (reply->is_icmp_time_exceeded()) {
+        statistics_.icmp_messages_path.insert(reply->reply_src_addr);
       }
       output_csv_ << fmt::format("{},{}\n", reply->to_csv(),
                                  meta_round_.value_or("1"));

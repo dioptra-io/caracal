@@ -15,14 +15,13 @@ namespace fs = std::filesystem;
 namespace dminer::Reader {
 
 Statistics::Sniffer read(const fs::path& input_file,
-                         const fs::path& output_file, const std::string& round,
-                         const bool include_rtt) {
+                         const fs::path& output_file,
+                         const std::string& round) {
   std::ofstream output_csv{output_file};
   Statistics::Sniffer statistics{};
   Tins::FileSniffer sniffer{input_file};
 
-  auto handler = [&output_csv, &statistics, round,
-                  include_rtt](Tins::Packet& packet) {
+  auto handler = [&output_csv, &statistics, round](Tins::Packet& packet) {
     auto reply = Parser::parse(packet);
 
     if (statistics.received_count % 1'000'000 == 0) {
@@ -30,12 +29,11 @@ Statistics::Sniffer read(const fs::path& input_file,
     }
 
     if (reply) {
-      statistics.icmp_messages_all.insert(reply->src_ip);
-      if ((reply->icmp_type == 3 || reply->icmp_type == 11) &&
-          (!IN6_ARE_ADDR_EQUAL(&reply->src_ip, &reply->inner_dst_ip))) {
-        statistics.icmp_messages_path.insert(reply->src_ip);
+      statistics.icmp_messages_all.insert(reply->reply_src_addr);
+      if (reply->is_icmp_time_exceeded()) {
+        statistics.icmp_messages_path.insert(reply->reply_src_addr);
       }
-      output_csv << fmt::format("{},{}\n", reply->to_csv(include_rtt), round);
+      output_csv << fmt::format("{},{}\n", reply->to_csv(), round);
     }
 
     statistics.received_count++;

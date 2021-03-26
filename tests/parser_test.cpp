@@ -4,8 +4,6 @@
 #include <dminer/parser.hpp>
 #include <dminer/utilities.hpp>
 #include <filesystem>
-#include <fstream>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -15,16 +13,6 @@ using dminer::Utilities::format_addr;
 namespace fs = std::filesystem;
 
 static auto data = fs::path{__FILE__}.parent_path() / ".." / "data";
-
-inline auto read_lines(const std::string& file) {
-  std::ifstream f{file};
-  std::string line;
-  std::vector<std::string> lines;
-  while (std::getline(f, line)) {
-    lines.push_back(line);
-  }
-  return lines;
-}
 
 inline auto parse_file(const std::string& file) {
   Tins::FileSniffer sniffer{file};
@@ -42,17 +30,6 @@ inline auto parse_file(const std::string& file) {
   return res;
 }
 
-// Bunch of replies to UDP probes, parsed with the original "reader" code.
-TEST_CASE("Parser::parse/sample") {
-  auto ref = read_lines(data / "sample_results.csv");
-  auto res = parse_file(data / "sample_results.pcap");
-
-  REQUIRE(res.size() == ref.size());
-  for (uint64_t i = 0; i < res.size(); i++) {
-    REQUIRE(res[i].to_csv(false) == ref[i]);
-  }
-}
-
 // Replies to ICMP probes.
 TEST_CASE("Parser::parse/ICMP") {
   SECTION("ICMP TTL Exceeded") {
@@ -60,21 +37,23 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(format_addr(reply.src_ip) == "72.14.204.68");
-    REQUIRE(format_addr(reply.dst_ip) == "192.168.1.5");
-    REQUIRE(reply.size == 56);
-    REQUIRE(reply.ttl == 250);
-    REQUIRE(reply.icmp_type == 11);
-    REQUIRE(reply.icmp_code == 0);
-    REQUIRE(reply.mpls_labels.empty());
-    REQUIRE(format_addr(reply.inner_dst_ip) == "8.8.8.8");
-    REQUIRE(reply.inner_size == 36);
-    REQUIRE(reply.inner_ttl == 6);
-    REQUIRE(reply.inner_ttl_from_transport == 6);
-    REQUIRE(reply.inner_proto == 1);
-    REQUIRE(reply.inner_src_port == 24000);
-    REQUIRE(reply.inner_dst_port == 0);
+    REQUIRE(format_addr(reply.reply_src_addr) == "72.14.204.68");
+    REQUIRE(format_addr(reply.reply_dst_addr) == "192.168.1.5");
+    REQUIRE(reply.reply_size == 56);
+    REQUIRE(reply.reply_ttl == 250);
+    REQUIRE(reply.reply_protocol == IPPROTO_ICMP);
+    REQUIRE(reply.reply_icmp_type == 11);
+    REQUIRE(reply.reply_icmp_code == 0);
+    REQUIRE(reply.reply_mpls_labels.empty());
+    REQUIRE(format_addr(reply.probe_dst_addr) == "8.8.8.8");
+    REQUIRE(reply.probe_size == 36);
+    REQUIRE(reply.probe_ttl_l3 == 6);
+    REQUIRE(reply.probe_ttl_l4 == 6);
+    REQUIRE(reply.probe_protocol == IPPROTO_ICMP);
+    REQUIRE(reply.probe_src_port == 24000);
+    REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.rtt == 6.6);
+    REQUIRE(reply.is_icmp_time_exceeded());
   }
 
   SECTION("ICMP TTL Exceeded with MPLS Extensions") {
@@ -82,25 +61,27 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(format_addr(reply.src_ip) == "62.115.118.58");
-    REQUIRE(format_addr(reply.dst_ip) == "192.168.1.57");
-    REQUIRE(reply.size == 168);
-    REQUIRE(reply.ttl == 243);
-    REQUIRE(reply.icmp_type == 11);
-    REQUIRE(reply.icmp_code == 0);
-    REQUIRE(reply.mpls_labels.size() == 1);
-    REQUIRE(reply.mpls_labels.at(0) == 26092);
-    REQUIRE(format_addr(reply.inner_dst_ip) == "142.93.181.71");
-    REQUIRE(reply.inner_size == 38);
-    REQUIRE(reply.inner_ttl == 8);
-    REQUIRE(reply.inner_ttl_from_transport == 8);
-    REQUIRE(reply.inner_proto == 1);
-    REQUIRE(reply.inner_src_port == 24000);
-    REQUIRE(reply.inner_dst_port == 0);
+    REQUIRE(format_addr(reply.reply_src_addr) == "62.115.118.58");
+    REQUIRE(format_addr(reply.reply_dst_addr) == "192.168.1.57");
+    REQUIRE(reply.reply_size == 168);
+    REQUIRE(reply.reply_ttl == 243);
+    REQUIRE(reply.reply_protocol == IPPROTO_ICMP);
+    REQUIRE(reply.reply_icmp_type == 11);
+    REQUIRE(reply.reply_icmp_code == 0);
+    REQUIRE(reply.reply_mpls_labels.size() == 1);
+    REQUIRE(reply.reply_mpls_labels.at(0) == 26092);
+    REQUIRE(format_addr(reply.probe_dst_addr) == "142.93.181.71");
+    REQUIRE(reply.probe_size == 38);
+    REQUIRE(reply.probe_ttl_l3 == 8);
+    REQUIRE(reply.probe_ttl_l4 == 8);
+    REQUIRE(reply.probe_protocol == IPPROTO_ICMP);
+    REQUIRE(reply.probe_src_port == 24000);
+    REQUIRE(reply.probe_dst_port == 0);
     // The sequence number in the inner ICMP header of this reply
     // is different from the one in the probe packet, so we cannot
     // recover the RTT.
     // REQUIRE(reply.rtt == 55.3);
+    REQUIRE(reply.is_icmp_time_exceeded());
   }
 
   SECTION("ICMP Echo Reply") {
@@ -108,21 +89,23 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(format_addr(reply.src_ip) == "8.8.8.8");
-    REQUIRE(format_addr(reply.dst_ip) == "192.168.1.5");
-    REQUIRE(reply.size == 40);
-    REQUIRE(reply.ttl == 117);
-    REQUIRE(reply.icmp_type == 0);
-    REQUIRE(reply.icmp_code == 0);
-    REQUIRE(reply.mpls_labels.empty());
-    REQUIRE(format_addr(reply.inner_dst_ip) == "::");
-    REQUIRE(reply.inner_size == 0);
-    REQUIRE(reply.inner_ttl == 0);
-    REQUIRE(reply.inner_ttl_from_transport == 10);
-    REQUIRE(reply.inner_proto == 1);
-    REQUIRE(reply.inner_src_port == 24000);
-    REQUIRE(reply.inner_dst_port == 0);
+    REQUIRE(format_addr(reply.reply_src_addr) == "8.8.8.8");
+    REQUIRE(format_addr(reply.reply_dst_addr) == "192.168.1.5");
+    REQUIRE(reply.reply_size == 40);
+    REQUIRE(reply.reply_ttl == 117);
+    REQUIRE(reply.reply_protocol == IPPROTO_ICMP);
+    REQUIRE(reply.reply_icmp_type == 0);
+    REQUIRE(reply.reply_icmp_code == 0);
+    REQUIRE(reply.reply_mpls_labels.empty());
+    REQUIRE(format_addr(reply.probe_dst_addr) == "::");
+    REQUIRE(reply.probe_size == 0);
+    REQUIRE(reply.probe_ttl_l3 == 0);
+    REQUIRE(reply.probe_ttl_l4 == 10);
+    REQUIRE(reply.probe_protocol == IPPROTO_ICMP);
+    REQUIRE(reply.probe_src_port == 24000);
+    REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.rtt == 6.9);
+    REQUIRE(!reply.is_icmp_time_exceeded());
   }
 }
 
@@ -132,21 +115,24 @@ TEST_CASE("Parser::parse/ICMPv6") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(format_addr(reply.src_ip) == "2a04:8ec0:0:a::1:119");
-    REQUIRE(format_addr(reply.dst_ip) == "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
-    REQUIRE(reply.size == 60);
-    REQUIRE(reply.ttl == 63);
-    REQUIRE(reply.icmp_type == 3);
-    REQUIRE(reply.icmp_code == 0);
-    REQUIRE(reply.mpls_labels.empty());
-    REQUIRE(format_addr(reply.inner_dst_ip) == "2001:4860:4860::8888");
-    REQUIRE(reply.inner_size == 12);
-    REQUIRE(reply.inner_ttl == 2);
-    REQUIRE(reply.inner_ttl_from_transport == 2);
-    REQUIRE(reply.inner_proto == 58);
-    REQUIRE(reply.inner_src_port == 24000);
-    REQUIRE(reply.inner_dst_port == 0);
+    REQUIRE(format_addr(reply.reply_src_addr) == "2a04:8ec0:0:a::1:119");
+    REQUIRE(format_addr(reply.reply_dst_addr) ==
+            "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
+    REQUIRE(reply.reply_size == 60);
+    REQUIRE(reply.reply_ttl == 63);
+    REQUIRE(reply.reply_protocol == IPPROTO_ICMPV6);
+    REQUIRE(reply.reply_icmp_type == 3);
+    REQUIRE(reply.reply_icmp_code == 0);
+    REQUIRE(reply.reply_mpls_labels.empty());
+    REQUIRE(format_addr(reply.probe_dst_addr) == "2001:4860:4860::8888");
+    REQUIRE(reply.probe_size == 12);
+    REQUIRE(reply.probe_ttl_l3 == 2);
+    REQUIRE(reply.probe_ttl_l4 == 2);
+    REQUIRE(reply.probe_protocol == IPPROTO_ICMPV6);
+    REQUIRE(reply.probe_src_port == 24000);
+    REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.rtt == 0.6);
+    REQUIRE(reply.is_icmp_time_exceeded());
   }
 
   SECTION("ICMPv6 Echo Reply") {
@@ -154,21 +140,24 @@ TEST_CASE("Parser::parse/ICMPv6") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(format_addr(reply.src_ip) == "2001:4860:4860::8888");
-    REQUIRE(format_addr(reply.dst_ip) == "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
-    REQUIRE(reply.size == 18);
-    REQUIRE(reply.ttl == 118);
-    REQUIRE(reply.icmp_type == 129);
-    REQUIRE(reply.icmp_code == 0);
-    REQUIRE(reply.mpls_labels.empty());
-    REQUIRE(format_addr(reply.inner_dst_ip) == "::");
-    REQUIRE(reply.inner_size == 0);
-    REQUIRE(reply.inner_ttl == 0);
-    REQUIRE(reply.inner_ttl_from_transport == 8);
-    REQUIRE(reply.inner_proto == 58);
-    REQUIRE(reply.inner_src_port == 24000);
-    REQUIRE(reply.inner_dst_port == 0);
+    REQUIRE(format_addr(reply.reply_src_addr) == "2001:4860:4860::8888");
+    REQUIRE(format_addr(reply.reply_dst_addr) ==
+            "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
+    REQUIRE(reply.reply_size == 18);
+    REQUIRE(reply.reply_ttl == 118);
+    REQUIRE(reply.reply_protocol == IPPROTO_ICMPV6);
+    REQUIRE(reply.reply_icmp_type == 129);
+    REQUIRE(reply.reply_icmp_code == 0);
+    REQUIRE(reply.reply_mpls_labels.empty());
+    REQUIRE(format_addr(reply.probe_dst_addr) == "::");
+    REQUIRE(reply.probe_size == 0);
+    REQUIRE(reply.probe_ttl_l3 == 0);
+    REQUIRE(reply.probe_ttl_l4 == 8);
+    REQUIRE(reply.probe_protocol == IPPROTO_ICMPV6);
+    REQUIRE(reply.probe_src_port == 24000);
+    REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.rtt == 1.3);
+    REQUIRE(!reply.is_icmp_time_exceeded());
   }
 }
 
@@ -179,21 +168,23 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(format_addr(reply.src_ip) == "72.14.204.68");
-    REQUIRE(format_addr(reply.dst_ip) == "192.168.1.5");
-    REQUIRE(reply.size == 56);
-    REQUIRE(reply.ttl == 250);
-    REQUIRE(reply.icmp_type == 11);
-    REQUIRE(reply.icmp_code == 0);
-    REQUIRE(reply.mpls_labels.empty());
-    REQUIRE(format_addr(reply.inner_dst_ip) == "8.8.8.8");
-    REQUIRE(reply.inner_size == 36);
-    REQUIRE(reply.inner_ttl == 6);
-    REQUIRE(reply.inner_ttl_from_transport == 6);
-    REQUIRE(reply.inner_proto == 17);
-    REQUIRE(reply.inner_src_port == 24000);
-    REQUIRE(reply.inner_dst_port == 33434);
+    REQUIRE(format_addr(reply.reply_src_addr) == "72.14.204.68");
+    REQUIRE(format_addr(reply.reply_dst_addr) == "192.168.1.5");
+    REQUIRE(reply.reply_size == 56);
+    REQUIRE(reply.reply_ttl == 250);
+    REQUIRE(reply.reply_protocol == IPPROTO_ICMP);
+    REQUIRE(reply.reply_icmp_type == 11);
+    REQUIRE(reply.reply_icmp_code == 0);
+    REQUIRE(reply.reply_mpls_labels.empty());
+    REQUIRE(format_addr(reply.probe_dst_addr) == "8.8.8.8");
+    REQUIRE(reply.probe_size == 36);
+    REQUIRE(reply.probe_ttl_l3 == 6);
+    REQUIRE(reply.probe_ttl_l4 == 6);
+    REQUIRE(reply.probe_protocol == IPPROTO_UDP);
+    REQUIRE(reply.probe_src_port == 24000);
+    REQUIRE(reply.probe_dst_port == 33434);
     REQUIRE(reply.rtt == 8.3);
+    REQUIRE(reply.is_icmp_time_exceeded());
   }
 
   SECTION("ICMPv6 TTL Exceeded") {
@@ -201,20 +192,23 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(format_addr(reply.src_ip) == "2a04:8ec0:0:a::1:119");
-    REQUIRE(format_addr(reply.dst_ip) == "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
-    REQUIRE(reply.size == 60);
-    REQUIRE(reply.ttl == 63);
-    REQUIRE(reply.icmp_type == 3);
-    REQUIRE(reply.icmp_code == 0);
-    REQUIRE(reply.mpls_labels.empty());
-    REQUIRE(format_addr(reply.inner_dst_ip) == "2001:4860:4860::8888");
-    REQUIRE(reply.inner_size == 12);
-    REQUIRE(reply.inner_ttl == 2);
-    REQUIRE(reply.inner_ttl_from_transport == 2);
-    REQUIRE(reply.inner_proto == 17);
-    REQUIRE(reply.inner_src_port == 24000);
-    REQUIRE(reply.inner_dst_port == 33434);
+    REQUIRE(format_addr(reply.reply_src_addr) == "2a04:8ec0:0:a::1:119");
+    REQUIRE(format_addr(reply.reply_dst_addr) ==
+            "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
+    REQUIRE(reply.reply_size == 60);
+    REQUIRE(reply.reply_ttl == 63);
+    REQUIRE(reply.reply_protocol == IPPROTO_ICMPV6);
+    REQUIRE(reply.reply_icmp_type == 3);
+    REQUIRE(reply.reply_icmp_code == 0);
+    REQUIRE(reply.reply_mpls_labels.empty());
+    REQUIRE(format_addr(reply.probe_dst_addr) == "2001:4860:4860::8888");
+    REQUIRE(reply.probe_size == 12);
+    REQUIRE(reply.probe_ttl_l3 == 2);
+    REQUIRE(reply.probe_ttl_l4 == 2);
+    REQUIRE(reply.probe_protocol == IPPROTO_UDP);
+    REQUIRE(reply.probe_src_port == 24000);
+    REQUIRE(reply.probe_dst_port == 33434);
     REQUIRE(reply.rtt == 0.6);
+    REQUIRE(reply.is_icmp_time_exceeded());
   }
 }

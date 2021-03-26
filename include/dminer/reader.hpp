@@ -11,7 +11,6 @@ namespace fs = std::filesystem;
 namespace dminer::Reader {
 
 Statistics::Sniffer read(const fs::path& input_file,
-                         const fs::path& output_file, const std::string& round,
-                         bool include_rtt = true);
+                         const fs::path& output_file, const std::string& round);
 
 }  // namespace dminer::Reader
