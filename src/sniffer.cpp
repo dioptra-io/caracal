@@ -70,7 +70,7 @@ void Sniffer::start() noexcept {
                                  meta_round_.value_or("1"));
     } else {
       auto data = packet.pdu()->serialize();
-      spdlog::warn("invalid_packet_hex={:02x}", fmt::join(data, ""));
+      spdlog::trace("invalid_packet_hex={:02x}", fmt::join(data, ""));
       statistics_.received_invalid_count++;
     }
 
