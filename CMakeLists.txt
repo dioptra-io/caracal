@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
-project(diamond-miner VERSION 0.3.3)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+include(MunkeiVersionFromGit)
+version_from_git(LOG ON)
+
+project(diamond-miner VERSION ${VERSION})
 
 set(DMINER_PRIVATE_FLAGS -Wall -Wextra -pedantic)
 set(THREADS_PREFER_PTHREAD_FLAG ON)

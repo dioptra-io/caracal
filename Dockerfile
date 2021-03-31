@@ -8,11 +8,12 @@ RUN apt-get update && \
         cmake \
         doxygen \
         gcovr \
+        git \
         graphviz \
         python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install conan && \
+RUN pip3 install --no-cache-dir "conan>=1.35" && \
     conan profile new default --detect && \
     conan profile update settings.build_type=Release default && \
     conan profile update settings.compiler.libcxx=libstdc++11 default && \

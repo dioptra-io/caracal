@@ -8,13 +8,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          fetch-depth: 0
           submodules: true
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-        with:
-          key: docker-layer-caching-{hash}
-          restore-keys: |
-            docker-layer-caching-
       - name: Build Docker image
         run: |
           docker build --target builder -t debug .

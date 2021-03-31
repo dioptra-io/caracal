@@ -1,4 +1,4 @@
-exclude: ^(cmake/CodeCoverage.cmake|data/|extern/).*
+exclude: ^(cmake/CodeCoverage.cmake|cmake/MunkeiVersionFromGit.cmake|data/|extern/).*
 
 repos:
   - repo: https://github.com/bmorcos/pre-commit-hooks-cpp

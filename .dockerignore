@@ -1,4 +1,5 @@
 *
+!.git/
 !apps/
 !cmake/
 !data/

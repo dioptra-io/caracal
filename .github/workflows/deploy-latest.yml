@@ -1,4 +1,4 @@
-name: Publish to Docker Hub
+name: Publish to Docker Hub (latest)
 
 on:
   push:
@@ -10,13 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@master
         with:
+          fetch-depth: 0
           submodules: true
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-        with:
-          key: docker-layer-caching-{hash}
-          restore-keys: |
-            docker-layer-caching-
       - name: Publish to Docker Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:

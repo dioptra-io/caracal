@@ -14,9 +14,7 @@ using std::string;
 
 int main(int argc, char** argv) {
   std::cout << "diamond-miner-reader"
-            << " v" << DMINER_VERSION_MAJOR << "." << DMINER_VERSION_MINOR
-            << "." << DMINER_VERSION_PATCH;
-  std::cout << " (" << DMINER_BUILD_TYPE << " build)";
+            << " v" << DMINER_SEMVER << " (" << DMINER_BUILD_TYPE << " build)";
   std::cout << std::endl;
 
   po::options_description all("Options");
