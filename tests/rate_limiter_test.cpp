@@ -1,9 +1,9 @@
+#include <caracal/rate_limiter.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <chrono>
-#include <dminer/rate_limiter.hpp>
 #include <iostream>
 
-using dminer::RateLimiter;
+using caracal::RateLimiter;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;

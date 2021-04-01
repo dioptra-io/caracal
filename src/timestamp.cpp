@@ -1,8 +1,8 @@
+#include <caracal/timestamp.hpp>
 #include <chrono>
 #include <cmath>
-#include <dminer/timestamp.hpp>
 
-namespace dminer::Timestamp {
+namespace caracal::Timestamp {
 
 uint16_t encode(uint64_t timestamp) noexcept {
   return static_cast<uint16_t>(timestamp % 65535);
@@ -18,4 +18,4 @@ uint16_t difference(uint64_t timestamp, uint16_t remainder) noexcept {
   return static_cast<uint16_t>(timestamp - decode(timestamp, remainder));
 }
 
-}  // namespace dminer::Timestamp
+}  // namespace caracal::Timestamp

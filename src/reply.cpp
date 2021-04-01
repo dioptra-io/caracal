@@ -1,12 +1,12 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
 
-#include <dminer/pretty.hpp>
-#include <dminer/reply.hpp>
+#include <caracal/pretty.hpp>
+#include <caracal/reply.hpp>
 #include <sstream>
 #include <string>
 
-namespace dminer {
+namespace caracal {
 
 std::string Reply::to_csv() const {
   return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{:.1f}",
@@ -42,4 +42,4 @@ std::ostream& operator<<(std::ostream& os, Reply const& v) {
   return os;
 }
 
-}  // namespace dminer
+}  // namespace caracal

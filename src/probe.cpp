@@ -2,15 +2,15 @@
 #include <spdlog/fmt/fmt.h>
 
 #include <algorithm>
-#include <dminer/checked.hpp>
-#include <dminer/constants.hpp>
-#include <dminer/probe.hpp>
-#include <dminer/utilities.hpp>
+#include <caracal/checked.hpp>
+#include <caracal/constants.hpp>
+#include <caracal/probe.hpp>
+#include <caracal/utilities.hpp>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-namespace dminer {
+namespace caracal {
 
 Probe Probe::from_csv(const std::string &line) {
   Probe probe{};
@@ -83,4 +83,4 @@ std::ostream &operator<<(std::ostream &os, Probe const &v) {
   return os;
 }
 
-}  // namespace dminer
+}  // namespace caracal

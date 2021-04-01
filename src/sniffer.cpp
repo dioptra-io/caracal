@@ -3,18 +3,18 @@
 #include <spdlog/spdlog.h>
 #include <tins/tins.h>
 
+#include <caracal/parser.hpp>
+#include <caracal/sniffer.hpp>
+#include <caracal/statistics.hpp>
+#include <caracal/utilities.hpp>
 #include <chrono>
-#include <dminer/parser.hpp>
-#include <dminer/sniffer.hpp>
-#include <dminer/statistics.hpp>
-#include <dminer/utilities.hpp>
 #include <filesystem>
 #include <optional>
 #include <thread>
 
 namespace fs = std::filesystem;
 
-namespace dminer {
+namespace caracal {
 
 Sniffer::Sniffer(const Tins::NetworkInterface &interface,
                  const std::optional<fs::path> &output_file_csv,
@@ -96,4 +96,4 @@ const Statistics::Sniffer &Sniffer::statistics() const noexcept {
   return statistics_;
 }
 
-}  // namespace dminer
+}  // namespace caracal

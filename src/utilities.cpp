@@ -1,11 +1,11 @@
 #include <arpa/inet.h>
 #include <tins/tins.h>
 
-#include <dminer/constants.hpp>
-#include <dminer/utilities.hpp>
+#include <caracal/constants.hpp>
+#include <caracal/utilities.hpp>
 #include <string>
 
-namespace dminer::Utilities {
+namespace caracal::Utilities {
 
 Tins::IPv4Address source_ipv4_for(const Tins::NetworkInterface& interface) {
   return interface.ipv4_address();
@@ -71,4 +71,4 @@ void parse_addr(const std::string& src, in6_addr& dst) {
   }
 }
 
-}  // namespace dminer::Utilities
+}  // namespace caracal::Utilities

@@ -13,27 +13,27 @@ extern "C" {
 }
 
 #include <array>
+#include <caracal/builder.hpp>
+#include <caracal/constants.hpp>
+#include <caracal/timestamp.hpp>
+#include <caracal/utilities.hpp>
 #include <catch2/benchmark/catch_benchmark.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <dminer/builder.hpp>
-#include <dminer/constants.hpp>
-#include <dminer/timestamp.hpp>
-#include <dminer/utilities.hpp>
 
-using dminer::Packet;
-using dminer::Builder::transport_checksum;
-using dminer::Utilities::format_addr;
-using dminer::Utilities::parse_addr;
+using caracal::Packet;
+using caracal::Builder::transport_checksum;
+using caracal::Utilities::format_addr;
+using caracal::Utilities::parse_addr;
 
 using std::array;
 using std::byte;
 
-namespace Ethernet = dminer::Builder::Ethernet;
-namespace ICMP = dminer::Builder::ICMP;
-namespace ICMPv6 = dminer::Builder::ICMPv6;
-namespace IP = dminer::Builder::IP;
-namespace UDP = dminer::Builder::UDP;
-namespace Timestamp = dminer::Timestamp;
+namespace Ethernet = caracal::Builder::Ethernet;
+namespace ICMP = caracal::Builder::ICMP;
+namespace ICMPv6 = caracal::Builder::ICMPv6;
+namespace IP = caracal::Builder::IP;
+namespace UDP = caracal::Builder::UDP;
+namespace Timestamp = caracal::Timestamp;
 
 bool validate_ip_checksum(Packet buffer) {
   const auto ip_header = reinterpret_cast<ip*>(buffer.l3());

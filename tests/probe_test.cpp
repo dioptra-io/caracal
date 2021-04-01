@@ -1,11 +1,11 @@
+#include <caracal/probe.hpp>
+#include <caracal/utilities.hpp>
 #include <catch2/benchmark/catch_benchmark.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <dminer/probe.hpp>
-#include <dminer/utilities.hpp>
 #include <sstream>
 
-using dminer::Probe;
-using dminer::Utilities::format_addr;
+using caracal::Probe;
+using caracal::Utilities::format_addr;
 
 template <typename T>
 std::string to_string(T x) {

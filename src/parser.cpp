@@ -2,11 +2,11 @@
 #include <netinet/udp.h>
 #include <tins/tins.h>
 
+#include <caracal/constants.hpp>
+#include <caracal/parser.hpp>
+#include <caracal/reply.hpp>
+#include <caracal/timestamp.hpp>
 #include <chrono>
-#include <dminer/constants.hpp>
-#include <dminer/parser.hpp>
-#include <dminer/reply.hpp>
-#include <dminer/timestamp.hpp>
 #include <optional>
 
 using Tins::PDU;
@@ -19,7 +19,7 @@ using std::optional;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 
-namespace dminer::Parser {
+namespace caracal::Parser {
 
 using ip_hdr = ip;
 
@@ -239,4 +239,4 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
   return nullopt;
 }
 
-}  // namespace dminer::Parser
+}  // namespace caracal::Parser

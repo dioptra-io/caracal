@@ -1,9 +1,9 @@
+#include <caracal/timestamp.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <chrono>
-#include <dminer/timestamp.hpp>
 #include <thread>
 
-namespace Timestamp = dminer::Timestamp;
+namespace Timestamp = caracal::Timestamp;
 
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;

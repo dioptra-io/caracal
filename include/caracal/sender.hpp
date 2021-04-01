@@ -16,7 +16,7 @@
 #include "probe.hpp"
 #include "socket.hpp"
 
-namespace dminer {
+namespace caracal {
 
 class Sender {
  public:
@@ -39,4 +39,4 @@ class Sender {
   sockaddr_in src_ip_v4;
   sockaddr_in6 src_ip_v6;
 };
-}  // namespace dminer
+}  // namespace caracal

@@ -1,11 +1,11 @@
 #include <algorithm>
+#include <caracal/statistics.hpp>
 #include <chrono>
-#include <dminer/statistics.hpp>
 #include <ostream>
 
 using std::chrono::nanoseconds;
 
-namespace dminer::Statistics {
+namespace caracal::Statistics {
 
 RateLimiter::RateLimiter() : target_delta_{}, effective_{}, inter_call_{} {}
 
@@ -54,4 +54,4 @@ std::ostream& operator<<(std::ostream& os, Sniffer const& v) {
   return os;
 }
 
-}  // namespace dminer::Statistics
+}  // namespace caracal::Statistics

@@ -1,16 +1,16 @@
 #include <spdlog/cfg/helpers.h>
 
+#include <caracal/prober.hpp>
+#include <caracal/prober_config.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <dminer/prober.hpp>
-#include <dminer/prober_config.hpp>
 #include <filesystem>
 #include <iostream>
 
 namespace fs = std::filesystem;
 
-using dminer::Prober::Config;
-using dminer::Prober::probe;
+using caracal::Prober::Config;
+using caracal::Prober::probe;
 
 TEST_CASE("Prober::probe") {
   auto protocol = GENERATE("icmp", "udp");

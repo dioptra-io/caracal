@@ -10,12 +10,12 @@ extern "C" {
 #include <netutils/checksum.h>
 }
 
-#include <dminer/builder.hpp>
-#include <dminer/checked.hpp>
-#include <dminer/constants.hpp>
-#include <dminer/packet.hpp>
+#include <caracal/builder.hpp>
+#include <caracal/checked.hpp>
+#include <caracal/constants.hpp>
+#include <caracal/packet.hpp>
 
-namespace dminer::Builder {
+namespace caracal::Builder {
 
 void assert_payload_size(Packet packet, size_t min_size) {
   if (packet.payload_size() < min_size) {
@@ -54,18 +54,18 @@ uint16_t tweak_payload(const uint16_t original_checksum,
   return Checked::hton<uint16_t>(target_le - original_le);
 }
 
-}  // namespace dminer::Builder
+}  // namespace caracal::Builder
 
-namespace dminer::Builder::Loopback {
+namespace caracal::Builder::Loopback {
 
 void init(Packet packet, const bool is_v4) {
   auto loopback_header = reinterpret_cast<uint32_t *>(packet.l2());
   *loopback_header = is_v4 ? 2 : 30;
 }
 
-}  // namespace dminer::Builder::Loopback
+}  // namespace caracal::Builder::Loopback
 
-namespace dminer::Builder::Ethernet {
+namespace caracal::Builder::Ethernet {
 
 void init(Packet packet, const bool is_v4,
           const std::array<uint8_t, ETHER_ADDR_LEN> &src_addr,
@@ -76,9 +76,9 @@ void init(Packet packet, const bool is_v4,
   eth_header->ether_type = htons(is_v4 ? ETHERTYPE_IP : ETHERTYPE_IPV6);
 }
 
-}  // namespace dminer::Builder::Ethernet
+}  // namespace caracal::Builder::Ethernet
 
-namespace dminer::Builder::IP {
+namespace caracal::Builder::IP {
 
 void init(Packet packet, const uint8_t protocol, const in_addr src_addr,
           const in_addr dst_addr, const uint8_t ttl) {
@@ -112,9 +112,9 @@ void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
   ip_header->ip6_plen = Checked::hton<uint16_t>(packet.l4_size());
 }
 
-}  // namespace dminer::Builder::IP
+}  // namespace caracal::Builder::IP
 
-namespace dminer::Builder::ICMP {
+namespace caracal::Builder::ICMP {
 
 void init(Packet packet, const uint16_t target_checksum,
           const uint16_t target_seq) {
@@ -134,9 +134,9 @@ void init(Packet packet, const uint16_t target_checksum,
   icmp_header->icmp_cksum = htons(target_checksum);
 }
 
-}  // namespace dminer::Builder::ICMP
+}  // namespace caracal::Builder::ICMP
 
-namespace dminer::Builder::ICMPv6 {
+namespace caracal::Builder::ICMPv6 {
 
 void init(Packet packet, const uint16_t target_checksum,
           const uint16_t target_seq) {
@@ -157,9 +157,9 @@ void init(Packet packet, const uint16_t target_checksum,
   icmp6_header->icmp6_cksum = htons(target_checksum);
 }
 
-}  // namespace dminer::Builder::ICMPv6
+}  // namespace caracal::Builder::ICMPv6
 
-namespace dminer::Builder::UDP {
+namespace caracal::Builder::UDP {
 
 void set_checksum(Packet packet) {
   auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
@@ -189,4 +189,4 @@ void set_ports(Packet packet, const uint16_t src_port,
   udp_header->uh_dport = htons(dst_port);
 }
 
-}  // namespace dminer::Builder::UDP
+}  // namespace caracal::Builder::UDP

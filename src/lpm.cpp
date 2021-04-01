@@ -1,12 +1,12 @@
-#include <dminer/constants.hpp>
-#include <dminer/lpm.hpp>
+#include <caracal/constants.hpp>
+#include <caracal/lpm.hpp>
 #include <fstream>
 
 extern "C" {
 #include <lpm.h>
 }
 
-namespace dminer {
+namespace caracal {
 
 void ipv4_mapped_to_ipv4(uint32_t *addr, size_t *len, uint32_t *preflen) {
   // Internally LPM uses raw IPv4 and not IPv4-mapped IPv6 addresses.
@@ -89,4 +89,4 @@ bool LPM::lookup(const in6_addr &addr) {
 
 void *LPM::tag = reinterpret_cast<void *>(0x42);
 
-}  // namespace dminer
+}  // namespace caracal

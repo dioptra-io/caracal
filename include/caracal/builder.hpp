@@ -7,7 +7,7 @@
 #include "packet.hpp"
 
 /// Build probe packets.
-namespace dminer::Builder {
+namespace caracal::Builder {
 
 /// Compute the transport-level checksum.
 /// @param packet the packet buffer, including the IP header.
@@ -22,25 +22,25 @@ namespace dminer::Builder {
 [[nodiscard]] uint16_t tweak_payload(uint16_t original_checksum,
                                      uint16_t target_checksum);
 
-}  // namespace dminer::Builder
+}  // namespace caracal::Builder
 
 /// Build the BSD/macOS Loopback header.
 /// On Linux the loopback interface uses the Ethernet header,
 /// but on macOS it uses a different 32-bit header.
-namespace dminer::Builder::Loopback {
+namespace caracal::Builder::Loopback {
 
 void init(Packet packet, bool is_v4);
 
-}  // namespace dminer::Builder::Loopback
+}  // namespace caracal::Builder::Loopback
 
 /// Build the Ethernet header.
-namespace dminer::Builder::Ethernet {
+namespace caracal::Builder::Ethernet {
 
 void init(Packet packet, bool is_v4,
           const std::array<uint8_t, ETHER_ADDR_LEN> &src_addr,
           const std::array<uint8_t, ETHER_ADDR_LEN> &dst_addr);
 
-}  // namespace dminer::Builder::Ethernet
+}  // namespace caracal::Builder::Ethernet
 
 /// Build IP probes.
 /// In the IP header, the type of service, protocol, source and destination
@@ -48,7 +48,7 @@ void init(Packet packet, bool is_v4,
 /// We also encode the TTL in the ID field in order to retrieve it in the ICMP
 /// destination unreachable/TTL exceeded messages since the TTL field is
 /// decreased/modified at each hop.
-namespace dminer::Builder::IP {
+namespace caracal::Builder::IP {
 
 /// Init the IPv4 header.
 /// @param packet the packet buffer, including the IP header.
@@ -68,7 +68,7 @@ void init(Packet packet, uint8_t protocol, in_addr src_addr, in_addr dst_addr,
 void init(Packet packet, uint8_t protocol, in6_addr src_addr, in6_addr dst_addr,
           uint8_t ttl);
 
-}  // namespace dminer::Builder::IP
+}  // namespace caracal::Builder::IP
 
 /// Build ICMP echo probes.
 /// In the ICMP echo header, the code and checksum fields are used for per-flow
@@ -77,7 +77,7 @@ void init(Packet packet, uint8_t protocol, in6_addr src_addr, in6_addr dst_addr,
 /// Since echo replies, in contrast to destination unreachable messages, doesn't
 /// contain the original probe packet (including the original TTL and flow ID),
 /// we ignore them in the packet parser.
-namespace dminer::Builder::ICMP {
+namespace caracal::Builder::ICMP {
 
 /// Build an ICMP echo probe.
 /// @param packet the packet buffer, including the IP header.
@@ -85,9 +85,9 @@ namespace dminer::Builder::ICMP {
 /// @param target_seq the custom sequence field, in host order.
 void init(Packet packet, uint16_t target_checksum, uint16_t target_seq);
 
-}  // namespace dminer::Builder::ICMP
+}  // namespace caracal::Builder::ICMP
 
-namespace dminer::Builder::ICMPv6 {
+namespace caracal::Builder::ICMPv6 {
 
 void init(Packet packet, uint16_t target_checksum, uint16_t target_payload);
 
@@ -100,7 +100,7 @@ void init(Packet packet, uint16_t target_checksum, uint16_t target_payload);
 /// The TTL is encoded in the payload length, in addition to the TTL field in
 /// the IP header. The payload is all zeros, except two bytes used to ensure
 /// that the custom checksum is valid.
-namespace dminer::Builder::UDP {
+namespace caracal::Builder::UDP {
 
 /// Compute and set the checksum in the UDP header.
 /// The packet must not be modified afterward to ensure that the checksum is
@@ -124,4 +124,4 @@ void set_length(Packet packet);
 /// @param dst_port the destination port, in host order.
 void set_ports(Packet packet, uint16_t src_port, uint16_t dst_port);
 
-}  // namespace dminer::Builder::UDP
+}  // namespace caracal::Builder::UDP

@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace dminer::Timestamp {
+namespace caracal::Timestamp {
 
 using tenth_ms = std::chrono::duration<uint64_t, std::ratio<1, 10000>>;
 
@@ -18,4 +18,4 @@ template <typename Duration, typename TimePoint>
   return std::chrono::duration_cast<Duration>(tp.time_since_epoch()).count();
 }
 
-}  // namespace dminer::Timestamp
+}  // namespace caracal::Timestamp

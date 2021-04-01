@@ -1,14 +1,14 @@
 #include <tins/tins.h>
 
+#include <caracal/parser.hpp>
+#include <caracal/utilities.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <dminer/parser.hpp>
-#include <dminer/utilities.hpp>
 #include <filesystem>
 #include <string>
 #include <vector>
 
-using dminer::Parser::parse;
-using dminer::Utilities::format_addr;
+using caracal::Parser::parse;
+using caracal::Utilities::format_addr;
 
 namespace fs = std::filesystem;
 
@@ -16,7 +16,7 @@ static auto data = fs::path{__FILE__}.parent_path() / ".." / "data";
 
 inline auto parse_file(const std::string& file) {
   Tins::FileSniffer sniffer{file};
-  std::vector<dminer::Reply> res;
+  std::vector<caracal::Reply> res;
 
   auto handler = [&res](Tins::Packet& packet) {
     auto reply = parse(packet);

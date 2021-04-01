@@ -7,7 +7,7 @@
 #include <string>
 
 /// Common numerical functions with exceptions on invalid inputs.
-namespace dminer::Checked {
+namespace caracal::Checked {
 
 /// Cast a numeric value to another numeric type and raise if the value doesn't
 /// fit.
@@ -67,4 +67,4 @@ template <typename To, typename From>
   return numeric_cast<uint8_t>(std::stoul(str));
 }
 
-}  // namespace dminer::Checked
+}  // namespace caracal::Checked

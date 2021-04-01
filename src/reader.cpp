@@ -3,16 +3,16 @@
 #include <spdlog/spdlog.h>
 #include <tins/tins.h>
 
-#include <dminer/parser.hpp>
-#include <dminer/reader.hpp>
-#include <dminer/statistics.hpp>
+#include <caracal/parser.hpp>
+#include <caracal/reader.hpp>
+#include <caracal/statistics.hpp>
 #include <filesystem>
 #include <fstream>
 #include <string>
 
 namespace fs = std::filesystem;
 
-namespace dminer::Reader {
+namespace caracal::Reader {
 
 Statistics::Sniffer read(const fs::path& input_file,
                          const fs::path& output_file,
@@ -45,4 +45,4 @@ Statistics::Sniffer read(const fs::path& input_file,
   return statistics;
 }
 
-}  // namespace dminer::Reader
+}  // namespace caracal::Reader

@@ -30,15 +30,15 @@ COPY . /tmp
 WORKDIR /tmp/build-debug
 RUN conan install .. && \
     cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON .. && \
-    cmake --build . --target diamond-miner-tests --parallel 8 && \
-    cmake --build . --target diamond-miner-docs
+    cmake --build . --target caracal-bin --parallel 8 && \
+    cmake --build . --target caracal-docs
 
 WORKDIR /tmp/build-release
 RUN conan install .. && \
     cmake -DCMAKE_BUILD_TYPE=Release -DWITH_LTO=ON .. && \
-    cmake --build . --target diamond-miner-prober --parallel 8
+    cmake --build . --target caracal-bin --parallel 8
 
 # Main
 FROM ubuntu:20.10
-COPY --from=builder /tmp/build-release/diamond-miner-prober /usr/bin/diamond-miner-prober
-ENTRYPOINT ["diamond-miner-prober"]
+COPY --from=builder /tmp/build-release/caracal /usr/bin/caracal
+ENTRYPOINT ["caracal"]

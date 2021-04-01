@@ -1,11 +1,11 @@
 #include <arpa/inet.h>
 
+#include <caracal/checked.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <dminer/checked.hpp>
 #include <stdexcept>
 
-using dminer::Checked::hton;
-using dminer::Checked::numeric_cast;
+using caracal::Checked::hton;
+using caracal::Checked::numeric_cast;
 
 TEST_CASE("Checked::numeric_cast") {
   constexpr uint8_t u8 = 255;

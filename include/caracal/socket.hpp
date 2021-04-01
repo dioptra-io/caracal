@@ -6,7 +6,7 @@
 #include <system_error>
 #include <vector>
 
-namespace dminer {
+namespace caracal {
 
 class Socket {
  public:
@@ -47,4 +47,4 @@ class Socket {
   }
 };
 
-}  // namespace dminer
+}  // namespace caracal

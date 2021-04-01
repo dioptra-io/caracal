@@ -1,19 +1,19 @@
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 
+#include <caracal/lpm.hpp>
+#include <caracal/probe.hpp>
+#include <caracal/prober.hpp>
+#include <caracal/prober_config.hpp>
+#include <caracal/rate_limiter.hpp>
+#include <caracal/sender.hpp>
+#include <caracal/sniffer.hpp>
+#include <caracal/statistics.hpp>
 #include <chrono>
-#include <dminer/lpm.hpp>
-#include <dminer/probe.hpp>
-#include <dminer/prober.hpp>
-#include <dminer/prober_config.hpp>
-#include <dminer/rate_limiter.hpp>
-#include <dminer/sender.hpp>
-#include <dminer/sniffer.hpp>
-#include <dminer/statistics.hpp>
 #include <iostream>
 #include <tuple>
 
-namespace dminer::Prober {
+namespace caracal::Prober {
 
 std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     const Config& config) {
@@ -149,4 +149,4 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   return {stats, sniffer.statistics()};
 }
 
-}  // namespace dminer::Prober
+}  // namespace caracal::Prober

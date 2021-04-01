@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace dminer::Utilities {
+namespace caracal::Utilities {
 
 [[nodiscard]] Tins::IPv4Address source_ipv4_for(
     const Tins::NetworkInterface& interface);
@@ -24,4 +24,4 @@ namespace dminer::Utilities {
 
 void parse_addr(const std::string& src, in6_addr& dst);
 
-}  // namespace dminer::Utilities
+}  // namespace caracal::Utilities

@@ -1,10 +1,10 @@
-#include <diamond-miner-config.h>
+#include <caracal-config.h>
 #include <spdlog/cfg/helpers.h>
 
 #include <boost/core/demangle.hpp>
 #include <boost/program_options.hpp>
-#include <dminer/prober.hpp>
-#include <dminer/prober_config.hpp>
+#include <caracal/prober.hpp>
+#include <caracal/prober_config.hpp>
 #include <filesystem>
 #include <iostream>
 
@@ -14,11 +14,12 @@ namespace po = boost::program_options;
 using std::string;
 
 int main(int argc, char** argv) {
-  std::cout << "diamond-miner-prober"
-            << " v" << DMINER_SEMVER << " (" << DMINER_BUILD_TYPE << " build)";
+  std::cout << "caracal"
+            << " v" << CARACAL_SEMVER << " (" << CARACAL_BUILD_TYPE
+            << " build)";
   std::cout << std::endl;
 
-  dminer::Prober::Config config;
+  caracal::Prober::Config config;
   po::options_description general("General options");
   po::options_description filters("Filters");
   po::options_description meta("Metadata");
@@ -122,7 +123,7 @@ int main(int argc, char** argv) {
     }
 
     spdlog::cfg::helpers::load_levels(vm["log-level"].as<string>());
-    dminer::Prober::probe(config);
+    caracal::Prober::probe(config);
   } catch (const std::exception& e) {
     auto type = boost::core::demangle(typeid(e).name());
     std::cerr << "Exception of type " << type << ": " << e.what() << std::endl;

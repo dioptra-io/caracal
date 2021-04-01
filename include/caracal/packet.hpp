@@ -2,7 +2,7 @@
 
 #include <span>
 
-namespace dminer {
+namespace caracal {
 
 /// A structure holding pointers to the different layers of a packet buffer.
 class Packet {
@@ -61,4 +61,4 @@ class Packet {
   uint8_t l4_protocol_;
 };
 
-}  // namespace dminer
+}  // namespace caracal

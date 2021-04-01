@@ -1,9 +1,9 @@
-#include <diamond-miner-config.h>
+#include <caracal-config.h>
 #include <spdlog/cfg/helpers.h>
 
 #include <boost/core/demangle.hpp>
 #include <boost/program_options.hpp>
-#include <dminer/reader.hpp>
+#include <caracal/reader.hpp>
 #include <filesystem>
 #include <iostream>
 
@@ -13,8 +13,9 @@ namespace po = boost::program_options;
 using std::string;
 
 int main(int argc, char** argv) {
-  std::cout << "diamond-miner-reader"
-            << " v" << DMINER_SEMVER << " (" << DMINER_BUILD_TYPE << " build)";
+  std::cout << "caracal-read"
+            << " v" << CARACAL_SEMVER << " (" << CARACAL_BUILD_TYPE
+            << " build)";
   std::cout << std::endl;
 
   po::options_description all("Options");
@@ -44,7 +45,7 @@ int main(int argc, char** argv) {
     string round = vm["meta-round"].as<string>();
 
     spdlog::cfg::helpers::load_levels(vm["log-level"].as<string>());
-    dminer::Reader::read(input_file, output_file, round);
+    caracal::Reader::read(input_file, output_file, round);
   } catch (const std::exception& e) {
     auto type = boost::core::demangle(typeid(e).name());
     std::cerr << "Exception of type " << type << ": " << e.what() << std::endl;

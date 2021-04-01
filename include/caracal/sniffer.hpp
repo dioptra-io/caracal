@@ -10,7 +10,7 @@
 
 namespace fs = std::filesystem;
 
-namespace dminer {
+namespace caracal {
 
 class Sniffer {
  public:
@@ -37,4 +37,4 @@ class Sniffer {
   Statistics::Sniffer statistics_;
 };
 
-}  // namespace dminer
+}  // namespace caracal

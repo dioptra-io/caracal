@@ -5,19 +5,19 @@ include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 include(MunkeiVersionFromGit)
 version_from_git(LOG ON)
 
-project(diamond-miner VERSION ${VERSION})
+project(caracal VERSION ${VERSION})
 
-set(DMINER_PRIVATE_FLAGS -Wall -Wextra -pedantic)
+set(CARACAL_PRIVATE_FLAGS -Wall -Wextra -pedantic)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-file(GLOB DMINER_LIBRARY_SOURCES src/*.cpp)
-file(GLOB DMINER_BENCH_SOURCES tests/*_bench.cpp)
-file(GLOB DMINER_TESTS_SOURCES tests/*_test.cpp)
+file(GLOB CARACAL_LIBRARY_SOURCES src/*.cpp)
+file(GLOB CARACAL_BENCH_SOURCES tests/*_bench.cpp)
+file(GLOB CARACAL_TESTS_SOURCES tests/*_test.cpp)
 
 option(WITH_COVERAGE "Enable code coverage" OFF)
 option(WITH_LTO "Enable link time optimization" OFF)
 option(WITH_SANITIZER "Enable compiler sanitizers" OFF)
-configure_file(apps/diamond-miner-config.h.in diamond-miner-config.h)
+configure_file(apps/caracal-config.h.in caracal-config.h)
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Catch2 REQUIRED)
@@ -32,41 +32,40 @@ include(Catch)
 include(CTest)
 
 # Library
-add_library(diamond-miner ${DMINER_LIBRARY_SOURCES})
-target_compile_features(diamond-miner PUBLIC cxx_std_20)
-target_compile_options(diamond-miner PRIVATE ${DMINER_PRIVATE_FLAGS})
-target_include_directories(diamond-miner PUBLIC "${PROJECT_SOURCE_DIR}/include")
+add_library(caracal ${CARACAL_LIBRARY_SOURCES})
+target_compile_features(caracal PUBLIC cxx_std_20)
+target_compile_options(caracal PRIVATE ${CARACAL_PRIVATE_FLAGS})
+target_include_directories(caracal PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
-  diamond-miner PRIVATE NetUtils::NetUtils spdlog::spdlog Threads::Threads
+  caracal PRIVATE NetUtils::NetUtils spdlog::spdlog Threads::Threads
 )
-target_link_libraries(diamond-miner PUBLIC libtins::libtins LPM::LPM)
+target_link_libraries(caracal PUBLIC libtins::libtins LPM::LPM)
 
 # Executable (Prober)
-add_executable(diamond-miner-prober apps/diamond-miner-prober.cpp)
-target_compile_options(diamond-miner-prober PRIVATE ${DMINER_PRIVATE_FLAGS})
-target_include_directories(diamond-miner-prober PRIVATE "${PROJECT_BINARY_DIR}")
+add_executable(caracal-bin apps/caracal.cpp)
+target_compile_options(caracal-bin PRIVATE ${CARACAL_PRIVATE_FLAGS})
+target_include_directories(caracal-bin PRIVATE "${PROJECT_BINARY_DIR}")
 target_link_libraries(
-  diamond-miner-prober PRIVATE Boost::program_options spdlog::spdlog
-                               diamond-miner
+  caracal-bin PRIVATE Boost::program_options spdlog::spdlog caracal
 )
+set_target_properties(caracal-bin PROPERTIES OUTPUT_NAME caracal)
 
 # Executable (Reader)
-add_executable(diamond-miner-reader apps/diamond-miner-reader.cpp)
-target_compile_options(diamond-miner-reader PRIVATE ${DMINER_PRIVATE_FLAGS})
-target_include_directories(diamond-miner-reader PRIVATE "${PROJECT_BINARY_DIR}")
+add_executable(caracal-read apps/caracal-read.cpp)
+target_compile_options(caracal-read PRIVATE ${CARACAL_PRIVATE_FLAGS})
+target_include_directories(caracal-read PRIVATE "${PROJECT_BINARY_DIR}")
 target_link_libraries(
-  diamond-miner-reader PRIVATE Boost::program_options spdlog::spdlog
-                               diamond-miner
+  caracal-read PRIVATE Boost::program_options spdlog::spdlog caracal
 )
 
 # Executable (Tests)
-add_executable(diamond-miner-tests ${DMINER_TESTS_SOURCES})
-target_compile_options(diamond-miner-tests PRIVATE ${DMINER_PRIVATE_FLAGS})
+add_executable(caracal-test ${CARACAL_TESTS_SOURCES})
+target_compile_options(caracal-test PRIVATE ${CARACAL_PRIVATE_FLAGS})
 target_link_libraries(
-  diamond-miner-tests PRIVATE Catch2::Catch2WithMain NetUtils::NetUtils
-                              spdlog::spdlog diamond-miner
+  caracal-test PRIVATE Catch2::Catch2WithMain NetUtils::NetUtils spdlog::spdlog
+                       caracal
 )
-catch_discover_tests(diamond-miner-tests)
+catch_discover_tests(caracal-test)
 
 if(WITH_COVERAGE)
   include(CodeCoverage)
@@ -75,7 +74,7 @@ if(WITH_COVERAGE)
     NAME
     coverage
     EXECUTABLE
-    diamond-miner-tests
+    caracal-test
     --benchmark-warmup-time
     0
     --benchmark-samples
@@ -99,9 +98,9 @@ endif()
 
 # Documentation
 if(DOXYGEN_FOUND)
-  doxygen_add_docs(diamond-miner-docs "${PROJECT_SOURCE_DIR}/include/dminer")
+  doxygen_add_docs(caracal-docs "${PROJECT_SOURCE_DIR}/include/caracal")
 endif()
 
 # Install
-install(TARGETS diamond-miner-prober DESTINATION bin)
-install(TARGETS diamond-miner-reader DESTINATION bin)
+install(TARGETS caracal-bin DESTINATION bin)
+install(TARGETS caracal-read DESTINATION bin)

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace dminer {
+namespace caracal {
 
 /// A traceroute reply (all values are in host order, including the IP
 /// addresses).
@@ -64,4 +64,4 @@ struct Reply {
 
 std::ostream &operator<<(std::ostream &os, Reply const &v);
 
-}  // namespace dminer
+}  // namespace caracal

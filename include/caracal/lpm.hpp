@@ -12,7 +12,7 @@ extern "C" {
 
 namespace fs = std::filesystem;
 
-namespace dminer {
+namespace caracal {
 
 class LPM {
  public:
@@ -29,4 +29,4 @@ class LPM {
   static void *tag;
 };
 
-}  // namespace dminer
+}  // namespace caracal

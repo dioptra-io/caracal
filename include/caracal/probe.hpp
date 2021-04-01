@@ -4,7 +4,7 @@
 
 #include <string>
 
-namespace dminer {
+namespace caracal {
 
 /// A traceroute probe specification.
 struct Probe {
@@ -28,4 +28,4 @@ struct Probe {
 
 std::ostream &operator<<(std::ostream &os, Probe const &v);
 
-}  // namespace dminer
+}  // namespace caracal

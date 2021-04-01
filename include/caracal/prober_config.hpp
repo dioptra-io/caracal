@@ -12,7 +12,7 @@ using std::string;
 
 namespace fs = std::filesystem;
 
-namespace dminer::Prober {
+namespace caracal::Prober {
 
 /// Configuration of the prober.
 struct Config {
@@ -63,4 +63,4 @@ struct Config {
 
 std::ostream& operator<<(std::ostream& os, Config const& v);
 
-}  // namespace dminer::Prober
+}  // namespace caracal::Prober

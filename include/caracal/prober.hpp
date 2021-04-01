@@ -6,7 +6,7 @@
 #include "statistics.hpp"
 
 /// Build and send probes.
-namespace dminer::Prober {
+namespace caracal::Prober {
 
 std::tuple<Statistics::Prober, Statistics::Sniffer> probe(const Config& config);
 

@@ -1,13 +1,12 @@
-# Diamond-Miner Prober :gem:
+# Caracal
 
-[![CI](https://img.shields.io/github/workflow/status/dioptra-io/diamond-miner-prober/CI?logo=github)](https://github.com/dioptra-io/diamond-miner-prober/actions?query=workflow%3ACI)
-[![codecov](https://img.shields.io/codecov/c/github/dioptra-io/diamond-miner-prober?logo=codecov&logoColor=white)](https://codecov.io/gh/dioptra-io/diamond-miner-prober)
-[![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/diamond-miner-prober/)
-[![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dioptraio/diamond-miner-prober?logo=docker&logoColor=white)](https://hub.docker.com/r/dioptraio/diamond-miner-prober/tags)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/dioptraio/diamond-miner-prober?color=blue&label=image%20version&logo=docker&logoColor=white&sort=semver)](https://hub.docker.com/r/dioptraio/diamond-miner-prober/tags)
+[![CI](https://img.shields.io/github/workflow/status/dioptra-io/caracal/CI?logo=github)](https://github.com/dioptra-io/caracal/actions?query=workflow%3ACI)
+[![codecov](https://img.shields.io/codecov/c/github/dioptra-io/caracal?logo=codecov&logoColor=white)](https://codecov.io/gh/dioptra-io/caracal)
+[![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/caracal/)
+[![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dioptraio/caracal?logo=docker&logoColor=white)](https://hub.docker.com/r/dioptraio/caracal/tags)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/dioptraio/caracal?color=blue&label=image%20version&logo=docker&logoColor=white&sort=semver)](https://hub.docker.com/r/dioptraio/caracal/tags)
 
-This is the prober component of [Diamond-Miner](https://www.usenix.org/conference/nsdi20/presentation/vermeulen). It is
-a stateless ICMP/UDP IPv4/v6 Paris traceroute engine written in modern C++ achieving probing rates of 1M+ packets per second.
+Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ achieving probing rates of 1M+ packets per second.
 
 ![Demonstration of the prober usage](data/cast.svg)
 
@@ -16,7 +15,7 @@ _NOTE: In this screencast, IPv6 addresses from replies are printed as 0.0.0.0, t
 ## Quickstart
 
 ```bash
-docker run dioptraio/diamond-miner-prober --help
+docker run dioptraio/caracal --help
 ```
 
 :warning: You may get incorrect results on Docker on macOS.
@@ -25,8 +24,8 @@ Docker and/or macOS seems to rewrite some fields of the IP header that we use to
 ## NSDI 2020 paper
 
 Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
-Since then, the code has been refactored and separated in the [diamond-miner-core](https://github.com/dioptra-io/diamond-miner-core) and [diamond-miner-prober](https://github.com/dioptra-io/diamond-miner-prober) repositories.
-The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/diamond-miner-prober/releases/tag/nsdi2020) tag.
+Since then, the code has been refactored and separated in the [diamond-miner-core](https://github.com/dioptra-io/diamond-miner-core) and [caracal](https://github.com/dioptra-io/caracal) repositories.
+The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/caracal/releases/tag/nsdi2020) tag.
 
 ## Development
 
@@ -63,8 +62,8 @@ The only exceptions are libc and libstdc++ which are dynamically linked.
 ### Building from source
 
 ```bash
-git clone --recursive git@github.com:dioptra-io/diamond-miner-prober.git
-cd diamond-miner-prober
+git clone --recursive git@github.com:dioptra-io/caracal.git
+cd caracal
 mkdir build && cd build
 conan install .. -s libtins:compiler.cppstd=11 ..
 cmake .. && cmake --build .
@@ -86,9 +85,9 @@ For example: `cmake -DCMAKE_BUILD_TYPE=Release ..`
 
 Target                 | Description
 :----------------------|:-----------
-`diamond-miner-prober` | Prober
-`diamond-miner-reader` | PCAP parser
-`diamond-miner-tests`  | Unit and performance tests
+`caracal-bin`          | Prober
+`caracal-read`         | PCAP parser
+`caracal-test`         | Unit and performance tests
 
 To build a specific target, use `cmake --build . --target TARGET`.
 

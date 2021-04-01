@@ -3,12 +3,12 @@
 #include <netinet/ip6.h>
 #include <netinet/udp.h>
 
-#include <dminer/constants.hpp>
-#include <dminer/packet.hpp>
+#include <caracal/constants.hpp>
+#include <caracal/packet.hpp>
 #include <span>
 #include <stdexcept>
 
-namespace dminer {
+namespace caracal {
 
 Packet::Packet(const std::span<std::byte> buffer, const uint8_t l2_protocol,
                const uint8_t l3_protocol, const uint8_t l4_protocol,
@@ -113,4 +113,4 @@ uint8_t Packet::l3_protocol() const noexcept { return l3_protocol_; }
 
 uint8_t Packet::l4_protocol() const noexcept { return l4_protocol_; }
 
-}  // namespace dminer
+}  // namespace caracal

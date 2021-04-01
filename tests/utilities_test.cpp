@@ -1,11 +1,11 @@
 #include <arpa/inet.h>
 
+#include <caracal/utilities.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <dminer/utilities.hpp>
 
-using dminer::Utilities::format_addr;
-using dminer::Utilities::parse_addr;
+using caracal::Utilities::format_addr;
+using caracal::Utilities::parse_addr;
 
 inline in6_addr parse_addr(const std::string& src) {
   in6_addr dst;

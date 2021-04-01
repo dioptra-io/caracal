@@ -1,4 +1,0 @@
-// clang-format off
-#pragma once
-#define DMINER_SEMVER "@SEMVER@"
-#define DMINER_BUILD_TYPE "@CMAKE_BUILD_TYPE@"

@@ -4,15 +4,15 @@
 
 #include <algorithm>
 #include <array>
+#include <caracal/constants.hpp>
 #include <chrono>
-#include <dminer/constants.hpp>
 #include <numeric>
 #include <ostream>
 #include <unordered_set>
 
 using std::chrono::nanoseconds;
 
-namespace dminer::Statistics {
+namespace caracal::Statistics {
 
 // Operators for using in6_addr in an unordered_map
 template <class T>
@@ -117,4 +117,4 @@ std::ostream& operator<<(std::ostream& os, Prober const& v);
 std::ostream& operator<<(std::ostream& os, RateLimiter const& v);
 std::ostream& operator<<(std::ostream& os, Sniffer const& v);
 
-}  // namespace dminer::Statistics
+}  // namespace caracal::Statistics

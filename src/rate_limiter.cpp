@@ -1,7 +1,7 @@
 #include <algorithm>
+#include <caracal/rate_limiter.hpp>
+#include <caracal/statistics.hpp>
 #include <chrono>
-#include <dminer/rate_limiter.hpp>
-#include <dminer/statistics.hpp>
 #include <stdexcept>
 #include <thread>
 
@@ -10,7 +10,7 @@ using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
 using std::chrono::steady_clock;
 
-namespace dminer {
+namespace caracal {
 
 RateLimiter::RateLimiter(const uint64_t target_rate)
     : sleep_precision_{sleep_precision()},
@@ -77,4 +77,4 @@ bool RateLimiter::test(uint64_t target_rate) noexcept {
   return (delta > milliseconds{800}) && (delta < milliseconds{1200});
 }
 
-}  // namespace dminer
+}  // namespace caracal

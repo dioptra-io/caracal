@@ -13,9 +13,9 @@ jobs:
       - name: Build Docker image
         run: |
           docker build --target builder -t debug .
-          docker build -t diamond-miner-prober .
+          docker build -t caracal .
       - name: Test Docker image
-        run: docker run diamond-miner-prober --help
+        run: docker run caracal --help
       - name: Run unit tests
         run: docker run --name debug -w /tmp/build-debug debug make coverage
       - name: Copy documentation

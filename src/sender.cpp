@@ -11,21 +11,21 @@
 
 #include <algorithm>
 #include <array>
+#include <caracal/builder.hpp>
+#include <caracal/constants.hpp>
+#include <caracal/pretty.hpp>
+#include <caracal/probe.hpp>
+#include <caracal/sender.hpp>
+#include <caracal/socket.hpp>
+#include <caracal/timestamp.hpp>
+#include <caracal/utilities.hpp>
 #include <chrono>
-#include <dminer/builder.hpp>
-#include <dminer/constants.hpp>
-#include <dminer/pretty.hpp>
-#include <dminer/probe.hpp>
-#include <dminer/sender.hpp>
-#include <dminer/socket.hpp>
-#include <dminer/timestamp.hpp>
-#include <dminer/utilities.hpp>
 #include <map>
 #include <string>
 
 using std::chrono::system_clock;
 
-namespace dminer {
+namespace caracal {
 
 // TODO: Include the protocol in the probe struct instead?
 static const std::map<std::string, uint8_t> l4_protocols = {
@@ -180,4 +180,4 @@ void Sender::send(const Probe &probe) {
 
   socket_.sendto(packet.l2(), packet.l2_size(), 0, &if_);
 }
-}  // namespace dminer
+}  // namespace caracal

@@ -8,7 +8,7 @@ using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
 using std::chrono::steady_clock;
 
-namespace dminer {
+namespace caracal {
 
 class RateLimiter {
  public:
@@ -31,4 +31,4 @@ class RateLimiter {
   Statistics::RateLimiter statistics_;
 };
 
-}  // namespace dminer
+}  // namespace caracal

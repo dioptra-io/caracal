@@ -1,6 +1,6 @@
 #include <tins/tins.h>
 
-#include <dminer/prober_config.hpp>
+#include <caracal/prober_config.hpp>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -10,7 +10,7 @@ using std::string;
 
 namespace fs = std::filesystem;
 
-namespace dminer::Prober {
+namespace caracal::Prober {
 
 void Config::set_input_file(const fs::path& p) {
   if (!fs::exists(p)) {
@@ -118,4 +118,4 @@ std::ostream& operator<<(std::ostream& os, Config const& v) {
   return os;
 }
 
-}  // namespace dminer::Prober
+}  // namespace caracal::Prober

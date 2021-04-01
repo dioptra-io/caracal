@@ -1,10 +1,10 @@
+#include <caracal/lpm.hpp>
+#include <caracal/utilities.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <dminer/lpm.hpp>
-#include <dminer/utilities.hpp>
 #include <fstream>
 
-using dminer::LPM;
-using dminer::Utilities::parse_addr;
+using caracal::LPM;
+using caracal::Utilities::parse_addr;
 
 TEST_CASE("LPM") {
   std::ofstream ofs;

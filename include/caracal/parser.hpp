@@ -5,7 +5,7 @@
 #include "reply.hpp"
 
 /// Parse traceroute replies.
-namespace dminer::Parser {
+namespace caracal::Parser {
 
 // TODO: Document these functions.
 void parse_outer(Reply& reply, Tins::IP* ip) noexcept;
@@ -56,4 +56,4 @@ template <typename T>
 /// @return the parsed reply.
 [[nodiscard]] std::optional<Reply> parse(const Tins::Packet& packet) noexcept;
 
-}  // namespace dminer::Parser
+}  // namespace caracal::Parser
