@@ -10,8 +10,6 @@ Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written
 
 ![Demonstration of the prober usage](data/cast.svg)
 
-_NOTE: In this screencast, IPv6 addresses from replies are printed as 0.0.0.0, this will be fixed in a future version._
-
 ## Quickstart
 
 ```bash
