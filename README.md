@@ -44,12 +44,12 @@ brew install cmake conan doxygen gcovr graphviz
 
 # Ubuntu 20.04
 add-apt-repository -u ppa:ubuntu-toolchain-r/ppa
-apt install build-essential cmake doxygen gcovr graphviz gcc-10 g++-10
-pip install conan
+apt install build-essential cmake doxygen gcovr git graphviz gcc-10 g++-10 python3-pip
+pip3 install conan
 
 # Ubuntu 21.04+
-apt install build-essential cmake doxygen gcovr graphviz
-pip install conan
+apt install build-essential cmake doxygen git gcovr graphviz python3-pip
+pip3 install conan
 ```
 
 #### External dependencies
