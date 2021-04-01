@@ -3,7 +3,8 @@
 [![CI](https://img.shields.io/github/workflow/status/dioptra-io/diamond-miner-prober/CI?logo=github)](https://github.com/dioptra-io/diamond-miner-prober/actions?query=workflow%3ACI)
 [![codecov](https://img.shields.io/codecov/c/github/dioptra-io/diamond-miner-prober?logo=codecov&logoColor=white)](https://codecov.io/gh/dioptra-io/diamond-miner-prober)
 [![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/diamond-miner-prober/)
-[![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/matthieugouel/diamond-miner-prober?logo=docker&logoColor=white)](https://hub.docker.com/r/matthieugouel/diamond-miner-prober)
+[![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dioptraio/diamond-miner-prober?logo=docker&logoColor=white)](https://hub.docker.com/r/dioptraio/diamond-miner-prober/tags)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/dioptraio/diamond-miner-prober?color=blue&label=image%20version&logo=docker&logoColor=white&sort=semver)](https://hub.docker.com/r/dioptraio/diamond-miner-prober/tags)
 
 This is the prober component of [Diamond-Miner](https://www.usenix.org/conference/nsdi20/presentation/vermeulen). It is
 a stateless ICMP/UDP IPv4/v6 Paris traceroute engine written in modern C++ achieving probing rates of 1M+ packets per second.
@@ -15,7 +16,7 @@ _NOTE: In this screencast, IPv6 addresses from replies are printed as 0.0.0.0, t
 ## Quickstart
 
 ```bash
-docker run matthieugouel/diamond-miner-prober --help
+docker run dioptraio/diamond-miner-prober --help
 ```
 
 :warning: You may get incorrect results on Docker on macOS.
