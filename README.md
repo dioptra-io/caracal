@@ -7,6 +7,7 @@
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/dioptraio/caracal?color=blue&label=image%20version&logo=docker&logoColor=white&sort=semver)](https://hub.docker.com/r/dioptraio/caracal/tags)
 
 Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ achieving probing rates of 1M+ packets per second.
+It runs on Linux and macOS, on x86-64 and ARM64 systems.
 
 ![Demonstration of the prober usage](data/cast.svg)
 
