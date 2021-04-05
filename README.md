@@ -13,25 +13,19 @@ It runs on Linux and macOS, on x86-64 and ARM64 systems.
 
 ## Quickstart
 
-We provide a pre-built x86-64 Docker image:
+The easiest way to run Caracal is through Docker:
 ```bash
 docker run dioptraio/caracal --help
 ```
 
-On ARM64 systems, you can build the image yourself by cloning this repository.  
-On macOS we recommend to use the native executable, as Docker for Mac seems to rewrite some fields of the IP header that we use to encode probe informations.
+If you're running an ARM64 system, you will need to [build the image yourself](#docker-image).  
+If you're using macOS (Intel or ARM), we recommend to [build the native executable](#building-from-source) as Docker for Mac seems to rewrite some fields of the IP header that we use to encode probe informations.
 
 ## Features
 
 - **Constant flow-id:** Caracal doesn't vary the flow identifier for two probes with the same specification, making it suitable to discover load-balanced paths on the Internet.
 - **Fast:** Caracal uses the standard socket API, yet on a 2020 M1 MacBook Air it can send 1.3M packets per second. Work is underway to use [`PACKET_TX_RING`](https://www.kernel.org/doc/html/latest/networking/packet_mmap.html) on Linux to go above 1M packets per second. We do not plan to use [`PF_RING`](https://www.ntop.org/products/packet-capture/pf_ring/) as the standard version doesn't improve packet sending speed, and the Zero Copy (ZC) version is not free.
 - **Stateless:** classical probing tools such as traceroute needs to remember which probes they have sent, in order to match the replies (e.g. to know the TTL of the probe). Caracal takes inspiration from [yarrp](https://github.com/cmand/yarrp) and encodes the probe information in the section of the probe packet that is included back in ICMP messages. Thus it doesn't need to remember each probe sent, allowing it to send millions of probes per second with a minimal memory footprint.
-
-## NSDI 2020 paper
-
-Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
-Since then, the code has been refactored and separated in the [diamond-miner-core](https://github.com/dioptra-io/diamond-miner-core) and [caracal](https://github.com/dioptra-io/caracal) repositories.
-The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/caracal/releases/tag/nsdi2020) tag.
 
 ## Development
 
@@ -94,29 +88,33 @@ Target                 | Description
 `caracal-bin`          | Prober
 `caracal-read`         | PCAP parser
 `caracal-test`         | Unit and performance tests
+`caracal-docs`         | API documentation
 
 To build a specific target, use `cmake --build . --target TARGET`.
 
-## Citation
+### Docker image
 
-```bibtex
-@inproceedings {DiamondMiner2020,
-  author = {Kevin Vermeulen and Justin P. Rohrer and Robert Beverly and Olivier Fourmaux and Timur Friedman},
-  title = {Diamond-Miner: Comprehensive Discovery of the Internet{\textquoteright}s Topology Diamonds },
-  booktitle = {17th {USENIX} Symposium on Networked Systems Design and Implementation ({NSDI} 20)},
-  year = {2020},
-  isbn = {978-1-939133-13-7},
-  address = {Santa Clara, CA},
-  pages = {479--493},
-  url = {https://www.usenix.org/conference/nsdi20/presentation/vermeulen},
-  publisher = {{USENIX} Association},
-  month = feb,
-}
+To build the Docker image, simply run:
+```bash
+git clone --recursive git@github.com:dioptra-io/caracal.git
+cd caracal
+docker build -t caracal .
 ```
 
-## Dependencies
+## NSDI 2020 paper
 
-This software is released under the MIT license, in accordance with the license of its dependencies.
+Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
+Since then, the code has been refactored and separated in the [diamond-miner](https://github.com/dioptra-io/diamond-miner) and [caracal](https://github.com/dioptra-io/caracal) repositories.
+The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/caracal/releases/tag/nsdi2020) tag.
+
+## Authors
+
+Caracal is developed and maintained by the [Dioptra team](https://dioptra.io) at Sorbonne Université in Paris, France.  
+The initial version has been written by [Kévin Vermeulen](https://github.com/kvermeul), with subsequents refactoring and improvements by [Maxime Mouchet](https://github.com/maxmouchet) and [Matthieu Gouel](https://github.com/matthieugouel).
+
+## License & Dependencies
+
+This software is released under the [MIT license](/LICENSE), in accordance with the license of its dependencies.
 
 Name                                             | License                                                               | Usage
 -------------------------------------------------|-----------------------------------------------------------------------|------
