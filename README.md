@@ -13,12 +13,19 @@ It runs on Linux and macOS, on x86-64 and ARM64 systems.
 
 ## Quickstart
 
+We provide a pre-built x86-64 Docker image:
 ```bash
 docker run dioptraio/caracal --help
 ```
 
-:warning: You may get incorrect results on Docker on macOS.
-Docker and/or macOS seems to rewrite some fields of the IP header that we use to encode probe informations.
+On ARM64 systems, you can build the image yourself by cloning this repository.  
+On macOS we recommend to use the native executable, as Docker for Mac seems to rewrite some fields of the IP header that we use to encode probe informations.
+
+## Features
+
+- **Constant flow-id:** Caracal doesn't vary the flow identifier for two probes with the same specification, making it suitable to discover load-balanced paths on the Internet.
+- **Fast:** Caracal uses the standard socket API, yet on a 2020 M1 MacBook Air it can send 1.3M packets per second. Work is underway to use [`PACKET_TX_RING`](https://www.kernel.org/doc/html/latest/networking/packet_mmap.html) on Linux to go above 1M packets per second. We do not plan to use [`PF_RING`](https://www.ntop.org/products/packet-capture/pf_ring/) as the standard version doesn't improve packet sending speed, and the Zero Copy (ZC) version is not free.
+- **Stateless:** classical probing tools such as traceroute needs to remember which probes they have sent, in order to match the replies (e.g. to know the TTL of the probe). Caracal takes inspiration from [yarrp](https://github.com/cmand/yarrp) and encodes the probe information in the section of the probe packet that is included back in ICMP messages. Thus it doesn't need to remember each probe sent, allowing it to send millions of probes per second with a minimal memory footprint.
 
 ## NSDI 2020 paper
 
