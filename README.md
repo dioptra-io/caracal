@@ -27,6 +27,26 @@ If you're using macOS (Intel or ARM), we recommend to [build the native executab
 - **Fast:** Caracal uses the standard socket API, yet on a 2020 M1 MacBook Air it can send 1.3M packets per second. Work is underway to use [`PACKET_TX_RING`](https://www.kernel.org/doc/html/latest/networking/packet_mmap.html) on Linux to go above 1M packets per second. We do not plan to use [`PF_RING`](https://www.ntop.org/products/packet-capture/pf_ring/) as the standard version doesn't improve packet sending speed, and the Zero Copy (ZC) version is not free.
 - **Stateless:** classical probing tools such as traceroute needs to remember which probes they have sent, in order to match the replies (e.g. to know the TTL of the probe). Caracal takes inspiration from [yarrp](https://github.com/cmand/yarrp) and encodes the probe information in the section of the probe packet that is included back in ICMP messages. Thus it doesn't need to remember each probe sent, allowing it to send millions of probes per second with a minimal memory footprint.
 
+## Usage
+
+Caracal reads probe specifications from the standard input or, if specified with `-i/--input-file`, from a file with one probe per line.  
+The specification is `dst_addr,src_port,dst_port,ttl`, where `dst_addr` can be an IPv4 address in dotted notation (e.g. `8.8.8.8`), an IPv4-mapped IPv6 address (e.g. `::ffff:8.8.8.8`) or an IPv6 address (e.g. `2001:4860:4860::8888`).  
+For UDP probes, the ports are encoded directly in the UDP header. For ICMP probes, the source port is encoded in the ICMP checksum (which varies the flow-id).
+
+For example, to probe Google DNS servers at TTL 32:
+```csv
+8.8.8.8,24000,33434,32
+8.8.4.4,24000,33434,32
+2001:4860:4860::8888,24000,33434,32
+2001:4860:4860::8844,24000,33434,32
+```
+```bash
+# Standard input
+cat probes.txt | caracal
+# File input
+caracal -i probes.txt
+```
+
 ## Development
 
 ### Prerequisites
