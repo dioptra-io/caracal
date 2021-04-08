@@ -5,6 +5,7 @@
 [![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/caracal/)
 [![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dioptraio/caracal?logo=docker&logoColor=white)](https://hub.docker.com/r/dioptraio/caracal/tags)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/dioptraio/caracal?color=blue&label=image%20version&logo=docker&logoColor=white&sort=semver)](https://hub.docker.com/r/dioptraio/caracal/tags)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdioptra-io%2Fcaracal.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdioptra-io%2Fcaracal?ref=badge_shield)
 
 Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ achieving probing rates of 1M+ packets per second.
 It runs on Linux and macOS, on x86-64 and ARM64 systems.
@@ -144,3 +145,6 @@ Name                                             | License                      
 [liblpm](https://github.com/rmind/liblpm)        | [2-clause BSD](https://opensource.org/licenses/BSD-2-Clause)          | Longest-prefix matching
 [libtins](https://github.com/mfontanini/libtins) | [2-clause BSD](https://opensource.org/licenses/BSD-2-Clause)          | Packet parsing
 [spdlog](https://github.com/gabime/spdlog)       | [MIT](https://opensource.org/licenses/MIT)                            | Logging
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdioptra-io%2Fcaracal.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdioptra-io%2Fcaracal?ref=badge_large)
