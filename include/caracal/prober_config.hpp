@@ -22,6 +22,7 @@ struct Config {
   string protocol = "udp";
   Tins::NetworkInterface interface =
       Tins::NetworkInterface::default_interface();
+  bool allow_sleep_wait = true;
   optional<uint64_t> max_probes;
   optional<fs::path> input_file;
   optional<fs::path> output_file_csv;
@@ -45,6 +46,8 @@ struct Config {
   void set_interface(const string& s);
 
   void set_sniffer_wait_time(int seconds);
+
+  void set_allow_sleep_wait(bool allow);
 
   void set_max_probes(uint64_t count);
 

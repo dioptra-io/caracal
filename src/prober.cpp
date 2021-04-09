@@ -52,7 +52,7 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   Sender sender{config.interface, config.protocol};
 
   // Rate limiter
-  RateLimiter rl{config.probing_rate};
+  RateLimiter rl{config.probing_rate, config.allow_sleep_wait};
 
   // Statistics
   Statistics::Prober stats;

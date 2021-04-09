@@ -12,8 +12,10 @@ using std::chrono::steady_clock;
 
 namespace caracal {
 
-RateLimiter::RateLimiter(const uint64_t target_rate)
-    : sleep_precision_{sleep_precision()},
+RateLimiter::RateLimiter(const uint64_t target_rate,
+                         const bool allow_sleep_wait)
+    : allow_sleep_wait_{allow_sleep_wait},
+      sleep_precision_{sleep_precision()},
       target_delta_{0},
       current_delta_{0},
       curr_tp_{steady_clock::now()},
@@ -38,7 +40,8 @@ void RateLimiter::wait() noexcept {
   }
 
   // (2) Wait if possible.
-  if (sleep_precision_ < (target_delta_ - current_delta_)) {
+  if (allow_sleep_wait_ &&
+      (sleep_precision_ < (target_delta_ - current_delta_))) {
     std::this_thread::sleep_for(target_delta_ - current_delta_);
   }
 

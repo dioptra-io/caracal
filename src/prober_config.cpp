@@ -47,6 +47,10 @@ void Config::set_sniffer_wait_time(const int seconds) {
   sniffer_wait_time = static_cast<uint64_t>(seconds);
 }
 
+void Config::set_allow_sleep_wait(const bool allow) {
+  allow_sleep_wait = allow;
+}
+
 void Config::set_max_probes(const uint64_t count) {
   if (count <= 0) {
     throw std::domain_error("max_probes must be > 0");
@@ -105,6 +109,7 @@ std::ostream& operator<<(std::ostream& os, Config const& v) {
   os << ",\n\tprotocol=" << v.protocol;
   os << ",\n\tinterface=" << v.interface.name() << ":"
      << v.interface.ipv4_address();
+  os << ",\n\tallow_sleep_wait=" << v.allow_sleep_wait;
   print_if_value("input_file", v.input_file);
   print_if_value("output_file_csv", v.output_file_csv);
   print_if_value("output_file_pcap", v.output_file_pcap);

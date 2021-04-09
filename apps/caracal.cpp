@@ -36,7 +36,8 @@ int main(int argc, char** argv) {
     ("sniffer-wait-time,W", po::value<int>()->value_name("seconds")->default_value(config.sniffer_wait_time), "Time in seconds to wait after sending the probes to stop the sniffer")
     ("log-level,L", po::value<string>()->value_name("level")->default_value("info"), "Minimum log level (trace, debug, info, warning, error, fatal)")
     ("max-probes,P", po::value<int>()->value_name("count"), "Maximum number of probes to send (unlimited by default)")
-    ("n-packets,N", po::value<int>()->value_name("count")->default_value(config.n_packets), "Number of packets to send per probe");
+    ("n-packets,N", po::value<int>()->value_name("count")->default_value(config.n_packets), "Number of packets to send per probe")
+    ("no-sleep", "Disable sleep wait and rely only on the more precise spin wait");
 
   filters.add_options()
     ("filter-from-prefix-file-excl", po::value<string>()->value_name("file"), "Do not send probes to prefixes specified in file (deny list)")
@@ -98,6 +99,10 @@ int main(int argc, char** argv) {
 
     if (vm.count("n-packets")) {
       config.set_n_packets(vm["n-packets"].as<int>());
+    }
+
+    if (vm.count("no-sleep")) {
+      config.set_allow_sleep_wait(false);
     }
 
     if (vm.count("filter-from-prefix-file-excl")) {
