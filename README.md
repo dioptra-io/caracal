@@ -7,23 +7,45 @@
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/dioptraio/caracal?color=blue&label=image%20version&logo=docker&logoColor=white&sort=semver)](https://hub.docker.com/r/dioptraio/caracal/tags)
 
 Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ achieving probing rates of 1M+ packets per second.
+It runs on Linux and macOS, on x86-64 and ARM64 systems.
 
 ![Demonstration of the prober usage](data/cast.svg)
 
 ## Quickstart
 
+The easiest way to run Caracal is through Docker:
 ```bash
 docker run dioptraio/caracal --help
 ```
 
-:warning: You may get incorrect results on Docker on macOS.
-Docker and/or macOS seems to rewrite some fields of the IP header that we use to encode probe informations.
+If you're running an ARM64 system, you will need to [build the image yourself](#docker-image).  
+If you're using macOS (Intel or ARM), we recommend to [build the native executable](#building-from-source) as Docker for Mac seems to rewrite some fields of the IP header that we use to encode probe informations.
 
-## NSDI 2020 paper
+## Features
 
-Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
-Since then, the code has been refactored and separated in the [diamond-miner-core](https://github.com/dioptra-io/diamond-miner-core) and [caracal](https://github.com/dioptra-io/caracal) repositories.
-The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/caracal/releases/tag/nsdi2020) tag.
+- **Constant flow-id:** Caracal doesn't vary the flow identifier for two probes with the same specification, making it suitable to discover load-balanced paths on the Internet.
+- **Fast:** Caracal uses the standard socket API, yet on a 2020 M1 MacBook Air it can send 1.3M packets per second. Work is underway to use [`PACKET_TX_RING`](https://www.kernel.org/doc/html/latest/networking/packet_mmap.html) on Linux to go above 1M packets per second. We do not plan to use [`PF_RING`](https://www.ntop.org/products/packet-capture/pf_ring/) as the standard version doesn't improve packet sending speed, and the Zero Copy (ZC) version is not free.
+- **Stateless:** classical probing tools such as traceroute needs to remember which probes they have sent, in order to match the replies (e.g. to know the TTL of the probe). Caracal takes inspiration from [yarrp](https://github.com/cmand/yarrp) and encodes the probe information in the section of the probe packet that is included back in ICMP messages. Thus it doesn't need to remember each probe sent, allowing it to send millions of probes per second with a minimal memory footprint.
+
+## Usage
+
+Caracal reads probe specifications from the standard input or, if specified with `-i/--input-file`, from a file with one probe per line.  
+The specification is `dst_addr,src_port,dst_port,ttl`, where `dst_addr` can be an IPv4 address in dotted notation (e.g. `8.8.8.8`), an IPv4-mapped IPv6 address (e.g. `::ffff:8.8.8.8`) or an IPv6 address (e.g. `2001:4860:4860::8888`).  
+For UDP probes, the ports are encoded directly in the UDP header. For ICMP probes, the source port is encoded in the ICMP checksum (which varies the flow-id).
+
+For example, to probe Google DNS servers at TTL 32:
+```csv
+8.8.8.8,24000,33434,32
+8.8.4.4,24000,33434,32
+2001:4860:4860::8888,24000,33434,32
+2001:4860:4860::8844,24000,33434,32
+```
+```bash
+# Standard input
+cat probes.txt | caracal
+# File input
+caracal -i probes.txt
+```
 
 ## Development
 
@@ -44,12 +66,12 @@ brew install cmake conan doxygen gcovr graphviz
 
 # Ubuntu 20.04
 add-apt-repository -u ppa:ubuntu-toolchain-r/ppa
-apt install build-essential cmake doxygen gcovr graphviz gcc-10 g++-10
-pip install conan
+apt install build-essential cmake doxygen gcovr git graphviz gcc-10 g++-10 python3-pip
+pip3 install conan
 
 # Ubuntu 21.04+
-apt install build-essential cmake doxygen gcovr graphviz
-pip install conan
+apt install build-essential cmake doxygen git gcovr graphviz python3-pip
+pip3 install conan
 ```
 
 #### External dependencies
@@ -86,29 +108,33 @@ Target                 | Description
 `caracal-bin`          | Prober
 `caracal-read`         | PCAP parser
 `caracal-test`         | Unit and performance tests
+`caracal-docs`         | API documentation
 
 To build a specific target, use `cmake --build . --target TARGET`.
 
-## Citation
+### Docker image
 
-```bibtex
-@inproceedings {DiamondMiner2020,
-  author = {Kevin Vermeulen and Justin P. Rohrer and Robert Beverly and Olivier Fourmaux and Timur Friedman},
-  title = {Diamond-Miner: Comprehensive Discovery of the Internet{\textquoteright}s Topology Diamonds },
-  booktitle = {17th {USENIX} Symposium on Networked Systems Design and Implementation ({NSDI} 20)},
-  year = {2020},
-  isbn = {978-1-939133-13-7},
-  address = {Santa Clara, CA},
-  pages = {479--493},
-  url = {https://www.usenix.org/conference/nsdi20/presentation/vermeulen},
-  publisher = {{USENIX} Association},
-  month = feb,
-}
+To build the Docker image, simply run:
+```bash
+git clone --recursive git@github.com:dioptra-io/caracal.git
+cd caracal
+docker build -t caracal .
 ```
 
-## Dependencies
+## NSDI 2020 paper
 
-This software is released under the MIT license, in accordance with the license of its dependencies.
+Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
+Since then, the code has been refactored and separated in the [diamond-miner](https://github.com/dioptra-io/diamond-miner) and [caracal](https://github.com/dioptra-io/caracal) repositories.
+The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/caracal/releases/tag/nsdi2020) tag.
+
+## Authors
+
+Caracal is developed and maintained by the [Dioptra team](https://dioptra.io) at Sorbonne Université in Paris, France.  
+The initial version has been written by [Kévin Vermeulen](https://github.com/kvermeul), with subsequents refactoring and improvements by [Maxime Mouchet](https://github.com/maxmouchet) and [Matthieu Gouel](https://github.com/matthieugouel).
+
+## License & Dependencies
+
+This software is released under the [MIT license](/LICENSE), in accordance with the license of its dependencies.
 
 Name                                             | License                                                               | Usage
 -------------------------------------------------|-----------------------------------------------------------------------|------
