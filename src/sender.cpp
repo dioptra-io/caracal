@@ -146,13 +146,13 @@ void Sender::send(const Probe &probe) {
 
   switch (l3_protocol) {
     case IPPROTO_IP:
-      Builder::IP::init(packet, l4_protocol, src_ip_v4.sin_addr,
-                        probe.sockaddr4().sin_addr, probe.ttl);
+      Builder::IPv4::init(packet, l4_protocol, src_ip_v4.sin_addr,
+                          probe.sockaddr4().sin_addr, probe.ttl);
       break;
 
     case IPPROTO_IPV6:
-      Builder::IP::init(packet, l4_protocol, src_ip_v6.sin6_addr,
-                        probe.sockaddr6().sin6_addr, probe.ttl);
+      Builder::IPv6::init(packet, l4_protocol, src_ip_v6.sin6_addr,
+                          probe.sockaddr6().sin6_addr, probe.ttl);
       break;
 
     default:
@@ -169,9 +169,7 @@ void Sender::send(const Probe &probe) {
       break;
 
     case IPPROTO_UDP:
-      Builder::UDP::set_ports(packet, probe.src_port, probe.dst_port);
-      Builder::UDP::set_length(packet);
-      Builder::UDP::set_checksum(packet, timestamp_enc);
+      Builder::UDP::init(packet, timestamp_enc, probe.src_port, probe.dst_port);
       break;
 
     default:

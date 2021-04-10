@@ -42,13 +42,13 @@ void init(Packet packet, bool is_v4,
 
 }  // namespace caracal::Builder::Ethernet
 
-/// Build IP probes.
+/// Build IPv4 probes.
 /// In the IP header, the type of service, protocol, source and destination
 /// address fields are used for per-flow load-balancing.
 /// We also encode the TTL in the ID field in order to retrieve it in the ICMP
 /// destination unreachable/TTL exceeded messages since the TTL field is
 /// decreased/modified at each hop.
-namespace caracal::Builder::IP {
+namespace caracal::Builder::IPv4 {
 
 /// Init the IPv4 header.
 /// @param packet the packet buffer, including the IP header.
@@ -59,6 +59,11 @@ namespace caracal::Builder::IP {
 void init(Packet packet, uint8_t protocol, in_addr src_addr, in_addr dst_addr,
           uint8_t ttl);
 
+}  // namespace caracal::Builder::IPv4
+
+// Build IPv6 probes, similarly to IPv4.
+namespace caracal::Builder::IPv6 {
+
 /// Init the IPv6 header.
 /// @param packet the packet buffer, including the IP header.
 /// @param protocol the L4 protocol number.
@@ -68,7 +73,7 @@ void init(Packet packet, uint8_t protocol, in_addr src_addr, in_addr dst_addr,
 void init(Packet packet, uint8_t protocol, in6_addr src_addr, in6_addr dst_addr,
           uint8_t ttl);
 
-}  // namespace caracal::Builder::IP
+}  // namespace caracal::Builder::IPv6
 
 /// Build ICMP echo probes.
 /// In the ICMP echo header, the code and checksum fields are used for per-flow
@@ -82,16 +87,21 @@ namespace caracal::Builder::ICMP {
 /// Build an ICMP echo probe.
 /// @param packet the packet buffer, including the IP header.
 /// @param target_checksum the custom ICMP checksum, in host order.
-/// @param target_seq the custom sequence field, in host order.
-void init(Packet packet, uint16_t target_checksum, uint16_t target_seq);
+/// @param target_sequence the custom sequence field, in host order.
+void init(Packet packet, uint16_t target_checksum, uint16_t target_sequence);
 
 }  // namespace caracal::Builder::ICMP
 
+/// Build ICMPv6 echo probes, similarly to ICMP.
 namespace caracal::Builder::ICMPv6 {
 
+/// Build an ICMPv6 echo probe.
+/// @param packet the packet buffer, including the IP header.
+/// @param target_checksum the custom ICMP checksum, in host order.
+/// @param target_sequence the custom sequence field, in host order.
 void init(Packet packet, uint16_t target_checksum, uint16_t target_payload);
 
-}
+}  // namespace caracal::Builder::ICMPv6
 
 /// Build UDP probes.
 /// In the UDP header, the source and destination ports are used for per-flow
@@ -102,26 +112,12 @@ void init(Packet packet, uint16_t target_checksum, uint16_t target_payload);
 /// that the custom checksum is valid.
 namespace caracal::Builder::UDP {
 
-/// Compute and set the checksum in the UDP header.
-/// The packet must not be modified afterward to ensure that the checksum is
-/// valid.
-/// @param packet the packet buffer, including the IP header.
-void set_checksum(Packet packet);
-
-/// Set a custom checksum in the UDP header, and ensure that the checksum is
-/// valid by tweaking the payload.
+/// Build an UDP probe.
 /// @param packet the packet buffer, including the IP header.
 /// @param target_checksum the custom checksum, in host order.
-void set_checksum(Packet packet, uint16_t target_checksum);
-
-/// Set the length in the UDP header.
-/// @param packet the packet buffer, including the IP header.
-void set_length(Packet packet);
-
-/// Set the ports in the UDP header.
-/// @param packet the packet buffer, including the IP header.
 /// @param src_port the source port, in host order.
 /// @param dst_port the destination port, in host order.
-void set_ports(Packet packet, uint16_t src_port, uint16_t dst_port);
+void init(Packet packet, uint16_t target_checksum, uint16_t src_port,
+          uint16_t dst_port);
 
 }  // namespace caracal::Builder::UDP

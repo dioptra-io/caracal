@@ -78,7 +78,7 @@ void init(Packet packet, const bool is_v4,
 
 }  // namespace caracal::Builder::Ethernet
 
-namespace caracal::Builder::IP {
+namespace caracal::Builder::IPv4 {
 
 void init(Packet packet, const uint8_t protocol, const in_addr src_addr,
           const in_addr dst_addr, const uint8_t ttl) {
@@ -96,6 +96,10 @@ void init(Packet packet, const uint8_t protocol, const in_addr src_addr,
   ip_header->ip_sum = ip_checksum(ip_header, sizeof(ip));
 }
 
+}  // namespace caracal::Builder::IPv4
+
+namespace caracal::Builder::IPv6 {
+
 void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
           const in6_addr dst_addr, const uint8_t ttl) {
   auto ip_header = reinterpret_cast<ip6_hdr *>(packet.l3());
@@ -112,12 +116,12 @@ void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
   ip_header->ip6_plen = Checked::hton<uint16_t>(packet.l4_size());
 }
 
-}  // namespace caracal::Builder::IP
+}  // namespace caracal::Builder::IPv6
 
 namespace caracal::Builder::ICMP {
 
 void init(Packet packet, const uint16_t target_checksum,
-          const uint16_t target_seq) {
+          const uint16_t target_sequence) {
   assert_payload_size(packet, PAYLOAD_TWEAK_BYTES);
 
   auto icmp_header = reinterpret_cast<icmp *>(packet.l4());
@@ -125,7 +129,7 @@ void init(Packet packet, const uint16_t target_checksum,
   icmp_header->icmp_code = 0;  // ICMP Echo Request
   icmp_header->icmp_cksum = 0;
   icmp_header->icmp_hun.ih_idseq.icd_id = htons(target_checksum);
-  icmp_header->icmp_hun.ih_idseq.icd_seq = htons(target_seq);
+  icmp_header->icmp_hun.ih_idseq.icd_seq = htons(target_sequence);
 
   // Encode the flow ID in the checksum.
   const uint16_t original_checksum = ip_checksum(icmp_header, ICMP_HEADER_SIZE);
@@ -161,32 +165,18 @@ void init(Packet packet, const uint16_t target_checksum,
 
 namespace caracal::Builder::UDP {
 
-void set_checksum(Packet packet) {
-  auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
-  udp_header->uh_sum = 0;
-  udp_header->uh_sum = transport_checksum(packet);
-}
-
-void set_checksum(Packet packet, const uint16_t target_checksum) {
+void init(Packet packet, const uint16_t target_checksum,
+          const uint16_t src_port, const uint16_t dst_port) {
   assert_payload_size(packet, PAYLOAD_TWEAK_BYTES);
   auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
+  udp_header->uh_ulen = Checked::hton<uint16_t>(packet.l4_size());
+  udp_header->uh_sport = htons(src_port);
+  udp_header->uh_dport = htons(dst_port);
   udp_header->uh_sum = 0;
   const uint16_t original_checksum = transport_checksum(packet);
   *reinterpret_cast<uint16_t *>(packet.payload()) =
       tweak_payload(original_checksum, htons(target_checksum));
   udp_header->uh_sum = htons(target_checksum);
-}
-
-void set_length(Packet packet) {
-  auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
-  udp_header->uh_ulen = Checked::hton<uint16_t>(packet.l4_size());
-}
-
-void set_ports(Packet packet, const uint16_t src_port,
-               const uint16_t dst_port) {
-  auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
-  udp_header->uh_sport = htons(src_port);
-  udp_header->uh_dport = htons(dst_port);
 }
 
 }  // namespace caracal::Builder::UDP

@@ -31,7 +31,8 @@ using std::byte;
 namespace Ethernet = caracal::Builder::Ethernet;
 namespace ICMP = caracal::Builder::ICMP;
 namespace ICMPv6 = caracal::Builder::ICMPv6;
-namespace IP = caracal::Builder::IP;
+namespace IPv4 = caracal::Builder::IPv4;
+namespace IPv6 = caracal::Builder::IPv6;
 namespace UDP = caracal::Builder::UDP;
 namespace Timestamp = caracal::Timestamp;
 
@@ -84,7 +85,7 @@ TEST_CASE("Builder::ICMP") {
                 payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
-  IP::init(packet, IPPROTO_ICMP, src_addr, dst_addr, ttl);
+  IPv4::init(packet, IPPROTO_ICMP, src_addr, dst_addr, ttl);
   ICMP::init(packet, flow_id, timestamp_enc);
 
   REQUIRE(validate_ip_checksum(packet));
@@ -105,7 +106,7 @@ TEST_CASE("Builder::ICMP") {
     Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_ICMP,
                   payload_len};
     Ethernet::init(packet, true, {0}, {0});
-    IP::init(packet, IPPROTO_ICMP, src_addr, dst_addr, ttl);
+    IPv4::init(packet, IPPROTO_ICMP, src_addr, dst_addr, ttl);
     ICMP::init(packet, flow_id, timestamp_enc);
     return packet;
   };
@@ -125,7 +126,7 @@ TEST_CASE("Builder::ICMPv6") {
                 payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
-  IP::init(packet, IPPROTO_ICMPV6, src_addr, dst_addr, ttl);
+  IPv6::init(packet, IPPROTO_ICMPV6, src_addr, dst_addr, ttl);
   ICMPv6::init(packet, flow_id, timestamp_enc);
 
   REQUIRE(validate_icmp6_checksum(packet));
@@ -158,10 +159,8 @@ TEST_CASE("Builder::UDP/v4") {
   Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_UDP, payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
-  IP::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
-  UDP::set_length(packet);
-  UDP::set_ports(packet, src_port, dst_port);
-  UDP::set_checksum(packet, timestamp_enc);
+  IPv4::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
+  UDP::init(packet, timestamp_enc, src_port, dst_port);
 
   REQUIRE(validate_ip_checksum(packet));
   REQUIRE(validate_udp_checksum(packet));
@@ -181,10 +180,8 @@ TEST_CASE("Builder::UDP/v4") {
     Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_ICMP,
                   payload_len};
     Ethernet::init(packet, true, {0}, {0});
-    IP::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
-    UDP::set_length(packet);
-    UDP::set_ports(packet, src_port, dst_port);
-    UDP::set_checksum(packet, timestamp_enc);
+    IPv4::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
+    UDP::init(packet, timestamp_enc, src_port, dst_port);
     return packet;
   };
 }
@@ -203,10 +200,8 @@ TEST_CASE("Builder::UDP/v6") {
                 payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
-  IP::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
-  UDP::set_length(packet);
-  UDP::set_ports(packet, src_port, dst_port);
-  UDP::set_checksum(packet, timestamp_enc);
+  IPv6::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
+  UDP::init(packet, timestamp_enc, src_port, dst_port);
 
   REQUIRE(validate_udp_checksum(packet));
 
