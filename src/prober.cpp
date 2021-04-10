@@ -52,7 +52,7 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   sniffer.start();
 
   // Sender
-  Sender sender{config.interface, config.protocol};
+  Sender sender{config.interface, config.protocol, batch_size};
 
   // Rate limiter
   RateLimiter rl{config.probing_rate, batch_size, config.allow_sleep_wait};
@@ -119,15 +119,13 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     for (uint64_t i = 0; i < config.n_packets; i++) {
       spdlog::trace("probe={} packet={}", p, i + 1);
       try {
-        sender.send(p);
+        if (sender.send(p)) {
+          rl.wait();
+        }
         stats.sent++;
       } catch (const std::system_error& e) {
         spdlog::error("probe={} error={}", p, e.what());
         stats.failed++;
-      }
-      // Rate limit every `batch_size` packets sent.
-      if ((stats.sent + stats.failed) % batch_size == 0) {
-        rl.wait();
       }
     }
 
@@ -143,6 +141,7 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     }
   }
 
+  sender.flush();
   log_stats();
 
   spdlog::info(

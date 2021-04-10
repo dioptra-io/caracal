@@ -3,7 +3,7 @@
 #include <net/if.h>
 #include <net/ndrv.h>
 #elif __linux__
-#include <netpacket/packet.h>
+#include <linux/if_packet.h>
 #endif
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
@@ -32,14 +32,18 @@ static const std::map<std::string, uint8_t> l4_protocols = {
     {"icmp", IPPROTO_ICMP}, {"udp", IPPROTO_UDP}};
 
 Sender::Sender(const Tins::NetworkInterface &interface,
-               const std::string &protocol)
-    : buffer_{},
-      l2_protocol_{L2PROTO_ETHERNET},
+               const std::string &protocol, const uint32_t batch_size)
+    : l2_protocol_{L2PROTO_ETHERNET},
       l4_protocol_{l4_protocols.at(protocol)},
 #ifdef __APPLE__
       socket_{AF_NDRV, SOCK_RAW, 0},
+      buffer_{},
 #elif __linux__
       socket_{AF_PACKET, SOCK_RAW, 0},
+      ring_{nullptr},
+      frame_count_{batch_size},
+      frame_size_{1024},
+      frame_idx_{0},
 #endif
       if_{},
       src_mac_{},
@@ -96,6 +100,21 @@ Sender::Sender(const Tins::NetworkInterface &interface,
   if_.sll_halen = ETHER_ADDR_LEN;
   if_.sll_ifindex = interface.id();
   if_.sll_protocol = 0;
+
+  // https://www.kernel.org/doc/html/latest/networking/packet_mmap.html
+  tpacket_req req{.tp_block_size = frame_count_ * frame_size_,
+                  .tp_block_nr = 1,
+                  .tp_frame_size = frame_size_,
+                  .tp_frame_nr = frame_count_};
+
+  socket_.set(SOL_PACKET, PACKET_VERSION, TPACKET_V2);
+  // socket_.set(SOL_PACKET, PACKET_QDISC_BYPASS, 1);
+  socket_.set(SOL_PACKET, PACKET_TX_HAS_OFF, 1);
+  socket_.set(SOL_PACKET, PACKET_TX_RING, &req);
+  socket_.bind(&if_);
+
+  ring_ = socket_.mmap(nullptr, frame_count_ * frame_size_,
+                       PROT_READ | PROT_WRITE, MAP_SHARED, 0);
 #endif
 
   // Set the source IPv4 address.
@@ -113,7 +132,20 @@ Sender::Sender(const Tins::NetworkInterface &interface,
                src_ip_v6.sin6_addr);
 }
 
-void Sender::send(const Probe &probe) {
+Sender::~Sender() {
+#ifdef __linux__
+  socket_.munmap(ring_, frame_count_ * frame_size_);
+#endif
+}
+
+void Sender::flush() {
+#ifdef __linux__
+  frame_idx_ = 0;
+  socket_.send(nullptr, 0, 0);
+#endif
+}
+
+bool Sender::send(const Probe &probe) {
   const bool is_v4 = probe.v4();
   const uint8_t l3_protocol = is_v4 ? IPPROTO_IP : IPPROTO_IPV6;
   uint8_t l4_protocol = l4_protocol_;
@@ -126,8 +158,30 @@ void Sender::send(const Probe &probe) {
   const uint64_t timestamp =
       Timestamp::cast<Timestamp::tenth_ms>(system_clock::now());
   const uint16_t timestamp_enc = Timestamp::encode(timestamp);
+
+#ifdef __APPLE__
   const Packet packet{buffer_, l2_protocol_, l3_protocol, l4_protocol,
                       payload_length};
+#elif __linux__
+  auto frame = static_cast<std::byte *>(ring_) + frame_idx_ * frame_size_;
+  auto header_len = TPACKET_ALIGN(sizeof(tpacket2_hdr));
+  auto header = reinterpret_cast<tpacket2_hdr *>(frame);
+  auto data = frame + header_len;
+  spdlog::trace("frame={} frame_idx={}", static_cast<void *>(frame),
+                frame_idx_);
+  // Busy wait for the frame to be available.
+  while (header->tp_status != TP_STATUS_AVAILABLE) {
+    if (header->tp_status == TP_STATUS_WRONG_FORMAT) {
+      // If the frame is invalid, log it, then reset its status.
+      spdlog::error("frame={}, status=WRONG_FORMAT",
+                    static_cast<void *>(frame));
+      header->tp_status = TP_STATUS_AVAILABLE;
+    }
+  }
+  frame_idx_++;
+  const Packet packet{std::span<std::byte>{data, frame_size_ - header_len},
+                      l2_protocol_, l3_protocol, l4_protocol, payload_length};
+#endif
 
   std::fill(packet.begin(), packet.end(), std::byte{0});
 
@@ -176,6 +230,19 @@ void Sender::send(const Probe &probe) {
       break;
   }
 
+#ifdef __APPLE__
   socket_.sendto(packet.l2(), packet.l2_size(), 0, &if_);
+  return true;
+#elif __linux__
+  header->tp_len = packet.l2_size();
+  header->tp_mac = header_len + packet.padding();
+  header->tp_status = TP_STATUS_SEND_REQUEST;
+  if (frame_idx_ < frame_count_) {
+    return false;
+  }
+  flush();
+  return true;
+#endif
 }
+
 }  // namespace caracal

@@ -6,7 +6,7 @@
 #include <net/if.h>
 #include <net/ndrv.h>
 #elif __linux__
-#include <netpacket/packet.h>
+#include <linux/if_packet.h>
 #endif
 #include <tins/tins.h>
 
@@ -20,18 +20,25 @@ namespace caracal {
 
 class Sender {
  public:
-  Sender(const Tins::NetworkInterface &interface, const std::string &protocol);
-
-  void send(const Probe &probe);
+  // batch_size has no effect on macOS.
+  Sender(const Tins::NetworkInterface &interface, const std::string &protocol,
+         uint32_t batch_size);
+  ~Sender();
+  void flush();
+  bool send(const Probe &probe);
 
  private:
-  std::array<std::byte, 65536> buffer_;
   uint8_t l2_protocol_;
   uint8_t l4_protocol_;
   Socket socket_;
 #ifdef __APPLE__
+  std::array<std::byte, 1024> buffer_;
   sockaddr_ndrv if_;
 #elif __linux__
+  void *ring_;
+  uint32_t frame_count_;
+  uint32_t frame_size_;
+  uint32_t frame_idx_;
   sockaddr_ll if_;
 #endif
   std::array<uint8_t, ETHER_ADDR_LEN> src_mac_;

@@ -99,6 +99,8 @@ std::byte* Packet::l4() const noexcept { return l4_; }
 
 std::byte* Packet::payload() const noexcept { return payload_; }
 
+size_t Packet::padding() const noexcept { return l2_ - begin_; }
+
 size_t Packet::l2_size() const noexcept { return end_ - l2_; }
 
 size_t Packet::l3_size() const noexcept { return end_ - l3_; }

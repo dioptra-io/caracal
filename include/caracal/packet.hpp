@@ -40,6 +40,9 @@ class Packet {
   /// Size of the packet starting from the payload.
   [[nodiscard]] size_t payload_size() const noexcept;
 
+  /// Optional padding to align the packet on a four-byte boundary.
+  [[nodiscard]] size_t padding() const noexcept;
+
   /// Layer 2 protocol.
   [[nodiscard]] uint8_t l2_protocol() const noexcept;
 
