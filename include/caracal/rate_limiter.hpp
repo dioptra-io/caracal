@@ -12,9 +12,10 @@ namespace caracal {
 
 class RateLimiter {
  public:
-  explicit RateLimiter(uint64_t target_rate, bool allow_sleep_wait = true);
+  explicit RateLimiter(uint64_t target_rate, uint64_t steps = 1,
+                       bool allow_sleep_wait = true);
 
-  void wait(uint64_t steps = 1) noexcept;
+  void wait() noexcept;
 
   [[nodiscard]] const Statistics::RateLimiter &statistics() const noexcept;
 

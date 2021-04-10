@@ -31,10 +31,10 @@ TEST_CASE("RateLimiter") {
   }
 
   SECTION("750 packets at 500pps should take at-least 1.5s (steps = 10)") {
-    RateLimiter rl{500};
+    RateLimiter rl{500, 10};
     auto delta = measure_time([&rl]() {
       for (auto i = 0; i < 75; i++) {
-        rl.wait(10);
+        rl.wait();
       }
     });
     REQUIRE(delta.count() >= milliseconds{1250}.count());
@@ -53,10 +53,10 @@ TEST_CASE("RateLimiter") {
   }
 
   SECTION("50k packets at 100k pps should take at-least 0.5s (steps = 100)") {
-    RateLimiter rl{100000};
+    RateLimiter rl{100000, 100};
     auto delta = measure_time([&rl]() {
       for (auto i = 0; i < 500; i++) {
-        rl.wait(100);
+        rl.wait();
       }
     });
     REQUIRE(delta.count() >= milliseconds{450}.count());

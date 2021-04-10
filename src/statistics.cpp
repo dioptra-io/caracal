@@ -7,10 +7,11 @@ using std::chrono::nanoseconds;
 
 namespace caracal::Statistics {
 
-RateLimiter::RateLimiter() : target_delta_{}, effective_{}, inter_call_{} {}
+RateLimiter::RateLimiter()
+    : steps_{1}, target_delta_{}, effective_{}, inter_call_{} {}
 
-RateLimiter::RateLimiter(nanoseconds target_delta) noexcept
-    : target_delta_{target_delta}, effective_{}, inter_call_{} {}
+RateLimiter::RateLimiter(uint64_t steps, nanoseconds target_delta) noexcept
+    : steps_{steps}, target_delta_{target_delta}, effective_{}, inter_call_{} {}
 
 void RateLimiter::log_effective_delta(nanoseconds delta) noexcept {
   effective_.push_back(delta.count());
@@ -26,7 +27,7 @@ double RateLimiter::average_utilization() const noexcept {
 
 double RateLimiter::average_rate() const noexcept {
   const auto average = effective_.average();
-  return average > 0 ? (nanoseconds::period::den / average) : 0;
+  return average > 0 ? (steps_ * nanoseconds::period::den / average) : 0;
 }
 
 std::ostream& operator<<(std::ostream& os, Prober const& v) {

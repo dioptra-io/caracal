@@ -12,7 +12,7 @@ using std::chrono::steady_clock;
 
 namespace caracal {
 
-RateLimiter::RateLimiter(const uint64_t target_rate,
+RateLimiter::RateLimiter(const uint64_t target_rate, const uint64_t steps,
                          const bool allow_sleep_wait)
     : allow_sleep_wait_{allow_sleep_wait},
       sleep_precision_{sleep_precision()},
@@ -22,39 +22,35 @@ RateLimiter::RateLimiter(const uint64_t target_rate,
   if (target_rate <= 0) {
     throw std::domain_error("target_rate must be > 0");
   }
-  target_delta_ = nanoseconds{static_cast<uint64_t>(1e9 / target_rate)};
-  statistics_ = Statistics::RateLimiter{target_delta_};
+  target_delta_ = nanoseconds{steps * 1'000'000'000 / target_rate};
+  statistics_ = Statistics::RateLimiter{steps, target_delta_};
 }
 
-void RateLimiter::wait(uint64_t steps) noexcept {
-  // We adjust the target delta for the number of steps done:
-  // if we have done 4 steps before calling wait(), then
-  // we should wait 4 times the target_delta.
+void RateLimiter::wait() noexcept {
   curr_tp_ = steady_clock::now();
   nanoseconds current_delta = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
-  nanoseconds target_delta = target_delta_ * steps;
-  statistics_.log_inter_call_delta(current_delta / steps);
+  statistics_.log_inter_call_delta(current_delta);
 
   // (1) Early return if we do not need to wait.
-  if (current_delta >= target_delta) {
+  if (current_delta >= target_delta_) {
     last_tp_ = steady_clock::now();
-    statistics_.log_effective_delta(current_delta / steps);
+    statistics_.log_effective_delta(current_delta);
     return;
   }
 
   // (2) Wait if possible.
   if (allow_sleep_wait_ &&
-      (sleep_precision_ < (target_delta - current_delta))) {
-    std::this_thread::sleep_for(target_delta - current_delta);
+      (sleep_precision_ < (target_delta_ - current_delta))) {
+    std::this_thread::sleep_for(target_delta_ - current_delta);
   }
 
   // (3) Spin wait.
   do {
     curr_tp_ = steady_clock::now();
     current_delta = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
-  } while (current_delta < target_delta);
+  } while (current_delta < target_delta_);
 
-  statistics_.log_effective_delta(current_delta / steps);
+  statistics_.log_effective_delta(current_delta);
   last_tp_ = steady_clock::now();
 }
 

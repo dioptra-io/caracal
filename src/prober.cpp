@@ -15,6 +15,9 @@
 
 namespace caracal::Prober {
 
+// NOTE: Should we expose this as a parameter?
+const uint64_t batch_size = 128;
+
 std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     const Config& config) {
   spdlog::info(config);
@@ -52,7 +55,7 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   Sender sender{config.interface, config.protocol};
 
   // Rate limiter
-  RateLimiter rl{config.probing_rate, config.allow_sleep_wait};
+  RateLimiter rl{config.probing_rate, batch_size, config.allow_sleep_wait};
 
   // Statistics
   Statistics::Prober stats;
@@ -122,9 +125,9 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
         spdlog::error("probe={} error={}", p, e.what());
         stats.failed++;
       }
-      // Rate limit every N packets sent.
-      if ((stats.sent + stats.failed) % 128 == 0) {
-        rl.wait(128);
+      // Rate limit every `batch_size` packets sent.
+      if ((stats.sent + stats.failed) % batch_size == 0) {
+        rl.wait();
       }
     }
 

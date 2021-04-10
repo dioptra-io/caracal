@@ -88,7 +88,7 @@ struct Prober {
 struct RateLimiter {
   RateLimiter();
 
-  explicit RateLimiter(nanoseconds target_delta) noexcept;
+  explicit RateLimiter(uint64_t steps, nanoseconds target_delta) noexcept;
 
   void log_effective_delta(nanoseconds delta) noexcept;
 
@@ -99,6 +99,7 @@ struct RateLimiter {
   [[nodiscard]] double average_rate() const noexcept;
 
  private:
+  uint64_t steps_;
   nanoseconds target_delta_;
   CircularArray<double, 64> effective_;
   CircularArray<double, 64> inter_call_;
