@@ -122,7 +122,10 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
         spdlog::error("probe={} error={}", p, e.what());
         stats.failed++;
       }
-      rl.wait();
+      // Rate limit every N packets sent.
+      if ((stats.sent + stats.failed) % 128 == 0) {
+        rl.wait(128);
+      }
     }
 
     // Log every ~5 seconds.

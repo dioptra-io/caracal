@@ -14,7 +14,7 @@ class RateLimiter {
  public:
   explicit RateLimiter(uint64_t target_rate, bool allow_sleep_wait = true);
 
-  void wait() noexcept;
+  void wait(uint64_t steps = 1) noexcept;
 
   [[nodiscard]] const Statistics::RateLimiter &statistics() const noexcept;
 
@@ -26,7 +26,6 @@ class RateLimiter {
   bool allow_sleep_wait_;
   nanoseconds sleep_precision_;
   nanoseconds target_delta_;
-  nanoseconds current_delta_;
   steady_clock::time_point curr_tp_;
   steady_clock::time_point last_tp_;
   Statistics::RateLimiter statistics_;

@@ -17,7 +17,6 @@ RateLimiter::RateLimiter(const uint64_t target_rate,
     : allow_sleep_wait_{allow_sleep_wait},
       sleep_precision_{sleep_precision()},
       target_delta_{0},
-      current_delta_{0},
       curr_tp_{steady_clock::now()},
       last_tp_{curr_tp_} {
   if (target_rate <= 0) {
@@ -27,31 +26,35 @@ RateLimiter::RateLimiter(const uint64_t target_rate,
   statistics_ = Statistics::RateLimiter{target_delta_};
 }
 
-void RateLimiter::wait() noexcept {
+void RateLimiter::wait(uint64_t steps) noexcept {
+  // We adjust the target delta for the number of steps done:
+  // if we have done 4 steps before calling wait(), then
+  // we should wait 4 times the target_delta.
   curr_tp_ = steady_clock::now();
-  current_delta_ = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
-  statistics_.log_inter_call_delta(current_delta_);
+  nanoseconds current_delta = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
+  nanoseconds target_delta = target_delta_ * steps;
+  statistics_.log_inter_call_delta(current_delta / steps);
 
   // (1) Early return if we do not need to wait.
-  if (current_delta_ >= target_delta_) {
+  if (current_delta >= target_delta) {
     last_tp_ = steady_clock::now();
-    statistics_.log_effective_delta(current_delta_);
+    statistics_.log_effective_delta(current_delta / steps);
     return;
   }
 
   // (2) Wait if possible.
   if (allow_sleep_wait_ &&
-      (sleep_precision_ < (target_delta_ - current_delta_))) {
-    std::this_thread::sleep_for(target_delta_ - current_delta_);
+      (sleep_precision_ < (target_delta - current_delta))) {
+    std::this_thread::sleep_for(target_delta - current_delta);
   }
 
   // (3) Spin wait.
   do {
     curr_tp_ = steady_clock::now();
-    current_delta_ = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
-  } while (current_delta_ < target_delta_);
+    current_delta = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
+  } while (current_delta < target_delta);
 
-  statistics_.log_effective_delta(current_delta_);
+  statistics_.log_effective_delta(current_delta / steps);
   last_tp_ = steady_clock::now();
 }
 
