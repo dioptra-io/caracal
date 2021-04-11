@@ -85,7 +85,7 @@ The only exceptions are libc and libstdc++ which are dynamically linked.
 git clone --recursive git@github.com:dioptra-io/caracal.git
 cd caracal
 mkdir build && cd build
-conan install .. -s libtins:compiler.cppstd=11
+conan install --build=missing -s libtins:compiler.cppstd=11 ..
 cmake .. && cmake --build .
 ```
 
