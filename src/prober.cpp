@@ -53,6 +53,13 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     spdlog::info(stats);
     spdlog::info(sniffer.statistics());
   };
+  std::thread stats_thread{[&] {
+    while (true) {
+      std::this_thread::sleep_for(std::chrono::seconds{5});
+      log_stats();
+    }
+  }};
+  stats_thread.detach();
 
   // Input
   std::ifstream input_file;
@@ -120,19 +127,11 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
       }
     }
 
-    // Log every ~5 seconds.
-    auto rate = static_cast<uint64_t>(rl.statistics().average_rate());
-    if ((rate > 0) && (stats.sent % (5 * rate) == 0)) {
-      log_stats();
-    }
-
     if (config.max_probes && (stats.sent >= *config.max_probes)) {
       spdlog::trace("max_probes reached, exiting...");
       break;
     }
   }
-
-  log_stats();
 
   spdlog::info(
       "Waiting {}s to allow the sniffer to get the last flying responses...",
