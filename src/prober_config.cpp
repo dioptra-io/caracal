@@ -47,8 +47,12 @@ void Config::set_sniffer_wait_time(const int seconds) {
   sniffer_wait_time = static_cast<uint64_t>(seconds);
 }
 
-void Config::set_allow_sleep_wait(const bool allow) {
-  allow_sleep_wait = allow;
+void Config::set_rate_limiting_method(const string& s) {
+  if (s == "auto" || s == "active" || s == "sleep" || s == "none") {
+    rate_limiting_method = s;
+  } else {
+    throw std::invalid_argument(s + " is not a valid rate limiting method");
+  }
 }
 
 void Config::set_max_probes(const uint64_t count) {
@@ -109,7 +113,7 @@ std::ostream& operator<<(std::ostream& os, Config const& v) {
   os << ",\n\tprotocol=" << v.protocol;
   os << ",\n\tinterface=" << v.interface.name() << ":"
      << v.interface.ipv4_address();
-  os << ",\n\tallow_sleep_wait=" << v.allow_sleep_wait;
+  os << ",\n\trate_limiting_method=" << v.rate_limiting_method;
   print_if_value("input_file", v.input_file);
   print_if_value("output_file_csv", v.output_file_csv);
   print_if_value("output_file_pcap", v.output_file_pcap);

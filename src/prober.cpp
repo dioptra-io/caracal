@@ -22,17 +22,6 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
     const Config& config) {
   spdlog::info(config);
 
-  // Test the rate limiter
-  spdlog::info(
-      "Testing the rate limiter, this should take ~1s... If it takes too long "
-      "try to reduce the probing rate.");
-  if (!RateLimiter::test(config.probing_rate)) {
-    spdlog::warn(
-        "Unable to achieve the target probing rate, either the system clock "
-        "resolution is insufficient, or the probing rate is too high for the "
-        "system.");
-  }
-
   LPM prefix_excl;
   LPM prefix_incl;
 
@@ -55,7 +44,7 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   Sender sender{config.interface, config.protocol};
 
   // Rate limiter
-  RateLimiter rl{config.probing_rate, batch_size, config.allow_sleep_wait};
+  RateLimiter rl{config.probing_rate, batch_size, config.rate_limiting_method};
 
   // Statistics
   Statistics::Prober stats;

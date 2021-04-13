@@ -13,14 +13,24 @@ using std::chrono::steady_clock;
 namespace caracal {
 
 RateLimiter::RateLimiter(const uint64_t target_rate, const uint64_t steps,
-                         const bool allow_sleep_wait)
-    : allow_sleep_wait_{allow_sleep_wait},
-      sleep_precision_{sleep_precision()},
+                         const std::string& method)
+    : sleep_precision_{sleep_precision()},
       target_delta_{0},
       curr_tp_{steady_clock::now()},
       last_tp_{curr_tp_} {
   if (target_rate <= 0) {
     throw std::domain_error("target_rate must be > 0");
+  }
+  if (method == "auto") {
+    method_ = RateLimitingMethod::Auto;
+  } else if (method == "active") {
+    method_ = RateLimitingMethod::Active;
+  } else if (method == "sleep") {
+    method_ = RateLimitingMethod::Sleep;
+  } else if (method == "none") {
+    method_ = RateLimitingMethod::None;
+  } else {
+    throw std::invalid_argument("method must be auto|active|sleep|none");
   }
   target_delta_ = nanoseconds{steps * 1'000'000'000 / target_rate};
   statistics_ = Statistics::RateLimiter{steps, target_delta_};
@@ -39,8 +49,9 @@ void RateLimiter::wait() noexcept {
   }
 
   // (2) Wait if possible.
-  if (allow_sleep_wait_ &&
-      (sleep_precision_ < (target_delta_ - current_delta))) {
+  if ((method_ == RateLimitingMethod::Auto ||
+       method_ == RateLimitingMethod::Sleep) &&
+      sleep_precision_ < (target_delta_ - current_delta)) {
     std::this_thread::sleep_for(target_delta_ - current_delta);
   }
 
@@ -48,7 +59,9 @@ void RateLimiter::wait() noexcept {
   do {
     curr_tp_ = steady_clock::now();
     current_delta = duration_cast<nanoseconds>(curr_tp_ - last_tp_);
-  } while (current_delta < target_delta_);
+  } while ((method_ == RateLimitingMethod::Auto ||
+            method_ == RateLimitingMethod::Active) &&
+           current_delta < target_delta_);
 
   statistics_.log_effective_delta(current_delta);
   last_tp_ = steady_clock::now();
