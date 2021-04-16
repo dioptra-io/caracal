@@ -2,7 +2,8 @@ name: Publish to Docker Hub (latest)
 
 on:
   push:
-    branches: [master]
+    tags:
+      - "*"
 
 jobs:
   build:
