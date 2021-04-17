@@ -14,7 +14,7 @@ repos:
     rev: v0.6.13
     hooks:
       - id: cmake-format
-        args: [ "--dangle-parens", "--in-place" ]
+        args: [ "--dangle-parens", "--enable-markup", "--in-place" ]
       - id: cmake-lint
         args: [ "--dangle-parens" ]
 

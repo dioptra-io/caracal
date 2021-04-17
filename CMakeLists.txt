@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
-include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+# We have Find* modules in two places:
+# - The build directory, for the libraries fetched by Conan
+# - The cmake/ directory, for the libraries not available with Conan
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
+
 include(MunkeiVersionFromGit)
 version_from_git(LOG ON)
 

@@ -18,7 +18,7 @@ The easiest way to run Caracal is through Docker:
 docker run dioptraio/caracal --help
 ```
 
-If you're running an ARM64 system, you will need to [build the image yourself](#docker-image).  
+If you're running an ARM64 system, you will need to [build the image yourself](#docker-image).
 If you're using macOS (Intel or ARM), we recommend to [build the native executable](#building-from-source) as Docker for Mac seems to rewrite some fields of the IP header that we use to encode probe informations.
 
 ## Features
@@ -29,8 +29,8 @@ If you're using macOS (Intel or ARM), we recommend to [build the native executab
 
 ## Usage
 
-Caracal reads probe specifications from the standard input or, if specified with `-i/--input-file`, from a file with one probe per line.  
-The specification is `dst_addr,src_port,dst_port,ttl`, where `dst_addr` can be an IPv4 address in dotted notation (e.g. `8.8.8.8`), an IPv4-mapped IPv6 address (e.g. `::ffff:8.8.8.8`) or an IPv6 address (e.g. `2001:4860:4860::8888`).  
+Caracal reads probe specifications from the standard input or, if specified with `-i/--input-file`, from a file with one probe per line.
+The specification is `dst_addr,src_port,dst_port,ttl`, where `dst_addr` can be an IPv4 address in dotted notation (e.g. `8.8.8.8`), an IPv4-mapped IPv6 address (e.g. `::ffff:8.8.8.8`) or an IPv6 address (e.g. `2001:4860:4860::8888`).
 For UDP probes, the ports are encoded directly in the UDP header. For ICMP probes, the source port is encoded in the ICMP checksum (which varies the flow-id).
 
 For example, to probe Google DNS servers at TTL 32:
@@ -85,7 +85,7 @@ The only exceptions are libc and libstdc++ which are dynamically linked.
 git clone --recursive git@github.com:dioptra-io/caracal.git
 cd caracal
 mkdir build && cd build
-conan install --build=missing -s libtins:compiler.cppstd=11 ..
+conan install --build=missing -s compiler.libcxx=libstdc++11 -s libtins:compiler.cppstd=11 ..
 cmake .. && cmake --build .
 ```
 
@@ -129,7 +129,7 @@ The code as it was at the time of the publication is available in the [`nsdi2020
 
 ## Authors
 
-Caracal is developed and maintained by the [Dioptra team](https://dioptra.io) at Sorbonne Université in Paris, France.  
+Caracal is developed and maintained by the [Dioptra team](https://dioptra.io) at Sorbonne Université in Paris, France.
 The initial version has been written by [Kévin Vermeulen](https://github.com/kvermeul), with subsequents refactoring and improvements by [Maxime Mouchet](https://github.com/maxmouchet) and [Matthieu Gouel](https://github.com/matthieugouel).
 
 ## License & Dependencies
