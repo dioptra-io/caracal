@@ -1,5 +1,6 @@
 #include <caracal-config.h>
 #include <spdlog/cfg/helpers.h>
+#include <spdlog/spdlog.h>
 
 #include <boost/core/demangle.hpp>
 #include <boost/program_options.hpp>
@@ -62,11 +63,6 @@ int main(int argc, char** argv) {
   }
 
   try {
-    if (vm.count("input-file")) {
-      fs::path path{vm["input-file"].as<string>()};
-      config.set_input_file(path);
-    }
-
     if (vm.count("output-file-csv")) {
       fs::path path{vm["output-file-csv"].as<string>()};
       config.set_output_file_csv(path);
@@ -128,7 +124,15 @@ int main(int argc, char** argv) {
     }
 
     spdlog::cfg::helpers::load_levels(vm["log-level"].as<string>());
-    caracal::Prober::probe(config);
+
+    if (vm.count("input-file")) {
+      fs::path path{vm["input-file"].as<string>()};
+      caracal::Prober::probe(config, path);
+    } else {
+      spdlog::info("Reading from stdin, press CTRL+D to stop...");
+      std::ios::sync_with_stdio(false);
+      caracal::Prober::probe(config, std::cin);
+    }
   } catch (const std::exception& e) {
     auto type = boost::core::demangle(typeid(e).name());
     std::cerr << "Exception of type " << type << ": " << e.what() << std::endl;

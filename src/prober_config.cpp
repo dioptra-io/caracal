@@ -12,13 +12,6 @@ namespace fs = std::filesystem;
 
 namespace caracal::Prober {
 
-void Config::set_input_file(const fs::path& p) {
-  if (!fs::exists(p)) {
-    throw std::invalid_argument(p.string() + " does not exists");
-  }
-  input_file = p;
-}
-
 void Config::set_output_file_csv(const fs::path& p) { output_file_csv = p; }
 
 void Config::set_output_file_pcap(const fs::path& p) { output_file_pcap = p; }
@@ -102,19 +95,17 @@ void Config::set_meta_round(const string& round) { meta_round = round; }
 std::ostream& operator<<(std::ostream& os, Config const& v) {
   auto print_if_value = [&os](const string& name, const auto opt) {
     if (opt) {
-      os << ",\n\t" << name << "=" << opt.value();
+      os << " " << name << "=" << opt.value();
     }
   };
 
-  os << "Prober::Config{";
-  os << "\n\tn_packets=" << v.n_packets;
-  os << ",\n\tprobing_rate=" << v.probing_rate;
-  os << ",\n\tsniffer_wait_time=" << v.sniffer_wait_time;
-  os << ",\n\tprotocol=" << v.protocol;
-  os << ",\n\tinterface=" << v.interface.name() << ":"
+  os << "n_packets=" << v.n_packets;
+  os << " probing_rate=" << v.probing_rate;
+  os << " sniffer_wait_time=" << v.sniffer_wait_time;
+  os << " protocol=" << v.protocol;
+  os << " interface=" << v.interface.name() << ":"
      << v.interface.ipv4_address();
-  os << ",\n\trate_limiting_method=" << v.rate_limiting_method;
-  print_if_value("input_file", v.input_file);
+  os << " rate_limiting_method=" << v.rate_limiting_method;
   print_if_value("output_file_csv", v.output_file_csv);
   print_if_value("output_file_pcap", v.output_file_pcap);
   print_if_value("max_probes", v.max_probes);
@@ -123,7 +114,6 @@ std::ostream& operator<<(std::ostream& os, Config const& v) {
   print_if_value("min_ttl", v.filter_min_ttl);
   print_if_value("max_ttl", v.filter_max_ttl);
   print_if_value("round", v.meta_round);
-  os << "\n}";
   return os;
 }
 

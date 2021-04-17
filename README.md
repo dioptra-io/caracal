@@ -68,6 +68,7 @@ brew install cmake conan doxygen gcovr graphviz
 add-apt-repository -u ppa:ubuntu-toolchain-r/ppa
 apt install build-essential cmake doxygen gcovr git graphviz gcc-10 g++-10 python3-pip
 pip3 install conan
+export CC=gcc-10 CXX=g++-10
 
 # Ubuntu 21.04+
 apt install build-essential cmake doxygen git gcovr graphviz python3-pip
@@ -85,8 +86,7 @@ The only exceptions are libc and libstdc++ which are dynamically linked.
 git clone --recursive git@github.com:dioptra-io/caracal.git
 cd caracal
 mkdir build && cd build
-conan install --build=missing -s compiler.libcxx=libstdc++11 -s libtins:compiler.cppstd=11 ..
-cmake .. && cmake --build .
+cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build .
 ```
 
 #### Options

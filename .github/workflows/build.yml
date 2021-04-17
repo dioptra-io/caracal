@@ -1,6 +1,10 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore: ['**.md']
+  pull_request:
+    paths-ignore: ['**.md']
 
 jobs:
   build:
@@ -12,12 +16,22 @@ jobs:
           submodules: true
       - name: Build Docker image
         run: |
-          docker build --target builder -t debug .
-          docker build -t caracal .
+          docker build --tag debug --target builder .
+          docker build --tag caracal .
       - name: Test Docker image
         run: docker run caracal --help
-      - name: Run unit tests
-        run: docker run --name debug -w /tmp/build-debug debug make coverage
+      - name: Run unit tests with coverage
+        run: |
+          docker run \
+            --name debug \
+            --env GITHUB_ACTIONS=1 \
+            --workdir /tmp/build-debug \
+            debug \
+            cmake --build . --target coverage --parallel 8
+      - name: Upload coverage
+        run: |
+          docker cp debug:/tmp/build-debug/coverage.xml .
+          bash <(curl -s https://codecov.io/bash)
       - name: Copy documentation
         run: docker cp debug:/tmp/build-debug/html html
       - name: Upload documentation
@@ -28,7 +42,3 @@ jobs:
           build_dir: html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload coverage
-        run: |
-          docker cp debug:/tmp/build-debug/coverage.xml .
-          bash <(curl -s https://codecov.io/bash)
