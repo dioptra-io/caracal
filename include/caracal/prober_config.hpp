@@ -24,7 +24,6 @@ struct Config {
       Tins::NetworkInterface::default_interface();
   string rate_limiting_method = "auto";
   optional<uint64_t> max_probes;
-  optional<fs::path> input_file;
   optional<fs::path> output_file_csv;
   optional<fs::path> output_file_pcap;
   optional<fs::path> prefix_excl_file;
@@ -32,8 +31,6 @@ struct Config {
   optional<int> filter_min_ttl;
   optional<int> filter_max_ttl;
   optional<string> meta_round;
-
-  void set_input_file(const fs::path& p);
 
   void set_output_file_csv(const fs::path& p);
 

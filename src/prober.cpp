@@ -18,8 +18,7 @@ namespace caracal::Prober {
 // NOTE: Should we expose this as a parameter?
 const uint64_t batch_size = 128;
 
-std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
-    const Config& config) {
+ProbingStatistics probe(const Config& config, Iterator& it) {
   spdlog::info(config);
 
   LPM prefix_excl;
@@ -61,28 +60,10 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
   }};
   stats_thread.detach();
 
-  // Input
-  std::ifstream input_file;
-  std::istream& is = config.input_file ? input_file : std::cin;
-
-  if (config.input_file) {
-    input_file.open(*config.input_file);
-  } else {
-    spdlog::info("Reading from stdin, press CTRL+D to stop...");
-    std::ios::sync_with_stdio(false);
-  }
-
   // Loop
-  std::string line;
   Probe p{};
 
-  while (std::getline(is, line)) {
-    try {
-      p = Probe::from_csv(line);
-    } catch (const std::exception& e) {
-      spdlog::warn("line={} error={}", line, e.what());
-      continue;
-    }
+  while (it(p)) {
     stats.read++;
 
     // TTL filter
@@ -141,6 +122,32 @@ std::tuple<Statistics::Prober, Statistics::Sniffer> probe(
 
   log_stats();
   return {stats, sniffer.statistics()};
+}
+
+ProbingStatistics probe(const Config& config, std::istream& is) {
+  std::string line;
+  Iterator iterator = [&](Probe& p) {
+    bool valid = false;
+    // Iterate until we find the next valid probe, or we reach EOF.
+    while (!valid && std::getline(is, line)) {
+      try {
+        p = Probe::from_csv(line);
+        valid = true;
+      } catch (const std::exception& e) {
+        spdlog::warn("line={} error={}", line, e.what());
+      }
+    }
+    return valid;
+  };
+  return probe(config, iterator);
+}
+
+ProbingStatistics probe(const Config& config, const fs::path& p) {
+  if (!fs::exists(p)) {
+    throw std::invalid_argument(p.string() + " does not exists");
+  }
+  std::ifstream ifs{p};
+  return probe(config, ifs);
 }
 
 }  // namespace caracal::Prober

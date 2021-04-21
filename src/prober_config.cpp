@@ -12,13 +12,6 @@ namespace fs = std::filesystem;
 
 namespace caracal::Prober {
 
-void Config::set_input_file(const fs::path& p) {
-  if (!fs::exists(p)) {
-    throw std::invalid_argument(p.string() + " does not exists");
-  }
-  input_file = p;
-}
-
 void Config::set_output_file_csv(const fs::path& p) { output_file_csv = p; }
 
 void Config::set_output_file_pcap(const fs::path& p) { output_file_pcap = p; }
@@ -113,7 +106,6 @@ std::ostream& operator<<(std::ostream& os, Config const& v) {
   os << " interface=" << v.interface.name() << ":"
      << v.interface.ipv4_address();
   os << " rate_limiting_method=" << v.rate_limiting_method;
-  print_if_value("input_file", v.input_file);
   print_if_value("output_file_csv", v.output_file_csv);
   print_if_value("output_file_pcap", v.output_file_pcap);
   print_if_value("max_probes", v.max_probes);

@@ -5,3 +5,10 @@ debug/
 docs/
 cmake-build-*/
 .DS_Store
+
+# Python
+.eggs/
+*.egg-info/
+_skbuild/
+dist/
+MANIFEST

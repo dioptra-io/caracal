@@ -4,6 +4,7 @@
 #include <caracal/prober_config.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
 
@@ -11,6 +12,8 @@ namespace fs = std::filesystem;
 
 using caracal::Prober::Config;
 using caracal::Prober::probe;
+
+const bool is_github = std::getenv("GITHUB_ACTIONS") != nullptr;
 
 TEST_CASE("Prober::probe") {
   auto protocol = GENERATE("icmp", "udp");
@@ -38,7 +41,6 @@ TEST_CASE("Prober::probe") {
   ofs.close();
 
   Config config;
-  config.set_input_file("zzz_input.csv");
   config.set_output_file_csv("zzz_output.csv");
   config.set_output_file_pcap("zzz_output.pcap");
   config.set_prefix_excl_file("zzz_excl.csv");
@@ -54,7 +56,7 @@ TEST_CASE("Prober::probe") {
   spdlog::cfg::helpers::load_levels("trace");
 
   SECTION("Base case") {
-    auto [prober_stats, sniffer_stats] = probe(config);
+    auto [prober_stats, sniffer_stats] = probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.read == 6);
     REQUIRE(prober_stats.sent == 6);
     REQUIRE(prober_stats.filtered_lo_ttl == 1);
@@ -75,11 +77,13 @@ TEST_CASE("Prober::probe") {
     ofs << "8.8.0.0/16";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats] = probe(config);
+    auto [prober_stats, sniffer_stats] = probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.sent == 6);
-    // TTL 2 does not reply on GitHub CI.
-    // REQUIRE(sniffer_stats.received_count == 6);
-    REQUIRE(sniffer_stats.received_count >= 2);
+    if (is_github) {
+      REQUIRE(sniffer_stats.received_count >= 1);
+    } else {
+      REQUIRE(sniffer_stats.received_count == 6);
+    }
     REQUIRE(sniffer_stats.received_invalid_count == 0);
   }
 
@@ -89,11 +93,13 @@ TEST_CASE("Prober::probe") {
     ofs << "";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats] = probe(config);
+    auto [prober_stats, sniffer_stats] = probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.sent == 9);
-    // TTL 2 does not reply on GitHub CI.
-    // REQUIRE(sniffer_stats.received_count == 9);
-    REQUIRE(sniffer_stats.received_count >= 3);
+    if (is_github) {
+      REQUIRE(sniffer_stats.received_count >= 1);
+    } else {
+      REQUIRE(sniffer_stats.received_count == 9);
+    }
     REQUIRE(sniffer_stats.received_invalid_count == 0);
   }
 
@@ -103,7 +109,7 @@ TEST_CASE("Prober::probe") {
     ofs << "";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats] = probe(config);
+    auto [prober_stats, sniffer_stats] = probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.sent == 0);
     REQUIRE(sniffer_stats.received_count == 0);
     REQUIRE(sniffer_stats.received_invalid_count == 0);
