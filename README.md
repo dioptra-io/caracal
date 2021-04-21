@@ -109,6 +109,7 @@ Target                 | Description
 `caracal-read`         | PCAP parser
 `caracal-test`         | Unit and performance tests
 `caracal-docs`         | API documentation
+`pycarcal`             | Python interface
 
 To build a specific target, use `cmake --build . --target TARGET`.
 
@@ -119,6 +120,26 @@ To build the Docker image, simply run:
 git clone --recursive git@github.com:dioptra-io/caracal.git
 cd caracal
 docker build -t caracal .
+```
+
+### Python interface
+
+Caracal provides an experiment Python interface.
+It is currently only used for internal projects, and we do not recommend its general use.
+The extension is built using [pybind11](https://github.com/pybind/pybind11) and [scikit-build](https://github.com/scikit-build/scikit-build).
+
+To build the shared extension, use the `pycaracal` target:
+```bash
+cmake --build . --target pycaracal
+# This will build pycaracal.cpython-39-darwin.so, to test it:
+python -c 'import pycaracal'
+```
+
+To build the Python package (this will automatically build the `pycaracal` target):
+```bash
+python3 -m pip install --upgrade build
+python3 -m build
+# The source distribution and the wheels are in dist/
 ```
 
 ## NSDI 2020 paper
