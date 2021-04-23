@@ -30,15 +30,15 @@ If you're using macOS (Intel or ARM), we recommend to [build the native executab
 ## Usage
 
 Caracal reads probe specifications from the standard input or, if specified with `-i/--input-file`, from a file with one probe per line.
-The specification is `dst_addr,src_port,dst_port,ttl`, where `dst_addr` can be an IPv4 address in dotted notation (e.g. `8.8.8.8`), an IPv4-mapped IPv6 address (e.g. `::ffff:8.8.8.8`) or an IPv6 address (e.g. `2001:4860:4860::8888`).
+The specification is `dst_addr,src_port,dst_port,ttl,protocol`, where `dst_addr` can be an IPv4 address in dotted notation (e.g. `8.8.8.8`), an IPv4-mapped IPv6 address (e.g. `::ffff:8.8.8.8`) or an IPv6 address (e.g. `2001:4860:4860::8888`), and `protocol` is `icmp`, `icmp6` or `udp`.
 For UDP probes, the ports are encoded directly in the UDP header. For ICMP probes, the source port is encoded in the ICMP checksum (which varies the flow-id).
 
 For example, to probe Google DNS servers at TTL 32:
 ```csv
-8.8.8.8,24000,33434,32
-8.8.4.4,24000,33434,32
-2001:4860:4860::8888,24000,33434,32
-2001:4860:4860::8844,24000,33434,32
+8.8.8.8,24000,33434,32,icmp
+8.8.4.4,24000,33434,32,icmp
+2001:4860:4860::8888,24000,33434,32,icmp
+2001:4860:4860::8844,24000,33434,32,icmp
 ```
 ```bash
 # Standard input
