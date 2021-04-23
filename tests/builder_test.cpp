@@ -14,6 +14,7 @@ extern "C" {
 
 #include <array>
 #include <caracal/builder.hpp>
+#include <caracal/constants.hpp>
 #include <caracal/protocols.hpp>
 #include <caracal/timestamp.hpp>
 #include <caracal/utilities.hpp>
@@ -82,8 +83,9 @@ TEST_CASE("Builder::ICMP") {
   uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv4,
-                Protocols::L4::ICMP, payload_len};
+  Packet packet{buffer.data(),           buffer.size(),
+                Protocols::L2::Ethernet, Protocols::L3::IPv4,
+                Protocols::L4::ICMP,     payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
   IPv4::init(packet, src_addr, dst_addr, ttl);
@@ -104,8 +106,9 @@ TEST_CASE("Builder::ICMP") {
   REQUIRE(icmp.sequence() == timestamp_enc);
 
   BENCHMARK("Builder::ICMP") {
-    Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv4,
-                  Protocols::L4::ICMP, payload_len};
+    Packet packet{buffer.data(),           buffer.size(),
+                  Protocols::L2::Ethernet, Protocols::L3::IPv4,
+                  Protocols::L4::ICMP,     payload_len};
     Ethernet::init(packet, true, {0}, {0});
     IPv4::init(packet, src_addr, dst_addr, ttl);
     ICMP::init(packet, flow_id, timestamp_enc);
@@ -123,8 +126,9 @@ TEST_CASE("Builder::ICMPv6") {
   uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv6,
-                Protocols::L4::ICMPv6, payload_len};
+  Packet packet{buffer.data(),           buffer.size(),
+                Protocols::L2::Ethernet, Protocols::L3::IPv6,
+                Protocols::L4::ICMPv6,   payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
   IPv6::init(packet, src_addr, dst_addr, ttl);
@@ -157,8 +161,9 @@ TEST_CASE("Builder::UDP/v4") {
   uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv4,
-                Protocols::L4::UDP, payload_len};
+  Packet packet{buffer.data(),           buffer.size(),
+                Protocols::L2::Ethernet, Protocols::L3::IPv4,
+                Protocols::L4::UDP,      payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
   IPv4::init(packet, src_addr, dst_addr, ttl);
@@ -179,8 +184,9 @@ TEST_CASE("Builder::UDP/v4") {
   REQUIRE(udp.checksum() == timestamp_enc);
 
   BENCHMARK("Builder::UDP/v4") {
-    Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv4,
-                  Protocols::L4::UDP, payload_len};
+    Packet packet{buffer.data(),           buffer.size(),
+                  Protocols::L2::Ethernet, Protocols::L3::IPv4,
+                  Protocols::L4::UDP,      payload_len};
     Ethernet::init(packet, true, {0}, {0});
     IPv4::init(packet, src_addr, dst_addr, ttl);
     UDP::init(packet, timestamp_enc, src_port, dst_port);
@@ -198,8 +204,9 @@ TEST_CASE("Builder::UDP/v6") {
   uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv6,
-                Protocols::L4::UDP, payload_len};
+  Packet packet{buffer.data(),           buffer.size(),
+                Protocols::L2::Ethernet, Protocols::L3::IPv6,
+                Protocols::L4::UDP,      payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
   IPv6::init(packet, src_addr, dst_addr, ttl);

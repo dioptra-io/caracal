@@ -6,12 +6,11 @@
 #include <caracal/constants.hpp>
 #include <caracal/packet.hpp>
 #include <caracal/protocols.hpp>
-#include <span>
 #include <stdexcept>
 
 namespace caracal {
 
-Packet::Packet(const std::span<std::byte> buffer,
+Packet::Packet(std::byte* buffer, const size_t buffer_len,
                const Protocols::L2 l2_protocol, const Protocols::L3 l3_protocol,
                const Protocols::L4 l4_protocol, const size_t payload_size)
     : l2_protocol_{l2_protocol},
@@ -66,14 +65,14 @@ Packet::Packet(const std::span<std::byte> buffer,
       break;
   }
 
-  begin_ = buffer.data();
+  begin_ = buffer;
   l2_ = begin_ + padding;
   l3_ = l2_ + l2_header_size;
   l4_ = l3_ + l3_header_size;
   payload_ = l4_ + l4_header_size;
   end_ = payload_ + payload_size;
 
-  if (buffer.size() < static_cast<uint64_t>(end_ - begin_)) {
+  if (buffer_len < static_cast<uint64_t>(end_ - begin_)) {
     throw std::invalid_argument{"Packet buffer is too small"};
   }
 }

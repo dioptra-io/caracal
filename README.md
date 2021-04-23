@@ -64,14 +64,8 @@ Optionnally, Doxygen can be used to generate the API documentation, and Gcovr to
 # macOS
 brew install cmake conan doxygen gcovr graphviz
 
-# Ubuntu 20.04
-add-apt-repository -u ppa:ubuntu-toolchain-r/ppa
-apt install build-essential cmake doxygen gcovr git graphviz gcc-10 g++-10 python3-pip
-pip3 install conan
-export CC=gcc-10 CXX=g++-10
-
-# Ubuntu 21.04+
-apt install build-essential cmake doxygen git gcovr graphviz python3-pip
+# Ubuntu 20.04+
+apt install build-essential cmake doxygen gcovr git graphviz python3-pip
 pip3 install conan
 ```
 

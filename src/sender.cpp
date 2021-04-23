@@ -114,8 +114,8 @@ void Sender::send(const Probe &probe) {
   const uint16_t timestamp_enc = Timestamp::encode(timestamp);
 
   const uint16_t payload_length = probe.ttl + PAYLOAD_TWEAK_BYTES;
-  const Packet packet{buffer_, l2_protocol_, l3_protocol, l4_protocol,
-                      payload_length};
+  const Packet packet{buffer_.data(), buffer_.size(), l2_protocol_,
+                      l3_protocol,    l4_protocol,    payload_length};
 
   std::fill(packet.begin(), packet.end(), std::byte{0});
 

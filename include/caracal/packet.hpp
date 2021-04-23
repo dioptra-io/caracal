@@ -1,7 +1,5 @@
 #pragma once
 
-#include <span>
-
 #include "protocols.hpp"
 
 namespace caracal {
@@ -9,7 +7,7 @@ namespace caracal {
 /// A structure holding pointers to the different layers of a packet buffer.
 class Packet {
  public:
-  Packet(std::span<std::byte> buffer, Protocols::L2 l2_protocol,
+  Packet(std::byte *buffer, size_t buffer_len, Protocols::L2 l2_protocol,
          Protocols::L3 l3_protocol, Protocols::L4 l4_protocol,
          size_t payload_size);
 

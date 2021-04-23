@@ -34,6 +34,8 @@ if(WITH_CONAN)
     missing
     REMOTE
     conan-center
+    CONAN_CMD
+    ${CONAN_CMD}
     SETTINGS
     ${settings}
     build_type=Release

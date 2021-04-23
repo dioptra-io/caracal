@@ -45,7 +45,7 @@ template <typename To, typename From>
 /// @param value the value to cast and convert to network order.
 /// @return the value casted to the destination type in network order.
 template <typename To, typename From>
-[[nodiscard]] inline constexpr To hton(const From value) {
+[[nodiscard]] inline To hton(const From value) {
   if constexpr (std::is_same<To, uint16_t>::value) {
     return htons(numeric_cast<uint16_t>(value));
   } else if constexpr (std::is_same<To, uint32_t>::value) {

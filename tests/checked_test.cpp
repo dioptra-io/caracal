@@ -32,22 +32,8 @@ TEST_CASE("Checked::numeric_cast") {
 }
 
 TEST_CASE("Checked::hton") {
-  constexpr uint16_t u16 = 65534;
-  constexpr uint32_t u32 = 4294967294;
-
-#ifdef __APPLE__
-  // These expressions should be available at compile-time.
-  // If not, this test will not compile.
-  // NOTE: This works only on macOS, where hton{s,l} is a macro.
-  constexpr auto compile_time_check_1 = hton<uint16_t>(u16);
-  constexpr auto compile_time_check_2 = hton<uint32_t>(u16);
-  constexpr auto compile_time_check_3 = hton<uint32_t>(u32);
-
-  static_assert(compile_time_check_1 == htons(u16));
-  static_assert(compile_time_check_2 == htonl(u16));
-  static_assert(compile_time_check_3 == htonl(u32));
-#endif
-
+  uint16_t u16 = 65534;
+  uint32_t u32 = 4294967294;
   REQUIRE(hton<uint16_t>(u16) == htons(u16));
   REQUIRE(hton<uint32_t>(u16) == htonl(u16));
   REQUIRE(hton<uint32_t>(u32) == htonl(u32));

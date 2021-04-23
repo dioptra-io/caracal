@@ -1,5 +1,5 @@
 # Builder
-FROM ubuntu:20.10 as builder
+FROM ubuntu:20.04 as builder
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
@@ -14,7 +14,7 @@ RUN apt-get update && \
         python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir "conan>=1.35"
+RUN python3 -m pip install --no-cache-dir build conan>=1.35
 
 COPY . /tmp
 
@@ -28,6 +28,6 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release -DWITH_LTO=ON .. && \
     cmake --build . --target caracal-bin --parallel 8
 
 # Main
-FROM ubuntu:20.10
+FROM ubuntu:20.04
 COPY --from=builder /tmp/build-release/caracal /usr/bin/caracal
 ENTRYPOINT ["caracal"]

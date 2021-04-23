@@ -22,7 +22,7 @@ repos:
     rev: v2.1.0
     hooks:
       - id: hadolint
-        args: [ "--ignore", "DL3008" ]
+        args: [ "--ignore", "DL3008", "--ignore", "DL3013" ]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.4.0
