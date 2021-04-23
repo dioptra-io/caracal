@@ -23,14 +23,6 @@ void Config::set_probing_rate(const int rate) {
   probing_rate = static_cast<uint64_t>(rate);
 }
 
-void Config::set_protocol(const string& s) {
-  if (s == "icmp" || s == "udp") {
-    protocol = s;
-  } else {
-    throw std::invalid_argument(s + " is not a valid protocol");
-  }
-}
-
 void Config::set_interface(const string& s) { interface = s; }
 
 void Config::set_sniffer_wait_time(const int seconds) {
@@ -102,7 +94,6 @@ std::ostream& operator<<(std::ostream& os, Config const& v) {
   os << "n_packets=" << v.n_packets;
   os << " probing_rate=" << v.probing_rate;
   os << " sniffer_wait_time=" << v.sniffer_wait_time;
-  os << " protocol=" << v.protocol;
   os << " interface=" << v.interface.name() << ":"
      << v.interface.ipv4_address();
   os << " rate_limiting_method=" << v.rate_limiting_method;

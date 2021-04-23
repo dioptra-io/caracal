@@ -10,32 +10,23 @@
 #include <tins/tins.h>
 
 #include <algorithm>
-#include <array>
 #include <caracal/builder.hpp>
 #include <caracal/constants.hpp>
 #include <caracal/pretty.hpp>
 #include <caracal/probe.hpp>
 #include <caracal/sender.hpp>
-#include <caracal/socket.hpp>
 #include <caracal/timestamp.hpp>
 #include <caracal/utilities.hpp>
 #include <chrono>
-#include <map>
 #include <string>
 
 using std::chrono::system_clock;
 
 namespace caracal {
 
-// TODO: Include the protocol in the probe struct instead?
-static const std::map<std::string, uint8_t> l4_protocols = {
-    {"icmp", IPPROTO_ICMP}, {"udp", IPPROTO_UDP}};
-
-Sender::Sender(const Tins::NetworkInterface &interface,
-               const std::string &protocol)
+Sender::Sender(const Tins::NetworkInterface &interface)
     : buffer_{},
-      l2_protocol_{L2PROTO_ETHERNET},
-      l4_protocol_{l4_protocols.at(protocol)},
+      l2_protocol_{Protocols::L2::Ethernet},
 #ifdef __APPLE__
       socket_{AF_NDRV, SOCK_RAW, 0},
 #elif __linux__
@@ -54,13 +45,13 @@ Sender::Sender(const Tins::NetworkInterface &interface,
   // - macOS Loopback link [BSD loopback header -> IP Header]
 #ifdef __APPLE__
   if (interface.hw_address().to_string() == "00:00:00:00:00:00") {
-    l2_protocol_ = L2PROTO_BSDLOOPBACK;
+    l2_protocol_ = Protocols::L2::BSDLoopback;
     spdlog::info("interface_type=bsd_loopback");
   }
 #elif __linux__
   if (!interface.is_loopback() &&
       interface.hw_address().to_string() == "00:00:00:00:00:00") {
-    l2_protocol_ = L2PROTO_NONE;
+    l2_protocol_ = Protocols::L2::None;
     spdlog::info("interface_type=l3");
   }
 #endif
@@ -114,65 +105,56 @@ Sender::Sender(const Tins::NetworkInterface &interface,
 }
 
 void Sender::send(const Probe &probe) {
-  const bool is_v4 = probe.v4();
-  const uint8_t l3_protocol = is_v4 ? IPPROTO_IP : IPPROTO_IPV6;
-  uint8_t l4_protocol = l4_protocol_;
-  // For IPv6 we use ICMPv6 instead of ICMP
-  if (!is_v4 && l4_protocol_ == IPPROTO_ICMP) {
-    l4_protocol = IPPROTO_ICMPV6;
-  }
-  // We reserve two bytes in the payload to tweak the checksum.
-  const uint16_t payload_length = probe.ttl + PAYLOAD_TWEAK_BYTES;
+  const auto l3_protocol = probe.l3_protocol();
+  const auto l4_protocol = probe.l4_protocol();
+  const auto is_v4 = l3_protocol == Protocols::L3::IPv4;
+
   const uint64_t timestamp =
       Timestamp::cast<Timestamp::tenth_ms>(system_clock::now());
   const uint16_t timestamp_enc = Timestamp::encode(timestamp);
+
+  const uint16_t payload_length = probe.ttl + PAYLOAD_TWEAK_BYTES;
   const Packet packet{buffer_, l2_protocol_, l3_protocol, l4_protocol,
                       payload_length};
 
   std::fill(packet.begin(), packet.end(), std::byte{0});
 
   switch (l2_protocol_) {
-    case L2PROTO_BSDLOOPBACK:
+    case Protocols::L2::BSDLoopback:
       Builder::Loopback::init(packet, is_v4);
       break;
 
-    case L2PROTO_ETHERNET:
+    case Protocols::L2::Ethernet:
       Builder::Ethernet::init(packet, is_v4, src_mac_, dst_mac_);
       break;
 
-    default:
+    case Protocols::L2::None:
       break;
   }
 
   switch (l3_protocol) {
-    case IPPROTO_IP:
-      Builder::IPv4::init(packet, l4_protocol, src_ip_v4.sin_addr,
+    case Protocols::L3::IPv4:
+      Builder::IPv4::init(packet, src_ip_v4.sin_addr,
                           probe.sockaddr4().sin_addr, probe.ttl);
       break;
 
-    case IPPROTO_IPV6:
-      Builder::IPv6::init(packet, l4_protocol, src_ip_v6.sin6_addr,
+    case Protocols::L3::IPv6:
+      Builder::IPv6::init(packet, src_ip_v6.sin6_addr,
                           probe.sockaddr6().sin6_addr, probe.ttl);
-      break;
-
-    default:
       break;
   }
 
   switch (l4_protocol) {
-    case IPPROTO_ICMP:
+    case Protocols::L4::ICMP:
       Builder::ICMP::init(packet, probe.src_port, timestamp_enc);
       break;
 
-    case IPPROTO_ICMPV6:
+    case Protocols::L4::ICMPv6:
       Builder::ICMPv6::init(packet, probe.src_port, timestamp_enc);
       break;
 
-    case IPPROTO_UDP:
+    case Protocols::L4::UDP:
       Builder::UDP::init(packet, timestamp_enc, probe.src_port, probe.dst_port);
-      break;
-
-    default:
       break;
   }
 

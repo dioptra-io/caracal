@@ -2,13 +2,16 @@
 
 #include <span>
 
+#include "protocols.hpp"
+
 namespace caracal {
 
 /// A structure holding pointers to the different layers of a packet buffer.
 class Packet {
  public:
-  Packet(std::span<std::byte> buffer, uint8_t l2_protocol, uint8_t l3_protocol,
-         uint8_t l4_protocol, size_t payload_size);
+  Packet(std::span<std::byte> buffer, Protocols::L2 l2_protocol,
+         Protocols::L3 l3_protocol, Protocols::L4 l4_protocol,
+         size_t payload_size);
 
   /// A pointer to the first byte of the packet (may include padding bytes).
   [[nodiscard]] std::byte *begin() const noexcept;
@@ -41,13 +44,13 @@ class Packet {
   [[nodiscard]] size_t payload_size() const noexcept;
 
   /// Layer 2 protocol.
-  [[nodiscard]] uint8_t l2_protocol() const noexcept;
+  [[nodiscard]] Protocols::L2 l2_protocol() const noexcept;
 
   /// Layer 3 protocol.
-  [[nodiscard]] uint8_t l3_protocol() const noexcept;
+  [[nodiscard]] Protocols::L3 l3_protocol() const noexcept;
 
   /// Layer 4 protocol.
-  [[nodiscard]] uint8_t l4_protocol() const noexcept;
+  [[nodiscard]] Protocols::L4 l4_protocol() const noexcept;
 
  private:
   std::byte *begin_;
@@ -56,9 +59,9 @@ class Packet {
   std::byte *l3_;
   std::byte *l4_;
   std::byte *payload_;
-  uint8_t l2_protocol_;
-  uint8_t l3_protocol_;
-  uint8_t l4_protocol_;
+  Protocols::L2 l2_protocol_;
+  Protocols::L3 l3_protocol_;
+  Protocols::L4 l4_protocol_;
 };
 
 }  // namespace caracal

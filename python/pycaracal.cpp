@@ -54,7 +54,7 @@ PYBIND11_MODULE(pycaracal, m) {
       .def_readonly("src_port", &Probe::src_port)
       .def_readonly("dst_port", &Probe::dst_port)
       .def_readonly("ttl", &Probe::ttl)
-      .def_property_readonly("v4", &Probe::v4)
+      // TODO: Add protocol
       .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t>())
       .def("from_csv", &Probe::from_csv)
       .def("to_csv", &Probe::to_csv)

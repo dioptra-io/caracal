@@ -19,7 +19,6 @@ struct Config {
   uint64_t n_packets = 1;
   uint64_t probing_rate = 100;
   uint64_t sniffer_wait_time = 5;
-  string protocol = "udp";
   Tins::NetworkInterface interface =
       Tins::NetworkInterface::default_interface();
   string rate_limiting_method = "auto";
@@ -37,8 +36,6 @@ struct Config {
   void set_output_file_pcap(const fs::path& p);
 
   void set_probing_rate(int rate);
-
-  void set_protocol(const string& s);
 
   void set_interface(const string& s);
 

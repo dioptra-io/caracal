@@ -31,7 +31,6 @@ int main(int argc, char** argv) {
     ("input-file,i", po::value<string>()->value_name("file"), "File containing the probes to send")
     ("output-file-csv,o", po::value<string>()->value_name("file"), "File to which the captured replies will be written")
     ("output-file-pcap", po::value<string>()->value_name("file"), "File to which the captured replies will be written")
-    ("protocol,p", po::value<string>()->value_name("protocol")->default_value(config.protocol), "Protocol to use for probing (icmp, udp)")
     ("probing-rate,r", po::value<int>()->value_name("pps")->default_value(config.probing_rate), "Probing rate in packets per second")
     ("interface,z", po::value<string>()->value_name("interface")->default_value(config.interface.name()), "Interface from which to send the packets")
     ("sniffer-wait-time,W", po::value<int>()->value_name("seconds")->default_value(config.sniffer_wait_time), "Time in seconds to wait after sending the probes to stop the sniffer")
@@ -71,10 +70,6 @@ int main(int argc, char** argv) {
     if (vm.count("output-file-pcap")) {
       fs::path path{vm["output-file-pcap"].as<string>()};
       config.set_output_file_pcap(path);
-    }
-
-    if (vm.count("protocol")) {
-      config.set_protocol(vm["protocol"].as<string>());
     }
 
     if (vm.count("probing-rate")) {

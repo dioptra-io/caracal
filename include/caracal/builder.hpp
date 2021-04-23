@@ -52,12 +52,10 @@ namespace caracal::Builder::IPv4 {
 
 /// Init the IPv4 header.
 /// @param packet the packet buffer, including the IP header.
-/// @param protocol the L4 protocol number.
 /// @param src_addr the source IPv4 address.
 /// @param dst_addr the destination IPv4 address.
 /// @param ttl the TTL.
-void init(Packet packet, uint8_t protocol, in_addr src_addr, in_addr dst_addr,
-          uint8_t ttl);
+void init(Packet packet, in_addr src_addr, in_addr dst_addr, uint8_t ttl);
 
 }  // namespace caracal::Builder::IPv4
 
@@ -66,12 +64,10 @@ namespace caracal::Builder::IPv6 {
 
 /// Init the IPv6 header.
 /// @param packet the packet buffer, including the IP header.
-/// @param protocol the L4 protocol number.
 /// @param src_addr the source IPv6 address.
 /// @param dst_addr the destination IPv6 address.
 /// @param ttl the TTL.
-void init(Packet packet, uint8_t protocol, in6_addr src_addr, in6_addr dst_addr,
-          uint8_t ttl);
+void init(Packet packet, in6_addr src_addr, in6_addr dst_addr, uint8_t ttl);
 
 }  // namespace caracal::Builder::IPv6
 

@@ -14,7 +14,7 @@ extern "C" {
 
 #include <array>
 #include <caracal/builder.hpp>
-#include <caracal/constants.hpp>
+#include <caracal/protocols.hpp>
 #include <caracal/timestamp.hpp>
 #include <caracal/utilities.hpp>
 #include <catch2/benchmark/catch_benchmark.hpp>
@@ -34,6 +34,7 @@ namespace ICMPv6 = caracal::Builder::ICMPv6;
 namespace IPv4 = caracal::Builder::IPv4;
 namespace IPv6 = caracal::Builder::IPv6;
 namespace UDP = caracal::Builder::UDP;
+namespace Protocols = caracal::Protocols;
 namespace Timestamp = caracal::Timestamp;
 
 bool validate_ip_checksum(Packet buffer) {
@@ -81,11 +82,11 @@ TEST_CASE("Builder::ICMP") {
   uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_ICMP,
-                payload_len};
+  Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv4,
+                Protocols::L4::ICMP, payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
-  IPv4::init(packet, IPPROTO_ICMP, src_addr, dst_addr, ttl);
+  IPv4::init(packet, src_addr, dst_addr, ttl);
   ICMP::init(packet, flow_id, timestamp_enc);
 
   REQUIRE(validate_ip_checksum(packet));
@@ -103,10 +104,10 @@ TEST_CASE("Builder::ICMP") {
   REQUIRE(icmp.sequence() == timestamp_enc);
 
   BENCHMARK("Builder::ICMP") {
-    Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_ICMP,
-                  payload_len};
+    Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv4,
+                  Protocols::L4::ICMP, payload_len};
     Ethernet::init(packet, true, {0}, {0});
-    IPv4::init(packet, IPPROTO_ICMP, src_addr, dst_addr, ttl);
+    IPv4::init(packet, src_addr, dst_addr, ttl);
     ICMP::init(packet, flow_id, timestamp_enc);
     return packet;
   };
@@ -122,11 +123,11 @@ TEST_CASE("Builder::ICMPv6") {
   uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IPV6, IPPROTO_ICMPV6,
-                payload_len};
+  Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv6,
+                Protocols::L4::ICMPv6, payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
-  IPv6::init(packet, IPPROTO_ICMPV6, src_addr, dst_addr, ttl);
+  IPv6::init(packet, src_addr, dst_addr, ttl);
   ICMPv6::init(packet, flow_id, timestamp_enc);
 
   REQUIRE(validate_icmp6_checksum(packet));
@@ -156,10 +157,11 @@ TEST_CASE("Builder::UDP/v4") {
   uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_UDP, payload_len};
+  Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv4,
+                Protocols::L4::UDP, payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
-  IPv4::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
+  IPv4::init(packet, src_addr, dst_addr, ttl);
   UDP::init(packet, timestamp_enc, src_port, dst_port);
 
   REQUIRE(validate_ip_checksum(packet));
@@ -177,10 +179,10 @@ TEST_CASE("Builder::UDP/v4") {
   REQUIRE(udp.checksum() == timestamp_enc);
 
   BENCHMARK("Builder::UDP/v4") {
-    Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IP, IPPROTO_ICMP,
-                  payload_len};
+    Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv4,
+                  Protocols::L4::UDP, payload_len};
     Ethernet::init(packet, true, {0}, {0});
-    IPv4::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
+    IPv4::init(packet, src_addr, dst_addr, ttl);
     UDP::init(packet, timestamp_enc, src_port, dst_port);
     return packet;
   };
@@ -196,11 +198,11 @@ TEST_CASE("Builder::UDP/v6") {
   uint16_t timestamp_enc = Timestamp::encode(123456);
 
   array<byte, 65536> buffer{};
-  Packet packet{buffer, L2PROTO_ETHERNET, IPPROTO_IPV6, IPPROTO_UDP,
-                payload_len};
+  Packet packet{buffer, Protocols::L2::Ethernet, Protocols::L3::IPv6,
+                Protocols::L4::UDP, payload_len};
 
   Ethernet::init(packet, true, {0}, {0});
-  IPv6::init(packet, IPPROTO_UDP, src_addr, dst_addr, ttl);
+  IPv6::init(packet, src_addr, dst_addr, ttl);
   UDP::init(packet, timestamp_enc, src_port, dst_port);
 
   REQUIRE(validate_udp_checksum(packet));

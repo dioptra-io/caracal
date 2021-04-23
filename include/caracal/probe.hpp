@@ -4,14 +4,17 @@
 
 #include <string>
 
+#include "protocols.hpp"
+
 namespace caracal {
 
 /// A traceroute probe specification.
 struct Probe {
-  in6_addr dst_addr;  ///< IPv6 or IPv4-mapped IPv6 address (network order)
-  uint16_t src_port;  ///< Source port (host order)
-  uint16_t dst_port;  ///< Destination port (host order)
-  uint8_t ttl;        ///< Time-to-live
+  in6_addr dst_addr;       ///< IPv6 or IPv4-mapped IPv6 address (network order)
+  uint16_t src_port;       ///< Source port (host order)
+  uint16_t dst_port;       ///< Destination port (host order)
+  uint8_t ttl;             ///< Time-to-live
+  Protocols::L4 protocol;  ///< Protocol
 
   [[nodiscard]] static Probe from_csv(const std::string &line);
 
@@ -19,7 +22,9 @@ struct Probe {
 
   [[nodiscard]] bool operator==(const Probe &other) const noexcept;
 
-  [[nodiscard]] bool v4() const noexcept;
+  [[nodiscard]] Protocols::L3 l3_protocol() const noexcept;
+
+  [[nodiscard]] Protocols::L4 l4_protocol() const noexcept;
 
   [[nodiscard]] sockaddr_in sockaddr4() const noexcept;
 

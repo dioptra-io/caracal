@@ -5,18 +5,18 @@
 
 #include <caracal/constants.hpp>
 #include <caracal/packet.hpp>
+#include <caracal/protocols.hpp>
 #include <span>
 #include <stdexcept>
 
 namespace caracal {
 
-Packet::Packet(const std::span<std::byte> buffer, const uint8_t l2_protocol,
-               const uint8_t l3_protocol, const uint8_t l4_protocol,
-               const size_t payload_size) {
-  l2_protocol_ = l2_protocol;
-  l3_protocol_ = l3_protocol;
-  l4_protocol_ = l4_protocol;
-
+Packet::Packet(const std::span<std::byte> buffer,
+               const Protocols::L2 l2_protocol, const Protocols::L3 l3_protocol,
+               const Protocols::L4 l4_protocol, const size_t payload_size)
+    : l2_protocol_{l2_protocol},
+      l3_protocol_{l3_protocol},
+      l4_protocol_{l4_protocol} {
   size_t l2_header_size;
   size_t l3_header_size;
   size_t l4_header_size;
@@ -26,53 +26,44 @@ Packet::Packet(const std::span<std::byte> buffer, const uint8_t l2_protocol,
   size_t padding;
 
   switch (l2_protocol) {
-    case L2PROTO_BSDLOOPBACK:
+    case Protocols::L2::BSDLoopback:
       l2_header_size = sizeof(uint32_t);
       padding = 0;
       break;
 
-    case L2PROTO_ETHERNET:
+    case Protocols::L2::Ethernet:
       l2_header_size = sizeof(ether_header);
       padding = 2;
       break;
 
-    case L2PROTO_NONE:
+    case Protocols::L2::None:
       l2_header_size = 0;
       padding = 0;
       break;
-
-    default:
-      throw std::invalid_argument{"Unsupported L2 protocol"};
   }
 
   switch (l3_protocol) {
-    case IPPROTO_IP:
+    case Protocols::L3::IPv4:
       l3_header_size = sizeof(ip);
       break;
 
-    case IPPROTO_IPV6:
+    case Protocols::L3::IPv6:
       l3_header_size = sizeof(ip6_hdr);
       break;
-
-    default:
-      throw std::invalid_argument{"Unsupported L3 protocol"};
   }
 
   switch (l4_protocol) {
-    case IPPROTO_ICMPV6:
-      l4_header_size = ICMPV6_HEADER_SIZE;
-      break;
-
-    case IPPROTO_ICMP:
+    case Protocols::L4::ICMP:
       l4_header_size = ICMP_HEADER_SIZE;
       break;
 
-    case IPPROTO_UDP:
-      l4_header_size = sizeof(udphdr);
+    case Protocols::L4::ICMPv6:
+      l4_header_size = ICMPV6_HEADER_SIZE;
       break;
 
-    default:
-      throw std::invalid_argument{"Unsupported L4 protocol"};
+    case Protocols::L4::UDP:
+      l4_header_size = sizeof(udphdr);
+      break;
   }
 
   begin_ = buffer.data();
@@ -107,10 +98,10 @@ size_t Packet::l4_size() const noexcept { return end_ - l4_; }
 
 size_t Packet::payload_size() const noexcept { return end_ - payload_; }
 
-uint8_t Packet::l2_protocol() const noexcept { return l2_protocol_; }
+Protocols::L2 Packet::l2_protocol() const noexcept { return l2_protocol_; }
 
-uint8_t Packet::l3_protocol() const noexcept { return l3_protocol_; }
+Protocols::L3 Packet::l3_protocol() const noexcept { return l3_protocol_; }
 
-uint8_t Packet::l4_protocol() const noexcept { return l4_protocol_; }
+Protocols::L4 Packet::l4_protocol() const noexcept { return l4_protocol_; }
 
 }  // namespace caracal

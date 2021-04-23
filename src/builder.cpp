@@ -14,6 +14,7 @@ extern "C" {
 #include <caracal/checked.hpp>
 #include <caracal/constants.hpp>
 #include <caracal/packet.hpp>
+#include <caracal/protocols.hpp>
 
 namespace caracal::Builder {
 
@@ -28,7 +29,7 @@ void assert_payload_size(Packet packet, size_t min_size) {
 uint16_t transport_checksum(Packet packet) {
   // (1) Sum the pseudo header.
   uint32_t current = 0;
-  if (packet.l3_protocol() == IPPROTO_IP) {
+  if (posix_value(packet.l3_protocol()) == IPPROTO_IP) {
     const auto ip_header = reinterpret_cast<ip *>(packet.l3());
     current = ipv4_pseudo_header_checksum(
         ip_header, Checked::numeric_cast<uint16_t>(packet.l4_size()));
@@ -36,7 +37,7 @@ uint16_t transport_checksum(Packet packet) {
     const auto ip_header = reinterpret_cast<ip6_hdr *>(packet.l3());
     current = ipv6_pseudo_header_checksum(
         ip_header, Checked::numeric_cast<uint16_t>(packet.l4_size()),
-        packet.l4_protocol());
+        posix_value(packet.l4_protocol()));
   }
   // (2) Sum the transport header and the payload.
   current = ip_checksum_add(current, packet.l4(), packet.l4_size());
@@ -80,13 +81,13 @@ void init(Packet packet, const bool is_v4,
 
 namespace caracal::Builder::IPv4 {
 
-void init(Packet packet, const uint8_t protocol, const in_addr src_addr,
-          const in_addr dst_addr, const uint8_t ttl) {
+void init(Packet packet, const in_addr src_addr, const in_addr dst_addr,
+          const uint8_t ttl) {
   auto ip_header = reinterpret_cast<ip *>(packet.l3());
   ip_header->ip_hl = 5;
   ip_header->ip_v = 4;
   ip_header->ip_tos = 0;
-  ip_header->ip_p = protocol;
+  ip_header->ip_p = posix_value(packet.l4_protocol());
   ip_header->ip_src = src_addr;
   ip_header->ip_dst = dst_addr;
   ip_header->ip_ttl = ttl;
@@ -100,8 +101,8 @@ void init(Packet packet, const uint8_t protocol, const in_addr src_addr,
 
 namespace caracal::Builder::IPv6 {
 
-void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
-          const in6_addr dst_addr, const uint8_t ttl) {
+void init(Packet packet, const in6_addr src_addr, const in6_addr dst_addr,
+          const uint8_t ttl) {
   auto ip_header = reinterpret_cast<ip6_hdr *>(packet.l3());
   // We cannot store the TTL in the flow-ID field, since it is used for LB,
   // unlike IPv4. We rely on the payload length instead.
@@ -109,7 +110,7 @@ void init(Packet packet, const uint8_t protocol, const in6_addr src_addr,
   // 4 bits version, 8 bits TC, 20 bits flow-ID.
   // Version = 6, TC = 0, flow-ID = 0.
   ip_header->ip6_flow = htonl(0x60000000U);
-  ip_header->ip6_nxt = protocol;
+  ip_header->ip6_nxt = posix_value(packet.l4_protocol());
   ip_header->ip6_src = src_addr;
   ip_header->ip6_dst = dst_addr;
   ip_header->ip6_hops = ttl;

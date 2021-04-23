@@ -22,14 +22,18 @@ TEST_CASE("Prober::probe") {
   // TODO: IPv6.
 
   ofs.open("zzz_input.csv");
-  ofs << "8.8.8.8,24000,33434,1\n";  // Allowed
-  ofs << "8.8.8.8,24000,33434,2\n";  // Allowed
-  ofs << "8.8.8.8,24000,33434,0\n";  // Denied (TTL too low)
-  ofs << "8.8.8.8,24000,33434,8\n";  // Denied (TTL too high)
-  ofs << "8.8.9.1,24000,33434,2\n";  // Denied (prefix excluded)
-  ofs << "8.9.8.8,24000,33434,2\n";  // Denied (prefix not included)
-  ofs << "a,b,c,d\n";  // Invalid probe (should not crash, and should not be
-                       // included in read stats)
+  ofs << fmt::format("8.8.8.8,24000,33434,1,{}\n", protocol);  // Allowed
+  ofs << fmt::format("8.8.8.8,24000,33434,2,{}\n", protocol);  // Allowed
+  ofs << fmt::format("8.8.8.8,24000,33434,0,{}\n",
+                     protocol);  // Denied (TTL too low)
+  ofs << fmt::format("8.8.8.8,24000,33434,8,{}\n",
+                     protocol);  // Denied (TTL too high)
+  ofs << fmt::format("8.8.9.1,24000,33434,2,{}\n",
+                     protocol);  // Denied (prefix excluded)
+  ofs << fmt::format("8.9.8.8,24000,33434,2,{}\n",
+                     protocol);  // Denied (prefix not included)
+  ofs << "a,b,c,d,e\n";  // Invalid probe (should not crash, and should not be
+                         // included in read stats)
   ofs.close();
 
   ofs.open("zzz_excl.csv");
@@ -49,7 +53,6 @@ TEST_CASE("Prober::probe") {
   config.set_filter_max_ttl(6);
   config.set_probing_rate(100);
   config.set_sniffer_wait_time(1);
-  config.set_protocol(protocol);
   config.set_n_packets(3);
   config.set_meta_round("1");
 

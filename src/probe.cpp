@@ -31,12 +31,14 @@ Probe Probe::from_csv(const std::string &line) {
       case 3:
         probe.ttl = Checked::stou8(token);
         break;
+      case 4:
+        probe.protocol = Protocols::l4_from_string(token);
       default:
         break;
     }
     index++;
   }
-  if (index != 4) {
+  if (index != 5) {
     throw std::runtime_error("Invalid CSV line: " + line);
   }
   return probe;
@@ -44,7 +46,8 @@ Probe Probe::from_csv(const std::string &line) {
 
 std::string Probe::to_csv() const noexcept {
   auto addr = Utilities::format_addr(dst_addr);
-  return fmt::format("{},{},{},{}", addr, src_port, dst_port, ttl);
+  return fmt::format("{},{},{},{},{}", addr, src_port, dst_port, ttl,
+                     Protocols::to_string(protocol));
 }
 
 bool Probe::operator==(const Probe &other) const noexcept {
@@ -53,7 +56,15 @@ bool Probe::operator==(const Probe &other) const noexcept {
          (ttl == other.ttl);
 }
 
-bool Probe::v4() const noexcept { return IN6_IS_ADDR_V4MAPPED(&dst_addr); }
+Protocols::L3 Probe::l3_protocol() const noexcept {
+  if (IN6_IS_ADDR_V4MAPPED(&dst_addr)) {
+    return Protocols::L3::IPv4;
+  } else {
+    return Protocols::L3::IPv6;
+  }
+}
+
+Protocols::L4 Probe::l4_protocol() const noexcept { return protocol; }
 
 sockaddr_in Probe::sockaddr4() const noexcept {
   sockaddr_in addr{};
@@ -75,10 +86,12 @@ sockaddr_in6 Probe::sockaddr6() const noexcept {
 
 std::ostream &operator<<(std::ostream &os, Probe const &v) {
   auto addr = Utilities::format_addr(v.dst_addr);
-  if (v.v4()) {
-    os << fmt::format("{}:{}:{}@{}", v.src_port, addr, v.dst_port, v.ttl);
+  if (v.l3_protocol() == Protocols::L3::IPv4) {
+    os << fmt::format("{}:{}:{}:{}@{}", Protocols::to_string(v.protocol),
+                      v.src_port, addr, v.dst_port, v.ttl);
   } else {
-    os << fmt::format("{}:[{}]:{}@{}", v.src_port, addr, v.dst_port, v.ttl);
+    os << fmt::format("{}:{}:[{}]:{}@{}", Protocols::to_string(v.protocol),
+                      v.src_port, addr, v.dst_port, v.ttl);
   }
   return os;
 }

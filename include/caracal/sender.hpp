@@ -20,14 +20,13 @@ namespace caracal {
 
 class Sender {
  public:
-  Sender(const Tins::NetworkInterface &interface, const std::string &protocol);
+  explicit Sender(const Tins::NetworkInterface &interface);
 
   void send(const Probe &probe);
 
  private:
   std::array<std::byte, 65536> buffer_;
-  uint8_t l2_protocol_;
-  uint8_t l4_protocol_;
+  Protocols::L2 l2_protocol_;
   Socket socket_;
 #ifdef __APPLE__
   sockaddr_ndrv if_;

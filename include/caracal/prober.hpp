@@ -11,7 +11,10 @@
 /// Build and send probes.
 namespace caracal::Prober {
 
+/// A function that gets the next probe and returns false when there is no more
+/// probes.
 using Iterator = std::function<bool(Probe&)>;
+
 using ProbingStatistics = std::tuple<Statistics::Prober, Statistics::Sniffer>;
 
 /// Send probes from a function yielding probes.
