@@ -45,7 +45,7 @@ void set_log_level(int level) {
   }
 }
 
-PYBIND11_MODULE(pycaracal, m) {
+PYBIND11_MODULE(_pycaracal, m) {
   m.doc() = "Python bindings to a small subset of caracal.";
   m.def("set_log_level", &set_log_level);
 

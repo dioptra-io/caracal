@@ -94,9 +94,9 @@ catch_discover_tests(caracal-test)
 
 # Python Module (pycaracal)
 if(pybind11_FOUND)
-  pybind11_add_module(pycaracal MODULE python/pycaracal.cpp)
-  target_link_libraries(pycaracal PRIVATE caracal spdlog::spdlog)
-  install(TARGETS pycaracal LIBRARY DESTINATION .)
+  pybind11_add_module(_pycaracal MODULE python/pycaracal.cpp)
+  target_link_libraries(_pycaracal PRIVATE caracal spdlog::spdlog)
+  install(TARGETS _pycaracal LIBRARY DESTINATION .)
 endif()
 
 if(WITH_COVERAGE)
