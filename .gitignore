@@ -8,7 +8,10 @@ cmake-build-*/
 
 # Python
 .eggs/
+.tox/
 *.egg-info/
+*.so
+__pycache__/
 _skbuild/
 dist/
 MANIFEST
