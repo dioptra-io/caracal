@@ -104,7 +104,7 @@ Target                 | Description
 `caracal-read`         | PCAP parser
 `caracal-test`         | Unit and performance tests
 `caracal-docs`         | API documentation
-`pycarcal`             | Python interface
+`_pycarcal`            | Python interface
 
 To build a specific target, use `cmake --build . --target TARGET`.
 
@@ -123,14 +123,14 @@ Caracal provides an experiment Python interface.
 It is currently only used for internal projects, and we do not recommend its general use.
 The extension is built using [pybind11](https://github.com/pybind/pybind11) and [scikit-build](https://github.com/scikit-build/scikit-build).
 
-To build the shared extension, use the `pycaracal` target:
+To build the shared extension, use the `_pycaracal` target:
 ```bash
-cmake --build . --target pycaracal
-# This will build pycaracal.cpython-39-darwin.so, to test it:
-python -c 'import pycaracal'
+cmake --build . --target _pycaracal
+# This will build _pycaracal.cpython-39-darwin.so, to test it:
+python -c 'import _pycaracal'
 ```
 
-To build the Python package (this will automatically build the `pycaracal` target):
+To build the Python package (this will automatically build the `_pycaracal` target):
 ```bash
 python3 -m pip install --upgrade build
 python3 -m build
