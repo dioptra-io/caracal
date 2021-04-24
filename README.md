@@ -121,7 +121,7 @@ docker build -t caracal .
 
 Caracal provides an experiment Python interface.
 It is currently only used for internal projects, and we do not recommend its general use.
-The extension is built using [pybind11](https://github.com/pybind/pybind11) and [scikit-build](https://github.com/scikit-build/scikit-build).
+The extension is built using [pybind11](https://github.com/pybind/pybind11), [scikit-build](https://github.com/scikit-build/scikit-build).
 
 To build the shared extension, use the `_pycaracal` target:
 ```bash
@@ -136,6 +136,16 @@ python3 -m pip install --upgrade build
 python3 -m build
 # The source distribution and the wheels are in dist/
 ```
+
+To run the tests (this will automatically build and install the package in a virtualenv):
+```bash
+python3 -m pip install --upgrade tox
+python3 -m tox
+```
+
+The CI pipeline is managed by [cibuildwheel](https://github.com/joerick/cibuildwheel) in the [pypy.yml](.github/workflows/pypi.yml) workflow.
+We build x86_64 Linux wheels for Python 3.8+, as well as universal (ARM64 + x86_64) macOS wheels for Python 3.9+.
+
 
 ## NSDI 2020 paper
 
