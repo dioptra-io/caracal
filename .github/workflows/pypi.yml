@@ -29,7 +29,7 @@ jobs:
           # https://github.com/scikit-build/scikit-build/pull/530
           CIBW_ARCHS_MACOS: universal2
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_TEST_COMMAND: pytest {project}/python/tests
+          CIBW_TEST_COMMAND: sudo pytest --log-cli-level=DEBUG {project}/python/tests
           CIBW_TEST_REQUIRES: pytest
           MACOSX_DEPLOYMENT_TARGET: 10.15
           MAKEFLAGS: -j8
