@@ -143,6 +143,16 @@ python3 -m pip install --upgrade tox
 python3 -m tox
 ```
 
+Running the tests with tox can be quite slow as tox is re-installing all the build dependencies in a temporary directory.
+For quick testing, another solution is to symlink the shared library:
+```bash
+# Assuming the CMake build directory is build/
+# In the repository root:
+ln -s $(pwd)/build/_pycaracal*.so python/pycaracal/
+# In python/ (must be run with python3 -m):
+python3 -m pytest
+```
+
 The CI pipeline is managed by [cibuildwheel](https://github.com/joerick/cibuildwheel) in the [pypy.yml](.github/workflows/pypi.yml) workflow.
 We build x86_64 Linux wheels for Python 3.8+, as well as universal (ARM64 + x86_64) macOS wheels for Python 3.9+.
 

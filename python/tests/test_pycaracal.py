@@ -19,19 +19,17 @@ def test_probe():
 def test_prober():
     config = prober.Config()
     config.set_output_file_csv("zzz_output.csv")
-    config.set_sniffer_wait_time(0)
+    config.set_sniffer_wait_time(1)
     probes = [
         Probe(ip_address("8.8.4.4"), 24000, 33434, 32, protocols.L4.ICMP),
-        Probe(ip_address("8.8.8.8"), 24000, 33434, 32, protocols.L4.UDP),
+        Probe(ip_address("8.8.4.4"), 24000, 33434, 32, protocols.L4.UDP),
+        Probe(ip_address("8.8.4.4"), 24000, 33434, 32, protocols.L4.ICMP),
         Probe(ip_address("8.8.8.8"), 24000, 33434, 32, protocols.L4.UDP),
     ]
     set_log_level(logging.DEBUG)
     prober_stats, sniffer_stats = prober.probe(config, [])
     assert prober_stats.read == 0
     prober_stats, sniffer_stats = prober.probe(config, probes)
-    assert prober_stats.read == 3
-
-
-def test_logging():
-    # TODO
-    pass
+    assert prober_stats.read == 4
+    assert prober_stats.sent == 4
+    assert sniffer_stats.received_count >= 1
