@@ -1,16 +1,4 @@
-import sys
-from pathlib import Path
 from skbuild import setup
-
-cmake_args = []
-
-# If conan exists in the current Python installation,
-# pass its path to CMake. This solves an issue where
-# the cmake-conan module cannot find conan in some cases.
-conan_cmd = Path(sys.executable).parent / "conan"
-if conan_cmd.exists():
-    cmake_args.append(f"-DCONAN_CMD={conan_cmd}")
-
 
 setup(
     name="pycaracal",
@@ -29,6 +17,5 @@ setup(
     setup_requires=["setuptools_scm"],
     package_dir={"": "python"},
     packages=["pycaracal"],
-    cmake_args=cmake_args,
     cmake_install_dir="python/pycaracal",
 )

@@ -6,12 +6,14 @@
 #include <caracal/probe.hpp>
 #include <caracal/prober.hpp>
 #include <caracal/prober_config.hpp>
+#include <caracal/protocols.hpp>
 #include <memory>
 
 #include "conversions.hpp"
 #include "logging.hpp"
 
 namespace py = pybind11;
+namespace Protocols = caracal::Protocols;
 namespace Statistics = caracal::Statistics;
 
 using caracal::Probe;
@@ -54,8 +56,8 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def_readonly("src_port", &Probe::src_port)
       .def_readonly("dst_port", &Probe::dst_port)
       .def_readonly("ttl", &Probe::ttl)
-      // TODO: Add protocol
-      .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t>())
+      .def_readonly("protocol", &Probe::protocol)
+      .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t, Protocols::L4>())
       .def("from_csv", &Probe::from_csv)
       .def("to_csv", &Probe::to_csv)
       .def("__eq__", &Probe::operator==)
@@ -69,6 +71,15 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def(py::init<>())
       .def("set_output_file_csv", &Config::set_output_file_csv)
       .def("set_sniffer_wait_time", &Config::set_sniffer_wait_time);
+
+  // pycaracal.protocols
+  auto m_proto = m.def_submodule("protocols");
+  m_proto.def("l4_from_string", &Protocols::l4_from_string);
+  py::enum_<Protocols::L4>(m_proto, "L4")
+      .value("ICMP", Protocols::L4::ICMP)
+      .value("ICMPv6", Protocols::L4::ICMPv6)
+      .value("UDP", Protocols::L4::UDP)
+      .export_values();
 
   // pycaracal.statistics
   auto m_statistics = m.def_submodule("statistics");

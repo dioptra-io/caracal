@@ -99,6 +99,13 @@ if(pybind11_FOUND)
   install(TARGETS _pycaracal LIBRARY DESTINATION .)
 endif()
 
+if(SKBUILD)
+  # Prevent scikit-build from building unneeded binaries.
+  set_target_properties(
+    caracal-bin caracal-read caracal-test PROPERTIES EXCLUDE_FROM_ALL ON
+  )
+endif()
+
 if(WITH_COVERAGE)
   include(CodeCoverage)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")

@@ -18,8 +18,19 @@ repos:
       - id: cmake-lint
         args: [ "--dangle-parens" ]
 
+  - repo: https://github.com/timothycrosley/isort
+    rev: 5.8.0
+    hooks:
+      - id: isort
+        args: [ --profile=black ]
+
+  - repo: https://github.com/psf/black
+    rev: 20.8b1
+    hooks:
+      - id: black
+
   - repo: https://github.com/hadolint/hadolint
-    rev: v2.1.0
+    rev: v2.3.0
     hooks:
       - id: hadolint
         args: [ "--ignore", "DL3008", "--ignore", "DL3013" ]
