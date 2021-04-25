@@ -1,14 +1,19 @@
 import logging
 from ipaddress import ip_address
 
-from pycaracal import Probe, prober, protocols, set_log_level
+from pycaracal import Probe, cast_addr, make_probe, prober, protocols, set_log_level
 
 
 def test_probe():
     p1 = Probe(ip_address("8.8.4.4"), 24000, 33434, 32, protocols.L4.UDP)
     p2 = Probe(ip_address("::ffff:8.8.4.4"), 24000, 33434, 32, protocols.L4.UDP)
     p3 = Probe(int(ip_address("::ffff:8.8.4.4")), 24000, 33434, 32, protocols.L4.UDP)
-    assert p1 == p2 == p3
+    p4 = make_probe(cast_addr(ip_address("8.8.4.4")), 24000, 33434, 32, "udp")
+    p5 = make_probe(cast_addr(ip_address("::ffff:8.8.4.4")), 24000, 33434, 32, "udp")
+    p6 = make_probe(
+        cast_addr(int(ip_address("::ffff:8.8.4.4"))), 24000, 33434, 32, "udp"
+    )
+    assert p1 == p2 == p3 == p4 == p5 == p6
     assert p1.dst_addr == ip_address("::ffff:8.8.4.4")
     assert p1.src_port == 24000
     assert p1.dst_port == 33434

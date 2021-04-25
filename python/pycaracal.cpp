@@ -49,8 +49,22 @@ void set_log_level(int level) {
   }
 }
 
+Probe make_probe(const std::string& data, const uint16_t src_port,
+                 const uint16_t dst_port, const uint8_t ttl,
+                 const std::string& protocol) {
+  Probe probe{};
+  std::copy(data.begin(), data.end(), probe.dst_addr.s6_addr);
+  probe.src_port = src_port;
+  probe.dst_port = dst_port;
+  probe.ttl = ttl;
+  probe.protocol = Protocols::l4_from_string(protocol);
+  return probe;
+}
+
 PYBIND11_MODULE(_pycaracal, m) {
   m.doc() = "Python bindings to a small subset of caracal.";
+
+  m.def("make_probe", &make_probe);
   m.def("set_log_level", &set_log_level);
 
   py::class_<Probe>(m, "Probe")

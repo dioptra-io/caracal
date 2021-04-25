@@ -21,6 +21,7 @@ struct type_caster<in6_addr> {
   PYBIND11_TYPE_CASTER(in6_addr, _("in6_addr"));
 
   bool load(handle src, bool) {
+    // Too slow... Optimize it in the future?
     if (PyLong_Check(src.ptr()) ||
         PyObject_IsInstance(src.ptr(), IPv6Address.ptr())) {
       auto data =
