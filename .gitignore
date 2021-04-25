@@ -16,3 +16,6 @@ _skbuild/
 dist/
 venv/
 MANIFEST
+
+# Temporary test files
+zzz_*

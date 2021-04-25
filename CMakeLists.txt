@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.16)
 
 # We have Find* modules in two places:
 # - The build directory, for the libraries fetched by Conan
@@ -24,6 +24,10 @@ option(WITH_LTO "Enable link time optimization" OFF)
 option(WITH_SANITIZER "Enable compiler sanitizers" OFF)
 configure_file(apps/caracal-config.h.in caracal-config.h)
 
+# Install the dependencies with conan, this is equivalent to `conan install ..`.
+# Set this to `OFF` if you want to run conan manually or install the dependencies manually.
+# If you install the dependencies manually (e.g. from source or using a package manager),
+# you need to provide the relevant `Find*.cmake` modules in the CMake module path.
 if(WITH_CONAN)
   include(conan)
   conan_cmake_autodetect(settings)
@@ -34,8 +38,6 @@ if(WITH_CONAN)
     missing
     REMOTE
     conan-center
-    CONAN_CMD
-    ${CONAN_CMD}
     SETTINGS
     ${settings}
     build_type=Release
@@ -43,15 +45,18 @@ if(WITH_CONAN)
   )
 endif()
 
+# Required packages
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Catch2 REQUIRED)
-find_package(Doxygen COMPONENTS dot)
 find_package(libtins REQUIRED)
 find_package(LPM REQUIRED)
 find_package(NetUtils REQUIRED)
-find_package(pybind11)
 find_package(spdlog REQUIRED)
 find_package(Threads REQUIRED)
+
+# Optional packages
+find_package(Doxygen COMPONENTS dot)
+find_package(pybind11)
 
 include(Catch)
 include(CTest)
@@ -64,6 +69,8 @@ target_include_directories(caracal PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
   caracal PRIVATE NetUtils::NetUtils spdlog::spdlog Threads::Threads
 )
+# TODO: Remove libtins and LPM from the public headers of caracal?
+# In prober_config.hpp, sender.hpp, utilities.hpp.
 target_link_libraries(caracal PUBLIC libtins::libtins LPM::LPM)
 
 # Executable (Prober)
@@ -99,8 +106,8 @@ if(pybind11_FOUND)
   install(TARGETS _pycaracal LIBRARY DESTINATION .)
 endif()
 
+# Prevent scikit-build from building unneeded binaries.
 if(SKBUILD)
-  # Prevent scikit-build from building unneeded binaries.
   set_target_properties(
     caracal-bin caracal-read caracal-test PROPERTIES EXCLUDE_FROM_ALL ON
   )
@@ -135,7 +142,6 @@ if(WITH_SANITIZER)
   )
 endif()
 
-# Documentation
 if(DOXYGEN_FOUND)
   doxygen_add_docs(caracal-docs "${PROJECT_SOURCE_DIR}/include/caracal")
 endif()

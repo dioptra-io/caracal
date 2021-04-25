@@ -1,3 +1,5 @@
+#define PY_SSIZE_T_CLEAN
+
 #include <pybind11/pybind11.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
@@ -25,10 +27,10 @@ using caracal::Prober::ProbingStatistics;
 ProbingStatistics py_probe(Config& config, pybind11::iterable it) {
   auto cur = it.begin();
   auto end = it.end();
-  if (cur == end) return ProbingStatistics{};
   Iterator iterator = [&](Probe& p) {
-    p = (*cur).cast<Probe>();
-    return (++cur != end);
+    if (cur == end) return false;
+    p = (*cur++).cast<Probe>();
+    return true;
   };
   return probe(config, iterator);
 }

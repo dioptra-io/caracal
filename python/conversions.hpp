@@ -39,11 +39,8 @@ struct type_caster<in6_addr> {
   }
 
   static handle cast(in6_addr src, return_value_policy, handle) {
-    auto data =
-        PyBytes_FromStringAndSize(reinterpret_cast<char*>(src.s6_addr), 16);
-    auto addr = PyObject_CallOneArg(IPv6Address.ptr(), data);
-    Py_DecRef(data);
-    return addr;
+    auto data = reinterpret_cast<char*>(src.s6_addr);
+    return PyObject_CallFunction(IPv6Address.ptr(), "y#", data, 16);
   }
 };
 
