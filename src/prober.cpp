@@ -15,7 +15,10 @@
 
 namespace caracal::Prober {
 
+using std::chrono::milliseconds;
+
 // NOTE: Should we expose this as a parameter?
+/// Number of probes to send before calling the rate limiter.
 const uint64_t batch_size = 128;
 
 ProbingStatistics probe(const Config& config, Iterator& it) {
@@ -52,13 +55,22 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
     spdlog::info(stats);
     spdlog::info(sniffer.statistics());
   };
+
+  // Log statistics every 5 seconds
+  auto stop_stats_thread = false;
   std::thread stats_thread{[&] {
-    while (true) {
-      std::this_thread::sleep_for(std::chrono::seconds{5});
-      log_stats();
+    milliseconds elapsed{0};
+    const milliseconds refresh{100};
+    const milliseconds interval{5000};
+    while (!stop_stats_thread) {
+      std::this_thread::sleep_for(refresh);
+      elapsed += refresh;
+      if (elapsed >= interval) {
+        log_stats();
+        elapsed = milliseconds{0};
+      }
     }
   }};
-  stats_thread.detach();
 
   // Loop
   Probe p{};
@@ -120,7 +132,11 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
   std::this_thread::sleep_for(std::chrono::seconds(config.sniffer_wait_time));
   sniffer.stop();
 
+  // Stop logger thread and print statistics one last time.
+  stop_stats_thread = true;
+  stats_thread.join();
   log_stats();
+
   return {stats, sniffer.statistics()};
 }
 
