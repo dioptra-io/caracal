@@ -1,5 +1,6 @@
 import logging
 from ipaddress import ip_address
+from pathlib import Path
 
 from pycaracal import Probe, cast_addr, make_probe, prober, protocols, set_log_level
 
@@ -39,3 +40,8 @@ def test_prober():
     assert prober_stats.sent == 4
     # This is flaky on GitHub Actions...
     # assert sniffer_stats.received_count >= 1
+    input_file = Path("zzz_input.csv")
+    input_file.write_text("\n".join(probe.to_csv() for probe in probes))
+    prober_stats, sniffer_stats = prober.probe(config, str(input_file))
+    assert prober_stats.read == 4
+    assert prober_stats.sent == 4

@@ -24,7 +24,8 @@ using caracal::Prober::Iterator;
 using caracal::Prober::probe;
 using caracal::Prober::ProbingStatistics;
 
-ProbingStatistics py_probe(Config& config, pybind11::iterable it) {
+/// Proxy a Python `iterable` to a Prober `Iterator`.
+ProbingStatistics py_probe(const Config& config, pybind11::iterable it) {
   auto cur = it.begin();
   auto end = it.end();
   Iterator iterator = [&](Probe& p) {
@@ -81,12 +82,28 @@ PYBIND11_MODULE(_pycaracal, m) {
 
   // pycaracal.prober
   auto m_prober = m.def_submodule("prober");
-  m_prober.def("probe", &py_probe);
+  // NOTE: The order is important here since a string is also an iterable.
+  m_prober.def("probe",
+               py::overload_cast<const Config&, const fs::path&>(&probe));
+  m_prober.def("probe",
+               py::overload_cast<const Config&, py::iterable>(&py_probe));
 
   py::class_<Config>(m_prober, "Config")
       .def(py::init<>())
       .def("set_output_file_csv", &Config::set_output_file_csv)
-      .def("set_sniffer_wait_time", &Config::set_sniffer_wait_time);
+      .def("set_output_file_pcap", &Config::set_output_file_pcap)
+      .def("set_probing_rate", &Config::set_probing_rate)
+      .def("set_interface", &Config::set_interface)
+      .def("set_sniffer_wait_time", &Config::set_sniffer_wait_time)
+      .def("set_rate_limiting_method", &Config::set_rate_limiting_method)
+      .def("set_max_probes", &Config::set_max_probes)
+      .def("set_n_packets", &Config::set_n_packets)
+      .def("set_prefix_excl_file", &Config::set_prefix_excl_file)
+      .def("set_prefix_incl_file", &Config::set_prefix_incl_file)
+      .def("set_filter_min_ttl", &Config::set_filter_min_ttl)
+      .def("set_filter_max_ttl", &Config::set_filter_max_ttl)
+      .def("set_meta_round", &Config::set_meta_round)
+      .def("__str__", &fmt::to_string<Config>);
 
   // pycaracal.protocols
   auto m_proto = m.def_submodule("protocols");

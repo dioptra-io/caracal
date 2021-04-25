@@ -51,8 +51,11 @@ struct type_caster<fs::path> {
   PYBIND11_TYPE_CASTER(fs::path, _("fs::path"));
 
   bool load(handle src, bool) {
-    value = fs::path{src.cast<std::string>()};
-    return true;
+    if (PyUnicode_Check(src.ptr())) {
+      value = fs::path{src.cast<std::string>()};
+      return true;
+    }
+    return false;
   }
 
   static handle cast(fs::path src, return_value_policy, handle) {
