@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 3.16)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
+# Find the version from Git if `git` is installed and `.git/` is found.
+# If not, the version will be set to `0.0.0`.
 include(MunkeiVersionFromGit)
 version_from_git(LOG ON)
 

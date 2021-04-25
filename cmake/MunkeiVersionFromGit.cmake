@@ -47,7 +47,14 @@ function( version_from_git )
         # Find Git or bail out
         find_package( Git )
         if( NOT GIT_FOUND )
-            message( FATAL_ERROR "[MunkeiVersionFromGit] Git not found" )
+            message( WARNING "[MunkeiVersionFromGit] Git not found" )
+            set( GIT_TAG       0.0.0         PARENT_SCOPE )
+            set( SEMVER        0.0.0+unknown PARENT_SCOPE )
+            set( VERSION       0.0.0         PARENT_SCOPE )
+            set( VERSION_MAJOR 0             PARENT_SCOPE )
+            set( VERSION_MINOR 0             PARENT_SCOPE )
+            set( VERSION_PATCH 0             PARENT_SCOPE )
+            return()
         endif( NOT GIT_FOUND )
     endif()
 
@@ -62,9 +69,16 @@ function( version_from_git )
             ERROR_STRIP_TRAILING_WHITESPACE
     )
     if( NOT git_result EQUAL 0 )
-        message( FATAL_ERROR
+        message( WARNING
                 "[MunkeiVersionFromGit] Failed to execute Git: ${git_error}"
                 )
+        set( GIT_TAG       0.0.0         PARENT_SCOPE )
+        set( SEMVER        0.0.0+unknown PARENT_SCOPE )
+        set( VERSION       0.0.0         PARENT_SCOPE )
+        set( VERSION_MAJOR 0             PARENT_SCOPE )
+        set( VERSION_MINOR 0             PARENT_SCOPE )
+        set( VERSION_PATCH 0             PARENT_SCOPE )
+        return()
     endif()
 
     # Get Git tag
