@@ -108,7 +108,6 @@ Sender::Sender(const std::string &interface_name)
 void Sender::send(const Probe &probe) {
   const auto l3_protocol = probe.l3_protocol();
   const auto l4_protocol = probe.l4_protocol();
-  const auto is_v4 = l3_protocol == Protocols::L3::IPv4;
 
   const uint64_t timestamp =
       Timestamp::cast<Timestamp::tenth_ms>(system_clock::now());
@@ -122,11 +121,11 @@ void Sender::send(const Probe &probe) {
 
   switch (l2_protocol_) {
     case Protocols::L2::BSDLoopback:
-      Builder::Loopback::init(packet, is_v4);
+      Builder::Loopback::init(packet);
       break;
 
     case Protocols::L2::Ethernet:
-      Builder::Ethernet::init(packet, is_v4, src_mac_, dst_mac_);
+      Builder::Ethernet::init(packet, src_mac_, dst_mac_);
       break;
 
     case Protocols::L2::None:

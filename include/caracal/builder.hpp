@@ -29,15 +29,14 @@ namespace caracal::Builder {
 /// but on macOS it uses a different 32-bit header.
 namespace caracal::Builder::Loopback {
 
-void init(Packet packet, bool is_v4);
+void init(Packet packet);
 
 }  // namespace caracal::Builder::Loopback
 
 /// Build the Ethernet header.
 namespace caracal::Builder::Ethernet {
 
-void init(Packet packet, bool is_v4,
-          const std::array<uint8_t, ETHER_ADDR_LEN> &src_addr,
+void init(Packet packet, const std::array<uint8_t, ETHER_ADDR_LEN> &src_addr,
           const std::array<uint8_t, ETHER_ADDR_LEN> &dst_addr);
 
 }  // namespace caracal::Builder::Ethernet

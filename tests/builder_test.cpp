@@ -87,7 +87,7 @@ TEST_CASE("Builder::ICMP") {
                 Protocols::L2::Ethernet, Protocols::L3::IPv4,
                 Protocols::L4::ICMP,     payload_len};
 
-  Ethernet::init(packet, true, {0}, {0});
+  Ethernet::init(packet, {0}, {0});
   IPv4::init(packet, src_addr, dst_addr, ttl);
   ICMP::init(packet, flow_id, timestamp_enc);
 
@@ -109,7 +109,7 @@ TEST_CASE("Builder::ICMP") {
     Packet packet{buffer.data(),           buffer.size(),
                   Protocols::L2::Ethernet, Protocols::L3::IPv4,
                   Protocols::L4::ICMP,     payload_len};
-    Ethernet::init(packet, true, {0}, {0});
+    Ethernet::init(packet, {0}, {0});
     IPv4::init(packet, src_addr, dst_addr, ttl);
     ICMP::init(packet, flow_id, timestamp_enc);
     return packet;
@@ -130,7 +130,7 @@ TEST_CASE("Builder::ICMPv6") {
                 Protocols::L2::Ethernet, Protocols::L3::IPv6,
                 Protocols::L4::ICMPv6,   payload_len};
 
-  Ethernet::init(packet, true, {0}, {0});
+  Ethernet::init(packet, {0}, {0});
   IPv6::init(packet, src_addr, dst_addr, ttl);
   ICMPv6::init(packet, flow_id, timestamp_enc);
 
@@ -165,7 +165,7 @@ TEST_CASE("Builder::UDP/v4") {
                 Protocols::L2::Ethernet, Protocols::L3::IPv4,
                 Protocols::L4::UDP,      payload_len};
 
-  Ethernet::init(packet, true, {0}, {0});
+  Ethernet::init(packet, {0}, {0});
   IPv4::init(packet, src_addr, dst_addr, ttl);
   UDP::init(packet, timestamp_enc, src_port, dst_port);
 
@@ -187,7 +187,7 @@ TEST_CASE("Builder::UDP/v4") {
     Packet packet{buffer.data(),           buffer.size(),
                   Protocols::L2::Ethernet, Protocols::L3::IPv4,
                   Protocols::L4::UDP,      payload_len};
-    Ethernet::init(packet, true, {0}, {0});
+    Ethernet::init(packet, {0}, {0});
     IPv4::init(packet, src_addr, dst_addr, ttl);
     UDP::init(packet, timestamp_enc, src_port, dst_port);
     return packet;
@@ -208,7 +208,7 @@ TEST_CASE("Builder::UDP/v6") {
                 Protocols::L2::Ethernet, Protocols::L3::IPv6,
                 Protocols::L4::UDP,      payload_len};
 
-  Ethernet::init(packet, true, {0}, {0});
+  Ethernet::init(packet, {0}, {0});
   IPv6::init(packet, src_addr, dst_addr, ttl);
   UDP::init(packet, timestamp_enc, src_port, dst_port);
 

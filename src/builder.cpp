@@ -29,7 +29,7 @@ void assert_payload_size(Packet packet, size_t min_size) {
 uint16_t transport_checksum(Packet packet) {
   // (1) Sum the pseudo header.
   uint32_t current = 0;
-  if (posix_value(packet.l3_protocol()) == IPPROTO_IP) {
+  if (packet.l3_protocol() == Protocols::L3::IPv4) {
     const auto ip_header = reinterpret_cast<ip *>(packet.l3());
     current = ipv4_pseudo_header_checksum(
         ip_header, Checked::numeric_cast<uint16_t>(packet.l4_size()));
@@ -59,22 +59,29 @@ uint16_t tweak_payload(const uint16_t original_checksum,
 
 namespace caracal::Builder::Loopback {
 
-void init(Packet packet, const bool is_v4) {
+void init(Packet packet) {
   auto loopback_header = reinterpret_cast<uint32_t *>(packet.l2());
-  *loopback_header = is_v4 ? 2 : 30;
+  if (packet.l3_protocol() == Protocols::L3::IPv4) {
+    *loopback_header = 2;
+  } else {
+    *loopback_header = 30;
+  }
 }
 
 }  // namespace caracal::Builder::Loopback
 
 namespace caracal::Builder::Ethernet {
 
-void init(Packet packet, const bool is_v4,
-          const std::array<uint8_t, ETHER_ADDR_LEN> &src_addr,
+void init(Packet packet, const std::array<uint8_t, ETHER_ADDR_LEN> &src_addr,
           const std::array<uint8_t, ETHER_ADDR_LEN> &dst_addr) {
   auto eth_header = reinterpret_cast<ether_header *>(packet.l2());
   std::copy(src_addr.begin(), src_addr.end(), eth_header->ether_shost);
   std::copy(dst_addr.begin(), dst_addr.end(), eth_header->ether_dhost);
-  eth_header->ether_type = htons(is_v4 ? ETHERTYPE_IP : ETHERTYPE_IPV6);
+  if (packet.l3_protocol() == Protocols::L3::IPv4) {
+    eth_header->ether_type = htons(ETHERTYPE_IP);
+  } else {
+    eth_header->ether_type = htons(ETHERTYPE_IPV6);
+  }
 }
 
 }  // namespace caracal::Builder::Ethernet
