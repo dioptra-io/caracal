@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
       ("o,output-file-csv",  "File to which the captured replies will be written", cxxopts::value<string>())
       ("output-file-pcap", "File to which the captured replies will be written", cxxopts::value<string>())
       ("r,probing-rate", "Probing rate in packets per second", cxxopts::value<int>()->default_value(std::to_string(config.probing_rate)))
-      ("z,interface", "Interface from which to send the packets", cxxopts::value<string>()->default_value(config.interface.name()))
+      ("z,interface", "Interface from which to send the packets", cxxopts::value<string>()->default_value(config.interface))
       ("W,sniffer-wait-time", "Time in seconds to wait after sending the probes to stop the sniffer", cxxopts::value<int>()->default_value(std::to_string(config.sniffer_wait_time)))
       ("L,log-level", "Minimum log level (trace, debug, info, warning, error, fatal)", cxxopts::value<string>()->default_value("info"))
       ("P,max-probes", "Maximum number of probes to send (unlimited by default)", cxxopts::value<int>())

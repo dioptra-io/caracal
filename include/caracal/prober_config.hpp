@@ -1,7 +1,5 @@
 #pragma once
 
-#include <tins/tins.h>
-
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -19,8 +17,7 @@ struct Config {
   uint64_t n_packets = 1;
   uint64_t probing_rate = 100;
   uint64_t sniffer_wait_time = 5;
-  Tins::NetworkInterface interface =
-      Tins::NetworkInterface::default_interface();
+  std::string interface = get_default_interface();
   string rate_limiting_method = "auto";
   optional<uint64_t> max_probes;
   optional<fs::path> output_file_csv;
@@ -30,6 +27,8 @@ struct Config {
   optional<int> filter_min_ttl;
   optional<int> filter_max_ttl;
   optional<string> meta_round;
+
+  static std::string get_default_interface();
 
   void set_output_file_csv(const fs::path& p);
 

@@ -2,9 +2,8 @@
 
 #include <netinet/in.h>
 
-extern "C" {
-#include <lpm.h>
-}
+// Forward declaration to avoid including <lpm.h> in the public headers.
+typedef struct lpm lpm_t;
 
 #include <filesystem>
 #include <string>

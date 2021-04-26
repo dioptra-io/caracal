@@ -8,7 +8,6 @@
 #elif __linux__
 #include <netpacket/packet.h>
 #endif
-#include <tins/tins.h>
 
 #include <array>
 #include <string>
@@ -20,7 +19,7 @@ namespace caracal {
 
 class Sender {
  public:
-  explicit Sender(const Tins::NetworkInterface &interface);
+  explicit Sender(const std::string &interface_name);
 
   void send(const Probe &probe);
 

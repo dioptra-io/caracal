@@ -69,11 +69,11 @@ target_compile_features(caracal PUBLIC cxx_std_20)
 target_compile_options(caracal PRIVATE ${CARACAL_PRIVATE_FLAGS})
 target_include_directories(caracal PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
-  caracal PRIVATE NetUtils::NetUtils spdlog::spdlog Threads::Threads
+  caracal PRIVATE NetUtils::NetUtils spdlog::spdlog LPM::LPM Threads::Threads
 )
-# TODO: Remove libtins and LPM from the public headers of caracal?
+# TODO: Remove libtins from the public headers of caracal?
 # In prober_config.hpp, sender.hpp, utilities.hpp.
-target_link_libraries(caracal PUBLIC libtins::libtins LPM::LPM)
+target_link_libraries(caracal PUBLIC libtins::libtins)
 
 # Executable (Prober)
 add_executable(caracal-bin apps/caracal.cpp)

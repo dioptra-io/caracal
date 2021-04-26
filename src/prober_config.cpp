@@ -12,6 +12,10 @@ namespace fs = std::filesystem;
 
 namespace caracal::Prober {
 
+std::string Config::get_default_interface() {
+  return Tins::NetworkInterface::default_interface().name();
+}
+
 void Config::set_output_file_csv(const fs::path& p) { output_file_csv = p; }
 
 void Config::set_output_file_pcap(const fs::path& p) { output_file_pcap = p; }
@@ -94,8 +98,7 @@ std::ostream& operator<<(std::ostream& os, Config const& v) {
   os << "n_packets=" << v.n_packets;
   os << " probing_rate=" << v.probing_rate;
   os << " sniffer_wait_time=" << v.sniffer_wait_time;
-  os << " interface=" << v.interface.name() << ":"
-     << v.interface.ipv4_address();
+  os << " interface=" << v.interface;
   os << " rate_limiting_method=" << v.rate_limiting_method;
   print_if_value("output_file_csv", v.output_file_csv);
   print_if_value("output_file_pcap", v.output_file_pcap);

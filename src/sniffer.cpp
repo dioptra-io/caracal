@@ -16,12 +16,13 @@ namespace fs = std::filesystem;
 
 namespace caracal {
 
-Sniffer::Sniffer(const Tins::NetworkInterface &interface,
+Sniffer::Sniffer(const std::string &interface_name,
                  const std::optional<fs::path> &output_file_csv,
                  const std::optional<fs::path> &output_file_pcap,
                  const std::optional<std::string> &meta_round,
                  const uint16_t destination_port)
-    : sniffer_{interface.name()}, meta_round_{meta_round}, statistics_{} {
+    : sniffer_{interface_name}, meta_round_{meta_round}, statistics_{} {
+  Tins::NetworkInterface interface{interface_name};
   auto filter = fmt::format(
       "(dst {} or dst {}) and ((icmp and icmp[icmptype] != icmp-echo) or "
       "(icmp6 and icmp6[icmp6type] != icmp6-echo) or "
@@ -38,7 +39,7 @@ Sniffer::Sniffer(const Tins::NetworkInterface &interface,
   config.set_immediate_mode(true);
 
   // As sniffer does not have set_configuration, we copy...
-  sniffer_ = Tins::Sniffer(interface.name(), config);
+  sniffer_ = Tins::Sniffer(interface_name, config);
 
   if (output_file_csv) {
     output_csv_.open(*output_file_csv);

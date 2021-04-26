@@ -24,7 +24,7 @@ using std::chrono::system_clock;
 
 namespace caracal {
 
-Sender::Sender(const Tins::NetworkInterface &interface)
+Sender::Sender(const std::string &interface_name)
     : buffer_{},
       l2_protocol_{Protocols::L2::Ethernet},
 #ifdef __APPLE__
@@ -37,6 +37,8 @@ Sender::Sender(const Tins::NetworkInterface &interface)
       dst_mac_{},
       src_ip_v4{},
       src_ip_v6{} {
+  Tins::NetworkInterface interface{interface_name};
+
   // Find the interface type:
   // - Linux Ethernet link [Ethernet header -> IP header]
   // - Linux Loopback link: same as Ethernet but with 00... MAC addresses
@@ -76,8 +78,7 @@ Sender::Sender(const Tins::NetworkInterface &interface)
 
   // Initialize the source interface kernel structures.
 #ifdef __APPLE__
-  auto if_name = interface.name();
-  std::copy(if_name.begin(), if_name.end(), if_.snd_name);
+  std::copy(interface_name.begin(), interface_name.end(), if_.snd_name);
   if_.snd_family = AF_NDRV;
   if_.snd_len = sizeof(sockaddr_ndrv);
   socket_.bind(&if_);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tins/tins.h>
+
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -14,7 +16,7 @@ namespace caracal {
 
 class Sniffer {
  public:
-  Sniffer(const Tins::NetworkInterface &interface,
+  Sniffer(const std::string &interface_name,
           const std::optional<fs::path> &output_file_csv,
           const std::optional<fs::path> &output_file_pcap,
           const std::optional<std::string> &meta_round,
