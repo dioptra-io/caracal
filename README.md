@@ -104,7 +104,7 @@ Target                 | Description
 `caracal-read`         | PCAP parser
 `caracal-test`         | Unit and performance tests
 `caracal-docs`         | API documentation
-`_pycarcal`            | Python interface
+`_pycaracal`            | Python interface
 
 To build a specific target, use `cmake --build . --target TARGET`.
 
