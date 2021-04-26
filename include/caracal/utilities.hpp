@@ -24,4 +24,7 @@ namespace caracal::Utilities {
 
 void parse_addr(const std::string& src, in6_addr& dst);
 
+/// Demangle C++ identifiers.
+std::string demangle(const std::string& mangled_name);
+
 }  // namespace caracal::Utilities

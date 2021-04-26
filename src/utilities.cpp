@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <cxxabi.h>
 #include <tins/tins.h>
 
 #include <caracal/constants.hpp>
@@ -69,6 +70,14 @@ void parse_addr(const std::string& src, in6_addr& dst) {
     dst.s6_addr32[2] = 0xFFFF0000U;
     dst.s6_addr32[3] = htonl(std::stoul(src));
   }
+}
+
+std::string demangle(const std::string& mangled_name) {
+  char* realname =
+      abi::__cxa_demangle(mangled_name.c_str(), nullptr, nullptr, nullptr);
+  auto s = std::string{realname};
+  free(realname);
+  return s;
 }
 
 }  // namespace caracal::Utilities

@@ -174,8 +174,8 @@ This software is released under the [MIT license](/LICENSE), in accordance with 
 
 Name                                             | License                                                               | Usage
 -------------------------------------------------|-----------------------------------------------------------------------|------
-[Boost](https://www.boost.org)                   | [Boost Software License 1.0](https://opensource.org/licenses/BSL-1.0) | Boost::program_options for CLI arguments parsing
 [Catch2](https://github.com/catchorg/Catch2)     | [Boost Software License 1.0](https://opensource.org/licenses/BSL-1.0) | Unit tests and benchmarks
+[cxxopts](https://github.com/jarro2783/cxxopts)  | [MIT](https://opensource.org/licenses/MIT) | CLI arguments parsing
 [libnetutils](https://android.googlesource.com/platform/system/core/+/master/libnetutils) | [Apache 2.0](https://opensource.org/licenses/Apache-2.0) | IP checksum computation
 [liblpm](https://github.com/rmind/liblpm)        | [2-clause BSD](https://opensource.org/licenses/BSD-2-Clause)          | Longest-prefix matching
 [libtins](https://github.com/mfontanini/libtins) | [2-clause BSD](https://opensource.org/licenses/BSD-2-Clause)          | Packet parsing

@@ -48,8 +48,8 @@ if(WITH_CONAN)
 endif()
 
 # Required packages
-find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Catch2 REQUIRED)
+find_package(cxxopts REQUIRED)
 find_package(libtins REQUIRED)
 find_package(LPM REQUIRED)
 find_package(NetUtils REQUIRED)
@@ -80,7 +80,7 @@ add_executable(caracal-bin apps/caracal.cpp)
 target_compile_options(caracal-bin PRIVATE ${CARACAL_PRIVATE_FLAGS})
 target_include_directories(caracal-bin PRIVATE "${PROJECT_BINARY_DIR}")
 target_link_libraries(
-  caracal-bin PRIVATE Boost::program_options spdlog::spdlog caracal
+  caracal-bin PRIVATE cxxopts::cxxopts spdlog::spdlog caracal
 )
 set_target_properties(caracal-bin PROPERTIES OUTPUT_NAME caracal)
 
@@ -89,7 +89,7 @@ add_executable(caracal-read apps/caracal-read.cpp)
 target_compile_options(caracal-read PRIVATE ${CARACAL_PRIVATE_FLAGS})
 target_include_directories(caracal-read PRIVATE "${PROJECT_BINARY_DIR}")
 target_link_libraries(
-  caracal-read PRIVATE Boost::program_options spdlog::spdlog caracal
+  caracal-read PRIVATE cxxopts::cxxopts spdlog::spdlog caracal
 )
 
 # Executable (Tests)
