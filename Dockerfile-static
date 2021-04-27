@@ -1,0 +1,22 @@
+FROM alpine:latest AS builder
+ENV LDFLAGS=-static
+
+RUN apk add cmake git gcc g++ make linux-headers py3-pip python3-dev
+RUN python3 -m pip install --no-cache-dir build conan>=1.35
+
+COPY . /tmp
+
+# Patch liblpm for compatibility with musl
+# TODO: Submit PR to liblpm upstream?
+RUN sed -ibak 's/__BEGIN_DECLS/#ifdef __cplusplus\nextern "C" {\n#endif/g' \
+        /tmp/extern/liblpm/src/lpm.h && \
+    sed -ibak 's/__END_DECLS/#ifdef __cplusplus\n}\n#endif/g' \
+        /tmp/extern/liblpm/src/lpm.h
+
+WORKDIR /tmp/build
+RUN cmake -DCMAKE_BUILD_TYPE=Release -DWITH_LTO=ON .. && \
+    cmake --build . --target caracal-bin --parallel 8
+
+FROM scratch
+COPY --from=builder /tmp/build/caracal /usr/bin/caracal
+ENTRYPOINT ["caracal"]
