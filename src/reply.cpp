@@ -9,12 +9,12 @@
 namespace caracal {
 
 std::string Reply::to_csv() const {
-  return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{:.1f}",
+  return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{:.1f}",
                      reply_dst_addr, probe_dst_addr, probe_src_port,
-                     probe_dst_port, probe_ttl_l3, probe_ttl_l4, reply_src_addr,
-                     reply_protocol, reply_icmp_type, reply_icmp_code,
-                     reply_ttl, reply_size, fmt::join(reply_mpls_labels, ","),
-                     rtt);
+                     probe_dst_port, probe_ttl_l3, probe_ttl_l4, probe_protocol,
+                     reply_src_addr, reply_protocol, reply_icmp_type,
+                     reply_icmp_code, reply_ttl, reply_size,
+                     fmt::join(reply_mpls_labels, ","), rtt);
 }
 
 bool Reply::is_icmp_time_exceeded() const {
