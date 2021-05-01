@@ -3,6 +3,7 @@
 #include <caracal/prober_config.hpp>
 #include <filesystem>
 #include <optional>
+#include <random>
 #include <string>
 
 using std::optional;
@@ -12,13 +13,31 @@ namespace fs = std::filesystem;
 
 namespace caracal::Prober {
 
+uint16_t Config::get_default_id() {
+  std::random_device device;
+  std::mt19937 generator(device());
+  std::uniform_int_distribution<uint16_t> distribution(
+      0, std::numeric_limits<uint16_t>::max());
+  return distribution(generator);
+}
+
 std::string Config::get_default_interface() {
   return Tins::NetworkInterface::default_interface().name();
 }
 
-void Config::set_output_file_csv(const fs::path& p) { output_file_csv = p; }
+void Config::set_caracal_id(int id) {
+  if (id < 0) {
+    throw std::domain_error("caracal_id must be > 0");
+  }
+  caracal_id = id;
+}
 
-void Config::set_output_file_pcap(const fs::path& p) { output_file_pcap = p; }
+void Config::set_n_packets(const int count) {
+  if (count <= 0) {
+    throw std::domain_error("n_packets must be > 0");
+  }
+  n_packets = static_cast<uint64_t>(count);
+}
 
 void Config::set_probing_rate(const int rate) {
   if (rate <= 0) {
@@ -27,14 +46,16 @@ void Config::set_probing_rate(const int rate) {
   probing_rate = static_cast<uint64_t>(rate);
 }
 
-void Config::set_interface(const string& s) { interface = s; }
-
 void Config::set_sniffer_wait_time(const int seconds) {
   if (seconds < 0) {
     throw std::domain_error("sniffer_wait_time must be >= 0");
   }
   sniffer_wait_time = static_cast<uint64_t>(seconds);
 }
+
+void Config::set_integrity_check(bool check) { integrity_check = check; }
+
+void Config::set_interface(const string& s) { interface = s; }
 
 void Config::set_rate_limiting_method(const string& s) {
   if (s == "auto" || s == "active" || s == "sleep" || s == "none") {
@@ -51,12 +72,9 @@ void Config::set_max_probes(const uint64_t count) {
   max_probes = count;
 }
 
-void Config::set_n_packets(const int count) {
-  if (count <= 0) {
-    throw std::domain_error("n_packets must be > 0");
-  }
-  n_packets = static_cast<uint64_t>(count);
-}
+void Config::set_output_file_csv(const fs::path& p) { output_file_csv = p; }
+
+void Config::set_output_file_pcap(const fs::path& p) { output_file_pcap = p; }
 
 void Config::set_prefix_excl_file(const fs::path& p) {
   if (!fs::exists(p)) {
@@ -95,9 +113,11 @@ std::ostream& operator<<(std::ostream& os, Config const& v) {
     }
   };
 
-  os << "n_packets=" << v.n_packets;
+  os << "caracal_id=" << v.caracal_id;
+  os << " n_packets=" << v.n_packets;
   os << " probing_rate=" << v.probing_rate;
   os << " sniffer_wait_time=" << v.sniffer_wait_time;
+  os << " integrity_check=" << v.integrity_check;
   os << " interface=" << v.interface;
   os << " rate_limiting_method=" << v.rate_limiting_method;
   print_if_value("output_file_csv", v.output_file_csv);

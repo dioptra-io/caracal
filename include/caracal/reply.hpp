@@ -32,9 +32,9 @@ struct Reply {
       probe_dst_addr;      ///< The IP that was targeted by the probe,
                            ///< if we received a reply from this IP,
                            ///< then \ref reply_src_addr == \ref probe_dst_addr.
+  uint16_t probe_id;       ///< The ID field of the probe packet (0 for IPv6).
   uint16_t probe_size;     ///< The size in bytes of the probe packet.
                            ///< For IPv6 this doesn't include the IP header.
-  uint8_t probe_ttl_l3;    ///< The TTL of the probe packet.
   uint8_t probe_protocol;  ///< The protocol of the probe packet.
   /// @}
 
@@ -55,6 +55,13 @@ struct Reply {
   double rtt;  ///< The estimated round-trip time, in milliseconds.
   /// @}
 
+  /// Compute the caracal checksum used to verify the reply integrity.
+  [[nodiscard]] uint16_t checksum(uint32_t caracal_id) const;
+
+  /// True if the caracal checksum is equal to the checksum stored in the probe.
+  [[nodiscard]] bool is_valid(uint32_t caracal_id) const;
+
+  /// True if the reply is an ICMP of ICMPv6 time exceeded message.
   [[nodiscard]] bool is_icmp_time_exceeded() const;
 
   /// Serialize the reply in the CSV format.

@@ -47,6 +47,14 @@ cat probes.txt | caracal
 caracal -i probes.txt
 ```
 
+### Reply integrity
+
+Caracal encodes in the ID field of the IP header the following checksum: `ip_checksum(caracal_id, dst_addr, src_port, ttl)`.
+This allows caracal to check that the reply it gets corresponds (excluding checksum collisions) to valid probes.
+By default, replies for which the checksum in the ID field is invalid are dropped, this can be overriden with the
+`--no-integrity-check` flag.
+Furthermore, the `caracal_id` value can be changed with the `--caracal-id` option.
+
 ## Development
 
 ### Prerequisites

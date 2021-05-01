@@ -78,6 +78,7 @@ TEST_CASE("Builder::ICMP") {
   in_addr src_addr{3789697};
   in_addr dst_addr{6543665};
   uint16_t flow_id = 24000;
+  uint16_t probe_id = 46837;
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
   uint16_t timestamp_enc = Timestamp::encode(123456);
@@ -88,7 +89,7 @@ TEST_CASE("Builder::ICMP") {
                 Protocols::L4::ICMP,     payload_len};
 
   Ethernet::init(packet, {0}, {0});
-  IPv4::init(packet, src_addr, dst_addr, ttl);
+  IPv4::init(packet, src_addr, dst_addr, ttl, probe_id);
   ICMP::init(packet, flow_id, timestamp_enc);
 
   REQUIRE(validate_ip_checksum(packet));
@@ -97,7 +98,7 @@ TEST_CASE("Builder::ICMP") {
   auto ip = Tins::IP(reinterpret_cast<uint8_t*>(packet.l3()), packet.l3_size());
   REQUIRE(uint32_t(ip.src_addr()) == src_addr.s_addr);
   REQUIRE(uint32_t(ip.dst_addr()) == dst_addr.s_addr);
-  REQUIRE(ip.id() == ttl);
+  REQUIRE(ip.id() == probe_id);
   REQUIRE(ip.ttl() == ttl);
 
   auto icmp = ip.rfind_pdu<Tins::ICMP>();
@@ -110,7 +111,7 @@ TEST_CASE("Builder::ICMP") {
                   Protocols::L2::Ethernet, Protocols::L3::IPv4,
                   Protocols::L4::ICMP,     payload_len};
     Ethernet::init(packet, {0}, {0});
-    IPv4::init(packet, src_addr, dst_addr, ttl);
+    IPv4::init(packet, src_addr, dst_addr, ttl, probe_id);
     ICMP::init(packet, flow_id, timestamp_enc);
     return packet;
   };
@@ -156,6 +157,7 @@ TEST_CASE("Builder::UDP/v4") {
   in_addr dst_addr{6543665};
   uint16_t src_port = 24000;
   uint16_t dst_port = 33434;
+  uint16_t probe_id = 46837;
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
   uint16_t timestamp_enc = Timestamp::encode(123456);
@@ -166,7 +168,7 @@ TEST_CASE("Builder::UDP/v4") {
                 Protocols::L4::UDP,      payload_len};
 
   Ethernet::init(packet, {0}, {0});
-  IPv4::init(packet, src_addr, dst_addr, ttl);
+  IPv4::init(packet, src_addr, dst_addr, ttl, probe_id);
   UDP::init(packet, timestamp_enc, src_port, dst_port);
 
   REQUIRE(validate_ip_checksum(packet));
@@ -175,7 +177,7 @@ TEST_CASE("Builder::UDP/v4") {
   auto ip = Tins::IP(reinterpret_cast<uint8_t*>(packet.l3()), packet.l3_size());
   REQUIRE(uint32_t(ip.src_addr()) == src_addr.s_addr);
   REQUIRE(uint32_t(ip.dst_addr()) == dst_addr.s_addr);
-  REQUIRE(ip.id() == ttl);
+  REQUIRE(ip.id() == probe_id);
   REQUIRE(ip.ttl() == ttl);
 
   auto udp = ip.rfind_pdu<Tins::UDP>();
@@ -188,7 +190,7 @@ TEST_CASE("Builder::UDP/v4") {
                   Protocols::L2::Ethernet, Protocols::L3::IPv4,
                   Protocols::L4::UDP,      payload_len};
     Ethernet::init(packet, {0}, {0});
-    IPv4::init(packet, src_addr, dst_addr, ttl);
+    IPv4::init(packet, src_addr, dst_addr, ttl, probe_id);
     UDP::init(packet, timestamp_enc, src_port, dst_port);
     return packet;
   };

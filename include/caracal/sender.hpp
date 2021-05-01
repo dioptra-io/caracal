@@ -19,7 +19,7 @@ namespace caracal {
 
 class Sender {
  public:
-  explicit Sender(const std::string &interface_name);
+  explicit Sender(const std::string &interface_name, uint16_t caracal_id);
 
   void send(const Probe &probe);
 
@@ -34,7 +34,8 @@ class Sender {
 #endif
   std::array<uint8_t, ETHER_ADDR_LEN> src_mac_;
   std::array<uint8_t, ETHER_ADDR_LEN> dst_mac_;
-  sockaddr_in src_ip_v4;
-  sockaddr_in6 src_ip_v6;
+  sockaddr_in src_ip_v4_;
+  sockaddr_in6 src_ip_v6_;
+  uint16_t caracal_id_;
 };
 }  // namespace caracal

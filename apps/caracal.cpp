@@ -39,7 +39,9 @@ int main(int argc, char** argv) {
       ("filter-from-prefix-file-incl", "Do not send probes to prefixes *not* specified in file (allow list)", cxxopts::value<string>())
       ("filter-min-ttl", "Do not send probes with ttl < min_ttl", cxxopts::value<int>())
       ("filter-max-ttl", "Do not send probes with ttl > max_ttl", cxxopts::value<int>())
-      ("meta-round", "Value of the round column in the CSV output", cxxopts::value<string>());
+      ("caracal-id", "Identifier encoded in the probes (random by default)", cxxopts::value<int>())
+      ("meta-round", "Value of the round column in the CSV output", cxxopts::value<string>())
+      ("no-integrity-check", "Do not check that replies match valid probes", cxxopts::value<bool>()->default_value("false"));
   // clang-format on
 
   auto result = options.parse(argc, argv);
@@ -103,8 +105,16 @@ int main(int argc, char** argv) {
       config.set_filter_max_ttl(result["filter-max-ttl"].as<int>());
     }
 
+    if (result.count("caracal-id")) {
+      config.set_caracal_id(result["caracal-id"].as<int>());
+    }
+
     if (result.count("meta-round")) {
       config.set_meta_round(result["meta-round"].as<string>());
+    }
+
+    if (result.count("no-integrity-check")) {
+      config.set_integrity_check(false);
     }
 
     spdlog::cfg::helpers::load_levels(result["log-level"].as<string>());

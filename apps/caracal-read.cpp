@@ -25,7 +25,9 @@ int main(int argc, char** argv) {
     ("i,input-file", "PCAP file containing the captured replies (required)", cxxopts::value<string>())
     ("o,output-file-csv", "File to which the parsed replies will be written as CSV (required)", cxxopts::value<string>())
     ("L,log-level", "Minimum log level (trace, debug, info, warning, error, fatal)", cxxopts::value<string>()->default_value("info"))
-    ("meta-round", "Value of the round column in the CSV output", cxxopts::value<string>()->default_value("1"));
+    ("caracal-id", "Identifier encoded in the probes (random by default)", cxxopts::value<int>())
+    ("meta-round", "Value of the round column in the CSV output", cxxopts::value<string>())
+    ("no-integrity-check", "Do not check that replies match valid probes", cxxopts::value<bool>()->default_value("false"));
   // clang-format on
 
   auto result = options.parse(argc, argv);
@@ -40,9 +42,12 @@ int main(int argc, char** argv) {
     fs::path input_file{result["input-file"].as<string>()};
     fs::path output_file{result["output-file-csv"].as<string>()};
     string round = result["meta-round"].as<string>();
+    uint16_t caracal_id = result["caracal-id"].as<int>();
+    bool integrity_check = !result.count("no-integrity-check");
 
     spdlog::cfg::helpers::load_levels(result["log-level"].as<string>());
-    caracal::Reader::read(input_file, output_file, round);
+    caracal::Reader::read(input_file, output_file, round, caracal_id,
+                          integrity_check);
   } catch (const std::exception& e) {
     auto type = caracal::Utilities::demangle(typeid(e).name());
     std::cerr << "Exception of type " << type << ": " << e.what() << std::endl;

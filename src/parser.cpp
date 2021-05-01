@@ -77,31 +77,13 @@ void parse_outer(Reply& reply, const Tins::ICMPExtension& ext) noexcept {
 void parse_inner(Reply& reply, const Tins::IP* ip) noexcept {
   copy(ip->dst_addr(), reply.probe_dst_addr);
   reply.probe_size = ip->tot_len();
-  reply.probe_ttl_l3 = static_cast<uint8_t>(ip->id());
+  reply.probe_id = ip->id();
 }
 
 void parse_inner(Reply& reply, const Tins::IPv6* ip) noexcept {
   copy(ip->dst_addr(), reply.probe_dst_addr);
   reply.probe_size = ip->payload_length();
-
-  // Can't store the TTL in the id field (see Builder::IP::init),
-  // so we compute it from the payload length.
-  const uint8_t protocol = ip->next_header();
-  switch (protocol) {
-    case IPPROTO_ICMPV6:
-      reply.probe_ttl_l3 =
-          ip->payload_length() - ICMPV6_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
-      break;
-
-    case IPPROTO_UDP:
-      reply.probe_ttl_l3 =
-          ip->payload_length() - sizeof(udphdr) - PAYLOAD_TWEAK_BYTES;
-      break;
-
-    default:
-      reply.probe_ttl_l3 = 0;
-      break;
-  }
+  reply.probe_id = 0;
 }
 
 void parse_inner(Reply& reply, const Tins::ICMP* icmp,
