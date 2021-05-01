@@ -136,7 +136,7 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def("__str__", fmt::to_string<Statistics::Sniffer>);
 
   // Setup logging
-  //  auto sink = std::make_shared<python_sink_mt>();
-  //  auto logger = std::make_shared<spdlog::logger>("caracal", sink);
-  //  spdlog::set_default_logger(logger);
+  auto sink = std::make_shared<python_sink_mt>();
+  auto logger = std::make_shared<spdlog::logger>("caracal", sink);
+  spdlog::set_default_logger(logger);
 }
