@@ -145,14 +145,7 @@ python3 -m build
 # The source distribution and the wheels are in dist/
 ```
 
-To run the tests (this will automatically build and install the package in a virtualenv):
-```bash
-python3 -m pip install --upgrade tox
-python3 -m tox
-```
-
-Running the tests with tox can be quite slow as tox is re-installing all the build dependencies in a temporary directory.
-For quick testing, another solution is to symlink the shared library:
+To run the tests:
 ```bash
 # Assuming the CMake build directory is build/
 # In the repository root:
