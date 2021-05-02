@@ -18,7 +18,6 @@ The easiest way to run Caracal is through Docker:
 docker run dioptraio/caracal --help
 ```
 
-If you're running an ARM64 system, you will need to [build the image yourself](#whale2-docker-image).  
 If you're using macOS (Intel or ARM), we recommend to [build the native executable](#building-from-source) as Docker for Mac
 seems to rewrite the IP header fields where encode probe information.
 
