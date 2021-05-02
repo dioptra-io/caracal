@@ -24,7 +24,8 @@ Sniffer::Sniffer(const std::string &interface_name,
     : sniffer_{interface_name}, meta_round_{meta_round}, statistics_{} {
   Tins::NetworkInterface interface{interface_name};
   auto filter = fmt::format(
-      "(dst {} or dst {}) and ((icmp and icmp[icmptype] != icmp-echo) or "
+      "(dst {} or dst {} or dst net (10 or 172.16/12 or 192.168/16)) and "
+      "((icmp and icmp[icmptype] != icmp-echo) or "
       "(icmp6 and icmp6[icmp6type] != icmp6-echo) or "
       "(src port {}))",
       Utilities::source_ipv4_for(interface).to_string(),
