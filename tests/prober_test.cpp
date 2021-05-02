@@ -55,6 +55,7 @@ TEST_CASE("Prober::probe") {
   config.set_sniffer_wait_time(1);
   config.set_n_packets(3);
   config.set_meta_round("1");
+  config.set_integrity_check(true);
 
   spdlog::cfg::helpers::load_levels("trace");
 

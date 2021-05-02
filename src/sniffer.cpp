@@ -20,15 +20,18 @@ Sniffer::Sniffer(const std::string &interface_name,
                  const std::optional<fs::path> &output_file_csv,
                  const std::optional<fs::path> &output_file_pcap,
                  const std::optional<std::string> &meta_round,
-                 const uint16_t destination_port)
-    : sniffer_{interface_name}, meta_round_{meta_round}, statistics_{} {
+                 const uint16_t caracal_id, const bool integrity_check)
+    : sniffer_{interface_name},
+      meta_round_{meta_round},
+      statistics_{},
+      caracal_id_{caracal_id},
+      integrity_check_{integrity_check} {
   Tins::NetworkInterface interface{interface_name};
   auto filter = fmt::format(
       "(dst {} or dst {}) and ((icmp and icmp[icmptype] != icmp-echo) or "
-      "(icmp6 and icmp6[icmp6type] != icmp6-echo) or "
-      "(src port {}))",
+      "(icmp6 and icmp6[icmp6type] != icmp6-echo))",
       Utilities::source_ipv4_for(interface).to_string(),
-      Utilities::source_ipv6_for(interface).to_string(), destination_port);
+      Utilities::source_ipv6_for(interface).to_string());
   spdlog::info("sniffer_filter={}", filter);
 
   Tins::SnifferConfiguration config;
@@ -61,7 +64,7 @@ void Sniffer::start() noexcept {
   auto handler = [this](Tins::Packet &packet) {
     auto reply = Parser::parse(packet);
 
-    if (reply) {
+    if (reply && (!integrity_check_ || reply->is_valid(caracal_id_))) {
       spdlog::trace(reply.value());
       statistics_.icmp_messages_all.insert(reply->reply_src_addr);
       if (reply->is_icmp_time_exceeded()) {

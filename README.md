@@ -48,6 +48,14 @@ cat probes.txt | caracal
 caracal -i probes.txt
 ```
 
+### Reply integrity
+
+Caracal encodes in the ID field of the IP header the following checksum: `ip_checksum(caracal_id, dst_addr, src_port, ttl)`.
+This allows caracal to check that the reply it gets corresponds (excluding checksum collisions) to valid probes.
+By default, replies for which the checksum in the ID field is invalid are dropped, this can be overriden with the
+`--no-integrity-check` flag.
+Furthermore, the `caracal_id` value can be changed with the `--caracal-id` option.
+
 ## Development
 
 ### Prerequisites
@@ -162,14 +170,7 @@ python3 -m build
 # The source distribution and the wheels are in dist/
 ```
 
-To run the tests (this will automatically build and install the package in a virtualenv):
-```bash
-python3 -m pip install --upgrade tox
-python3 -m tox
-```
-
-Running the tests with tox can be quite slow as tox is re-installing all the build dependencies in a temporary directory.
-For quick testing, another solution is to symlink the shared library:
+To run the tests:
 ```bash
 # Assuming the CMake build directory is build/
 # In the repository root:

@@ -54,7 +54,9 @@ namespace caracal::Builder::IPv4 {
 /// @param src_addr the source IPv4 address.
 /// @param dst_addr the destination IPv4 address.
 /// @param ttl the TTL.
-void init(Packet packet, in_addr src_addr, in_addr dst_addr, uint8_t ttl);
+/// @param id the value of the ID field.
+void init(Packet packet, in_addr src_addr, in_addr dst_addr, uint8_t ttl,
+          uint16_t id);
 
 }  // namespace caracal::Builder::IPv4
 

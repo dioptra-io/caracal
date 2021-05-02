@@ -90,14 +90,16 @@ PYBIND11_MODULE(_pycaracal, m) {
 
   py::class_<Config>(m_prober, "Config")
       .def(py::init<>())
-      .def("set_output_file_csv", &Config::set_output_file_csv)
-      .def("set_output_file_pcap", &Config::set_output_file_pcap)
+      .def("set_caracal_id", &Config::set_caracal_id)
+      .def("set_n_packets", &Config::set_n_packets)
       .def("set_probing_rate", &Config::set_probing_rate)
-      .def("set_interface", &Config::set_interface)
       .def("set_sniffer_wait_time", &Config::set_sniffer_wait_time)
+      .def("set_integrity_check", &Config::set_integrity_check)
+      .def("set_interface", &Config::set_interface)
       .def("set_rate_limiting_method", &Config::set_rate_limiting_method)
       .def("set_max_probes", &Config::set_max_probes)
-      .def("set_n_packets", &Config::set_n_packets)
+      .def("set_output_file_csv", &Config::set_output_file_csv)
+      .def("set_output_file_pcap", &Config::set_output_file_pcap)
       .def("set_prefix_excl_file", &Config::set_prefix_excl_file)
       .def("set_prefix_incl_file", &Config::set_prefix_incl_file)
       .def("set_filter_min_ttl", &Config::set_filter_min_ttl)
@@ -136,7 +138,7 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def("__str__", fmt::to_string<Statistics::Sniffer>);
 
   // Setup logging
-  //  auto sink = std::make_shared<python_sink_mt>();
-  //  auto logger = std::make_shared<spdlog::logger>("caracal", sink);
-  //  spdlog::set_default_logger(logger);
+  auto sink = std::make_shared<python_sink_mt>();
+  auto logger = std::make_shared<spdlog::logger>("caracal", sink);
+  spdlog::set_default_logger(logger);
 }

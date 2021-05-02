@@ -29,6 +29,10 @@ struct Probe {
   [[nodiscard]] sockaddr_in sockaddr4() const noexcept;
 
   [[nodiscard]] sockaddr_in6 sockaddr6() const noexcept;
+
+  /// Compute the caracal checksum used to verify the (eventual) reply
+  /// integrity.
+  [[nodiscard]] uint16_t checksum(uint32_t caracal_id) const noexcept;
 };
 
 std::ostream &operator<<(std::ostream &os, Probe const &v);

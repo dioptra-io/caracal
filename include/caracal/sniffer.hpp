@@ -19,8 +19,8 @@ class Sniffer {
   Sniffer(const std::string &interface_name,
           const std::optional<fs::path> &output_file_csv,
           const std::optional<fs::path> &output_file_pcap,
-          const std::optional<std::string> &meta_round,
-          uint16_t destination_port);
+          const std::optional<std::string> &meta_round, uint16_t caracal_id,
+          bool integrity_check);
 
   ~Sniffer();
 
@@ -37,6 +37,8 @@ class Sniffer {
   std::optional<std::string> meta_round_;
   std::thread thread_;
   Statistics::Sniffer statistics_;
+  uint16_t caracal_id_;
+  bool integrity_check_;
 };
 
 }  // namespace caracal

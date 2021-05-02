@@ -18,9 +18,9 @@ TEST_CASE("Checked::numeric_cast") {
   constexpr auto compile_time_check_2 = numeric_cast<uint8_t>(u8_16);
   constexpr auto compile_time_check_3 = numeric_cast<uint16_t>(u16);
 
-  static_assert(compile_time_check_1 == u8);
-  static_assert(compile_time_check_2 == u8_16);
-  static_assert(compile_time_check_3 == u16);
+  STATIC_REQUIRE(compile_time_check_1 == u8);
+  STATIC_REQUIRE(compile_time_check_2 == u8_16);
+  STATIC_REQUIRE(compile_time_check_3 == u16);
 
   REQUIRE(numeric_cast<uint8_t>(u8) == u8);
   REQUIRE(numeric_cast<uint8_t>(u8_16) == u8);

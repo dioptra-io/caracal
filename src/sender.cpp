@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <caracal/builder.hpp>
 #include <caracal/constants.hpp>
+#include <caracal/integrity.hpp>
 #include <caracal/pretty.hpp>
 #include <caracal/probe.hpp>
 #include <caracal/sender.hpp>
@@ -24,7 +25,7 @@ using std::chrono::system_clock;
 
 namespace caracal {
 
-Sender::Sender(const std::string &interface_name)
+Sender::Sender(const std::string &interface_name, uint16_t caracal_id)
     : buffer_{},
       l2_protocol_{Protocols::L2::Ethernet},
 #ifdef __APPLE__
@@ -35,8 +36,9 @@ Sender::Sender(const std::string &interface_name)
       if_{},
       src_mac_{},
       dst_mac_{},
-      src_ip_v4{},
-      src_ip_v6{} {
+      src_ip_v4_{},
+      src_ip_v6_{},
+      caracal_id_{caracal_id} {
   Tins::NetworkInterface interface{interface_name};
 
   // Find the interface type:
@@ -91,18 +93,18 @@ Sender::Sender(const std::string &interface_name)
 #endif
 
   // Set the source IPv4 address.
-  src_ip_v4.sin_family = AF_INET;
+  src_ip_v4_.sin_family = AF_INET;
   inet_pton(AF_INET, Utilities::source_ipv4_for(interface).to_string().c_str(),
-            &src_ip_v4.sin_addr);
+            &src_ip_v4_.sin_addr);
 
   // Set the source IPv6 address.
-  src_ip_v6.sin6_family = AF_INET6;
+  src_ip_v6_.sin6_family = AF_INET6;
   inet_pton(AF_INET6, Utilities::source_ipv6_for(interface).to_string().c_str(),
-            &src_ip_v6.sin6_addr);
+            &src_ip_v6_.sin6_addr);
 
   spdlog::info("dst_mac={:02x}", fmt::join(dst_mac_, ":"));
-  spdlog::info("src_ip_v4={} src_ip_v6={}", src_ip_v4.sin_addr,
-               src_ip_v6.sin6_addr);
+  spdlog::info("src_ip_v4={} src_ip_v6={}", src_ip_v4_.sin_addr,
+               src_ip_v6_.sin6_addr);
 }
 
 void Sender::send(const Probe &probe) {
@@ -134,12 +136,13 @@ void Sender::send(const Probe &probe) {
 
   switch (l3_protocol) {
     case Protocols::L3::IPv4:
-      Builder::IPv4::init(packet, src_ip_v4.sin_addr,
-                          probe.sockaddr4().sin_addr, probe.ttl);
+      Builder::IPv4::init(packet, src_ip_v4_.sin_addr,
+                          probe.sockaddr4().sin_addr, probe.ttl,
+                          probe.checksum(caracal_id_));
       break;
 
     case Protocols::L3::IPv6:
-      Builder::IPv6::init(packet, src_ip_v6.sin6_addr,
+      Builder::IPv6::init(packet, src_ip_v6_.sin6_addr,
                           probe.sockaddr6().sin6_addr, probe.ttl);
       break;
   }

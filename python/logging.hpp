@@ -16,33 +16,12 @@ class python_sink : public spdlog::sinks::base_sink<Mutex> {
   void sink_it_(const spdlog::details::log_msg& msg) override {
     auto payload = msg.payload;
     auto str = std::string{payload.data(), payload.data() + payload.size()};
-    switch (msg.level) {
-      case spdlog::level::critical:
-        py_logger_.attr("critical")(str);
-        break;
-      case spdlog::level::err:
-        py_logger_.attr("error")(str);
-        break;
-      case spdlog::level::warn:
-        py_logger_.attr("warning")(str);
-        break;
-      case spdlog::level::info:
-        py_logger_.attr("info")(str);
-        break;
-      case spdlog::level::debug:
-      case spdlog::level::trace:
-        py_logger_.attr("debug")(str);
-        break;
-      default:
-        break;
-    }
+    // TODO: We tried to properly redirect the logs to the Python `logging`
+    // module, but it segfaults when a message is logged by a different thread.
+    py::print(str);
   }
 
   void flush_() override {}
-
- private:
-  py::object py_logger_ =
-      py::module_::import("logging").attr("getLogger")("caracal");
 };
 
 using python_sink_mt = python_sink<std::mutex>;

@@ -38,12 +38,13 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
   }
 
   // Sniffer
-  Sniffer sniffer{config.interface, config.output_file_csv,
-                  config.output_file_pcap, config.meta_round, 33434};
+  Sniffer sniffer{config.interface,        config.output_file_csv,
+                  config.output_file_pcap, config.meta_round,
+                  config.caracal_id,       config.integrity_check};
   sniffer.start();
 
   // Sender
-  Sender sender{config.interface};
+  Sender sender{config.interface, config.caracal_id};
 
   // Rate limiter
   RateLimiter rl{config.probing_rate, batch_size, config.rate_limiting_method};
@@ -106,7 +107,8 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
     }
 
     for (uint64_t i = 0; i < config.n_packets; i++) {
-      spdlog::trace("probe={} packet={}", p, i + 1);
+      spdlog::trace("probe={} id={} packet={}", p,
+                    p.checksum(config.caracal_id), i + 1);
       try {
         sender.send(p);
         stats.sent++;

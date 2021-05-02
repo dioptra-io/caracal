@@ -13,6 +13,7 @@ extern "C" {
 #include <caracal/builder.hpp>
 #include <caracal/checked.hpp>
 #include <caracal/constants.hpp>
+#include <caracal/integrity.hpp>
 #include <caracal/packet.hpp>
 #include <caracal/protocols.hpp>
 
@@ -89,7 +90,7 @@ void init(Packet packet, const std::array<uint8_t, ETHER_ADDR_LEN> &src_addr,
 namespace caracal::Builder::IPv4 {
 
 void init(Packet packet, const in_addr src_addr, const in_addr dst_addr,
-          const uint8_t ttl) {
+          const uint8_t ttl, const uint16_t id) {
   auto ip_header = reinterpret_cast<ip *>(packet.l3());
   ip_header->ip_hl = 5;
   ip_header->ip_v = 4;
@@ -98,7 +99,7 @@ void init(Packet packet, const in_addr src_addr, const in_addr dst_addr,
   ip_header->ip_src = src_addr;
   ip_header->ip_dst = dst_addr;
   ip_header->ip_ttl = ttl;
-  ip_header->ip_id = Checked::hton<uint16_t>(ttl);
+  ip_header->ip_id = htons(id);
   ip_header->ip_len = Checked::hton<uint16_t>(packet.l3_size());
   ip_header->ip_sum = 0;
   ip_header->ip_sum = ip_checksum(ip_header, sizeof(ip));
