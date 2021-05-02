@@ -190,7 +190,7 @@ Currently, the main bottleneck is the socket, as demonstrated below.
 ```bash
 # Generate 1M probes towards TEST-NET-1
 yes "192.0.2.1,24000,33434,32,icmp" | head -n 1000000 > probes.txt
-sudo perf record ./caracal --rate-limiting-method=none -i probes.txt
+sudo perf record -g ./caracal --rate-limiting-method=none -i probes.txt
 sudo perf report
 # +   68.09%    12.33%  caracal  libpthread-2.31.so   [.] __libc_sendto
 # +   56.63%     0.00%  caracal  [kernel.kallsyms]    [k] entry_SYSCALL_64_after_hwframe
