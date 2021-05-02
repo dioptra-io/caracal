@@ -19,7 +19,8 @@ docker run dioptraio/caracal --help
 ```
 
 If you're running an ARM64 system, you will need to [build the image yourself](#docker-image).
-If you're using macOS (Intel or ARM), we recommend to [build the native executable](#building-from-source) as Docker for Mac seems to rewrite some fields of the IP header that we use to encode probe informations.
+If you're using macOS (Intel or ARM), we recommend to [build the native executable](#building-from-source) as Docker for Mac
+seems to rewrite the IP header fields where encode probe information.
 
 ## Features
 
@@ -55,32 +56,42 @@ This program compiles on Linux, where it uses [`AF_PACKET`](https://man7.org/lin
 and on macOS, where it uses [`AF_NDRV`](http://newosxbook.com/bonus/vol1ch16.html).
 It runs on x86-64 and ARM64 systems.
 
+In all the section below, we assume that you have downloaded a copy of the repository:
+```bash
+git clone --recursive https://github.com/dioptra-io/caracal.git
+cd caracal
+```
+
 #### Build tools
 
 To build this project, CMake, Conan, and a compiler implementing C++20 are required.
-Optionnally, Doxygen can be used to generate the API documentation, and Gcovr to compute the test coverage.
+Optionally, Doxygen can be used to generate the API documentation, and Gcovr to compute the test coverage.
 
 ```bash
 # macOS
 brew install cmake conan doxygen gcovr graphviz
 
 # Ubuntu 20.04+
-apt install build-essential cmake doxygen gcovr git graphviz python3-pip
+apt install build-essential cmake doxygen gcovr git graphviz python3-dev python3-pip
 pip3 install conan
+
+# Executables installed by Python are not in the path by default on Ubuntu.
+# If `conan` is not found, run:
+export PATH="${HOME}/.local/bin:${PATH}"
 ```
 
 #### External dependencies
 
-All the runtime dependencies are statically linked: they are either fetched with [Conan](https://conan.io) if available, or built from the sources in [`/extern`](/extern)).
+All the runtime dependencies are statically linked: they are either fetched with [Conan](https://conan.io) if available,
+or built from the sources in [`/extern`](/extern).
 The only exceptions are libc and libstdc++ which are dynamically linked.
 
 ### Building from source
 
 ```bash
-git clone --recursive git@github.com:dioptra-io/caracal.git
-cd caracal
 mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build .
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build .
 ```
 
 #### Options
@@ -98,26 +109,38 @@ For example: `cmake -DCMAKE_BUILD_TYPE=Release ..`
 
 #### Targets
 
-Target                 | Description
-:----------------------|:-----------
-`caracal-bin`          | Prober
-`caracal-read`         | PCAP parser
-`caracal-test`         | Unit and performance tests
-`caracal-docs`         | API documentation
-`_pycaracal`            | Python interface
+Target          | Output                    | Description
+:---------------|:--------------------------|:-----------
+`caracal-bin`   | `caracal`                 | Prober
+`caracal-read`  | `caracal-read`            | PCAP parser
+`caracal-test`  | `caracal-test`            | Unit and performance tests
+`caracal-docs`  | `html/*`                  | API documentation
+`_pycaracal`    | ` _pycaracal*.so`         | Python interface
 
 To build a specific target, use `cmake --build . --target TARGET`.
 
-### Docker image
+### API documentation
+
+Caracal source code is documented using [Doxygen](https://github.com/doxygen/doxygen).
+The documentation for the latest commit is built with the [`build.yml`](.github/workflows/build.yml) workflow and is
+hosted on GitHub Pages: https://dioptra-io.github.io/caracal/.
+
+To build the documentation locally, run:
+```bash
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build . --target caracal-docs
+```
+The documentation will be at `build/html/index.html`.
+
+### :whale2: Docker image
 
 To build the Docker image, simply run:
 ```bash
-git clone --recursive git@github.com:dioptra-io/caracal.git
-cd caracal
 docker build -t caracal .
 ```
 
-### Python interface
+### :snake: Python interface
 
 Caracal provides an experiment Python interface.
 It is currently only used for internal projects, and we do not recommend its general use.
@@ -125,8 +148,10 @@ The extension is built using [pybind11](https://github.com/pybind/pybind11), [sc
 
 To build the shared extension, use the `_pycaracal` target:
 ```bash
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build . --target _pycaracal
-# This will build _pycaracal.cpython-39-darwin.so, to test it:
+# This will build _pycaracal*.so, to test it:
 python -c 'import _pycaracal'
 ```
 
@@ -156,6 +181,35 @@ python3 -m pytest
 The CI pipeline is managed by [cibuildwheel](https://github.com/joerick/cibuildwheel) in the [pypy.yml](.github/workflows/pypi.yml) workflow.
 We build x86_64 Linux wheels for Python 3.8+, as well as universal (ARM64 + x86_64) macOS wheels for Python 3.9+.
 
+## Potential optimizations
+
+Caracal is easily profiled using [perf](http://www.brendangregg.com/perf.html) on Linux.
+Currently, the main bottleneck is the socket, as demonstrated below.
+
+```bash
+# Generate 1M probes towards TEST-NET-1
+yes "192.0.2.1,24000,33434,32,icmp" | head -n 1000000 > probes.txt
+sudo perf record ./caracal --rate-limiting-method=none -i probes.txt
+sudo perf report
+# +   68.09%    12.33%  caracal  libpthread-2.31.so   [.] __libc_sendto
+# +   56.63%     0.00%  caracal  [kernel.kallsyms]    [k] entry_SYSCALL_64_after_hwframe
+# +   56.24%     4.51%  caracal  [kernel.kallsyms]    [k] do_syscall_64
+# +   51.10%     0.38%  caracal  [kernel.kallsyms]    [k] __x64_sys_sendto
+# +   50.49%     0.52%  caracal  [kernel.kallsyms]    [k] __sys_sendto
+# +   47.37%     0.18%  caracal  [kernel.kallsyms]    [k] sock_sendmsg
+# +   46.13%     0.39%  caracal  [kernel.kallsyms]    [k] packet_sendmsg
+# +   45.36%     1.16%  caracal  [kernel.kallsyms]    [k] packet_snd
+# +   30.83%     0.34%  caracal  [kernel.kallsyms]    [k] dev_queue_xmit
+# +   30.22%     1.19%  caracal  [kernel.kallsyms]    [k] __dev_queue_xmit
+# +   23.42%     0.27%  caracal  [kernel.kallsyms]    [k] sch_direct_xmit
+# +   15.59%     0.49%  caracal  [kernel.kallsyms]    [k] dev_hard_start_xmit
+# ...
+```
+
+A version using `TX_RING` on Linux is available in the [`ring_socket_v2`](https://github.com/dioptra-io/caracal/tree/ring_socket_v2)
+branch, but it doesn't show any noticeable performance improvement.
+To increase the probing rate, we would potentially need to resort to a zero-copy solution such as
+[PF_RING ZC](https://www.ntop.org/products/packet-capture/pf_ring/pf_ring-zc-zero-copy/).
 
 ## NSDI 2020 paper
 
