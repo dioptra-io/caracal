@@ -1,5 +1,5 @@
 #pragma once
 #error Documentation only, do not include.
 
-/// Caracal
+/// Caracal root namespace
 namespace caracal {}

@@ -1,4 +1,4 @@
-exclude: ^(cmake/|data/|extern/).*
+exclude: ^(cmake/|data/|extern/|README.md).*
 
 repos:
   - repo: https://github.com/bmorcos/pre-commit-hooks-cpp

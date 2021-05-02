@@ -3,6 +3,7 @@
 #include <ostream>
 #include <string>
 
+/// Protocols constants.
 namespace caracal::Protocols {
 
 enum class L2 { None, BSDLoopback, Ethernet };

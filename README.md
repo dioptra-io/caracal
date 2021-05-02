@@ -18,7 +18,7 @@ The easiest way to run Caracal is through Docker:
 docker run dioptraio/caracal --help
 ```
 
-If you're running an ARM64 system, you will need to [build the image yourself](#whale2-docker-image).
+If you're running an ARM64 system, you will need to [build the image yourself](#whale2-docker-image).  
 If you're using macOS (Intel or ARM), we recommend to [build the native executable](#building-from-source) as Docker for Mac
 seems to rewrite the IP header fields where encode probe information.
 
@@ -30,8 +30,9 @@ seems to rewrite the IP header fields where encode probe information.
 
 ## Usage
 
-Caracal reads probe specifications from the standard input or, if specified with `-i/--input-file`, from a file with one probe per line.
-The specification is `dst_addr,src_port,dst_port,ttl,protocol`, where `dst_addr` can be an IPv4 address in dotted notation (e.g. `8.8.8.8`), an IPv4-mapped IPv6 address (e.g. `::ffff:8.8.8.8`) or an IPv6 address (e.g. `2001:4860:4860::8888`), and `protocol` is `icmp`, `icmp6` or `udp`.
+Caracal reads probe specifications from the standard input or, if specified with `-i/--input-file`, from a file with one probe per line.  
+The specification is `dst_addr,src_port,dst_port,ttl,protocol`, where `dst_addr` can be an IPv4 address in dotted notation (e.g. `8.8.8.8`),
+an IPv4-mapped IPv6 address (e.g. `::ffff:8.8.8.8`) or an IPv6 address (e.g. `2001:4860:4860::8888`), and `protocol` is `icmp`, `icmp6` or `udp`.  
 For UDP probes, the ports are encoded directly in the UDP header. For ICMP probes, the source port is encoded in the ICMP checksum (which varies the flow-id).
 
 For example, to probe Google DNS servers at TTL 32:
@@ -52,6 +53,7 @@ caracal -i probes.txt
 
 Caracal encodes in the ID field of the IP header the following checksum: `ip_checksum(caracal_id, dst_addr, src_port, ttl)`.
 This allows caracal to check that the reply it gets corresponds (excluding checksum collisions) to valid probes.
+
 By default, replies for which the checksum in the ID field is invalid are dropped, this can be overriden with the
 `--no-integrity-check` flag.
 Furthermore, the `caracal_id` value can be changed with the `--caracal-id` option.

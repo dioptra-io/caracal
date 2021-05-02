@@ -60,7 +60,7 @@ void init(Packet packet, in_addr src_addr, in_addr dst_addr, uint8_t ttl,
 
 }  // namespace caracal::Builder::IPv4
 
-// Build IPv6 probes, similarly to IPv4.
+/// Build IPv6 probes.
 namespace caracal::Builder::IPv6 {
 
 /// Init the IPv6 header.
@@ -89,7 +89,7 @@ void init(Packet packet, uint16_t target_checksum, uint16_t target_sequence);
 
 }  // namespace caracal::Builder::ICMP
 
-/// Build ICMPv6 echo probes, similarly to ICMP.
+/// Build ICMPv6 echo probes.
 namespace caracal::Builder::ICMPv6 {
 
 /// Build an ICMPv6 echo probe.

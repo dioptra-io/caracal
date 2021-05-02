@@ -145,5 +145,6 @@ if(WITH_SANITIZER)
 endif()
 
 if(DOXYGEN_FOUND)
+  set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
   doxygen_add_docs(caracal-docs "${PROJECT_SOURCE_DIR}/include/caracal")
 endif()

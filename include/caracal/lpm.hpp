@@ -13,6 +13,7 @@ namespace fs = std::filesystem;
 
 namespace caracal {
 
+/// Longest Prefix Matching
 class LPM {
  public:
   LPM();
