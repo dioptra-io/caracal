@@ -57,6 +57,8 @@ By default, replies for which the checksum in the ID field is invalid are droppe
 `--no-integrity-check` flag.
 Furthermore, the `caracal_id` value can be changed with the `--caracal-id` option.
 
+Invalid replies are never dropped from the PCAP file (`--output-file-pcap`), which can be useful for debugging.
+
 ## Development
 
 ### Prerequisites

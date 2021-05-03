@@ -27,11 +27,18 @@ Sniffer::Sniffer(const std::string &interface_name,
       caracal_id_{caracal_id},
       integrity_check_{integrity_check} {
   Tins::NetworkInterface interface{interface_name};
-  auto filter = fmt::format(
-      "(dst {} or dst {}) and ((icmp and icmp[icmptype] != icmp-echo) or "
-      "(icmp6 and icmp6[icmp6type] != icmp6-echo))",
-      Utilities::source_ipv4_for(interface).to_string(),
-      Utilities::source_ipv6_for(interface).to_string());
+  auto filter_template =
+      "(dst {} or dst{}) and (icmp or icmp6) and ("
+      "icmp[icmptype] = icmp-echoreply or"
+      " icmp[icmptype] = icmp-timxceed or"
+      " icmp[icmptype] = icmp-unreach or"
+      " icmp6[icmp6type] = icmp6-echoreply or"
+      " icmp6[icmp6type] = icmp6-timeexceeded or"
+      " icmp6[icmp6type] = icmp6-destinationunreach"
+      ")";
+  auto filter = fmt::format(filter_template,
+                            Utilities::source_ipv4_for(interface).to_string(),
+                            Utilities::source_ipv6_for(interface).to_string());
   spdlog::info("sniffer_filter={}", filter);
 
   Tins::SnifferConfiguration config;
@@ -41,7 +48,8 @@ Sniffer::Sniffer(const std::string &interface_name,
   config.set_filter(filter);
   config.set_immediate_mode(true);
 
-  // As sniffer does not have set_configuration, we copy...
+  // As sniffer does not have set_configuration, we
+  // copy...
   sniffer_ = Tins::Sniffer(interface_name, config);
 
   if (output_file_csv) {
