@@ -1,7 +1,6 @@
 [requires]
 cxxopts/2.2.1
 libtins/4.3
-pybind11/2.6.2
 spdlog/1.8.2
 
 [generators]
