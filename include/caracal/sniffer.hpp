@@ -8,7 +8,6 @@
 #include <string>
 #include <thread>
 
-#include "io.hpp"
 #include "statistics.hpp"
 
 namespace fs = std::filesystem;
@@ -31,9 +30,11 @@ class Sniffer {
 
   [[nodiscard]] const Statistics::Sniffer &statistics() const noexcept;
 
+  [[nodiscard]] pcap_stat pcap_statistics() noexcept;
+
  private:
   Tins::Sniffer sniffer_;
-  IO::ZstdWriter output_csv_;
+  std::ofstream output_csv_;
   std::optional<Tins::PacketWriter> output_pcap_;
   std::optional<std::string> meta_round_;
   std::thread thread_;

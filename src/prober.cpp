@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 
 #include <caracal/lpm.hpp>
+#include <caracal/pretty.hpp>
 #include <caracal/probe.hpp>
 #include <caracal/prober.hpp>
 #include <caracal/prober_config.hpp>
@@ -55,6 +56,7 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
     spdlog::info(rl.statistics());
     spdlog::info(stats);
     spdlog::info(sniffer.statistics());
+    spdlog::info(sniffer.pcap_statistics());
   };
 
   // Log statistics every 5 seconds

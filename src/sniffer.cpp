@@ -78,8 +78,8 @@ void Sniffer::start() noexcept {
       if (reply->is_icmp_time_exceeded()) {
         statistics_.icmp_messages_path.insert(reply->reply_src_addr);
       }
-      output_csv_.write(
-          fmt::format("{},{}\n", reply->to_csv(), meta_round_.value_or("1")));
+      output_csv_ << fmt::format("{},{}\n", reply->to_csv(),
+                                 meta_round_.value_or("1"));
     } else {
       auto data = packet.pdu()->serialize();
       spdlog::trace("invalid_packet_hex={:02x}", fmt::join(data, ""));
@@ -107,5 +107,11 @@ void Sniffer::stop() noexcept {
 const Statistics::Sniffer &Sniffer::statistics() const noexcept {
   return statistics_;
 }
+
+pcap_stat Sniffer::pcap_statistics() noexcept {
+  pcap_stat ps{};
+  pcap_stats(sniffer_.get_pcap_handle(), &ps);
+  return ps;
+};
 
 }  // namespace caracal
