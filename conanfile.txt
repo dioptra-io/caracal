@@ -2,6 +2,7 @@
 cxxopts/2.2.1
 libtins/4.3
 spdlog/1.8.2
+zstd/1.4.9
 
 [generators]
 cmake_find_package

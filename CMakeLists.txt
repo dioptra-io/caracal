@@ -55,6 +55,7 @@ find_package(LPM REQUIRED)
 find_package(NetUtils REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Threads REQUIRED)
+find_package(zstd REQUIRED)
 
 # Optional packages
 find_package(Doxygen COMPONENTS dot)
@@ -71,9 +72,9 @@ target_include_directories(caracal PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
   caracal PRIVATE NetUtils::NetUtils spdlog::spdlog LPM::LPM Threads::Threads
 )
-# TODO: Remove libtins from the public headers of caracal?
+# TODO: Remove libtins and zstd from the public headers of caracal?
 # In prober_config.hpp, sender.hpp, utilities.hpp.
-target_link_libraries(caracal PUBLIC libtins::libtins)
+target_link_libraries(caracal PUBLIC libtins::libtins zstd::zstd)
 
 # Executable (Prober)
 add_executable(caracal-bin apps/caracal.cpp)
