@@ -12,7 +12,6 @@
 #include <memory>
 
 #include "conversions.hpp"
-#include "logging.hpp"
 
 namespace py = pybind11;
 namespace Protocols = caracal::Protocols;
@@ -136,9 +135,4 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def_readonly("received_invalid_count",
                     &Statistics::Sniffer::received_invalid_count)
       .def("__str__", fmt::to_string<Statistics::Sniffer>);
-
-  // Setup logging
-  // auto sink = std::make_shared<python_sink_mt>();
-  // auto logger = std::make_shared<spdlog::logger>("caracal", sink);
-  // spdlog::set_default_logger(logger);
 }
