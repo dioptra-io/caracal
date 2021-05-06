@@ -32,7 +32,9 @@ uint64_t ip_checksum_add(uint64_t sum, const void* data, size_t len) {
   return sum;
 }
 
-uint16_t ip_checksum_fold(uint64_t sum) { return sum % 65535; }
+uint16_t ip_checksum_fold(uint64_t sum) {
+  return static_cast<uint16_t>(sum % 65535);
+}
 
 uint16_t ip_checksum_finish(uint64_t sum) { return ~ip_checksum_fold(sum); }
 

@@ -75,6 +75,10 @@ Packet::Packet(std::byte* buffer, const size_t buffer_len,
   if (buffer_len < static_cast<uint64_t>(end_ - begin_)) {
     throw std::invalid_argument{"Packet buffer is too small"};
   }
+
+  if ((end_ - begin_) > std::numeric_limits<uint16_t>::max()) {
+    throw std::invalid_argument("Packet is too large");
+  }
 }
 
 std::byte* Packet::begin() const noexcept { return begin_; }
@@ -89,13 +93,21 @@ std::byte* Packet::l4() const noexcept { return l4_; }
 
 std::byte* Packet::payload() const noexcept { return payload_; }
 
-uint16_t Packet::l2_size() const noexcept { return end_ - l2_; }
+uint16_t Packet::l2_size() const noexcept {
+  return static_cast<uint16_t>(end_ - l2_);
+}
 
-uint16_t Packet::l3_size() const noexcept { return end_ - l3_; }
+uint16_t Packet::l3_size() const noexcept {
+  return static_cast<uint16_t>(end_ - l3_);
+}
 
-uint16_t Packet::l4_size() const noexcept { return end_ - l4_; }
+uint16_t Packet::l4_size() const noexcept {
+  return static_cast<uint16_t>(end_ - l4_);
+}
 
-uint16_t Packet::payload_size() const noexcept { return end_ - payload_; }
+uint16_t Packet::payload_size() const noexcept {
+  return static_cast<uint16_t>(end_ - payload_);
+}
 
 Protocols::L2 Packet::l2_protocol() const noexcept { return l2_protocol_; }
 

@@ -81,9 +81,9 @@ bool LPM::lookup(const std::string &s) {
 
 bool LPM::lookup(const in6_addr &addr) {
   if (IN6_IS_ADDR_V4MAPPED(&addr)) {
-    return lpm_lookup(lpm, &addr.s6_addr32[3], 4);
+    return lpm_lookup(lpm, &addr.s6_addr32[3], 4) == tag;
   } else {
-    return lpm_lookup(lpm, &addr, 16);
+    return lpm_lookup(lpm, &addr, 16) == tag;
   }
 }
 

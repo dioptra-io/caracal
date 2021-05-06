@@ -11,7 +11,6 @@
 
 #include <algorithm>
 #include <caracal/builder.hpp>
-#include <caracal/checksum.hpp>
 #include <caracal/constants.hpp>
 #include <caracal/pretty.hpp>
 #include <caracal/probe.hpp>
