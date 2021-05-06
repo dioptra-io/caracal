@@ -6,14 +6,9 @@
 // Must be included after netinet/ip.h on macOS.
 #include <netinet/icmp6.h>
 
-extern "C" {
-#include <netutils/checksum.h>
-}
-
 #include <caracal/builder.hpp>
-#include <caracal/checked.hpp>
+#include <caracal/checksum.hpp>
 #include <caracal/constants.hpp>
-#include <caracal/integrity.hpp>
 #include <caracal/packet.hpp>
 #include <caracal/protocols.hpp>
 
@@ -28,22 +23,16 @@ void assert_payload_size(Packet packet, size_t min_size) {
 }
 
 uint16_t transport_checksum(Packet packet) {
-  // (1) Sum the pseudo header.
-  uint32_t current = 0;
+  uint64_t sum = Checksum::ip_checksum_add(0, packet.l4(), packet.l4_size());
   if (packet.l3_protocol() == Protocols::L3::IPv4) {
     const auto ip_header = reinterpret_cast<ip *>(packet.l3());
-    current = ipv4_pseudo_header_checksum(
-        ip_header, Checked::numeric_cast<uint16_t>(packet.l4_size()));
+    sum += Checksum::ipv4_pseudo_header_sum(ip_header, packet.l4_size());
   } else {
     const auto ip_header = reinterpret_cast<ip6_hdr *>(packet.l3());
-    current = ipv6_pseudo_header_checksum(
-        ip_header, Checked::numeric_cast<uint16_t>(packet.l4_size()),
-        posix_value(packet.l4_protocol()));
+    sum += Checksum::ipv6_pseudo_header_sum(ip_header, packet.l4_size(),
+                                            posix_value(packet.l4_protocol()));
   }
-  // (2) Sum the transport header and the payload.
-  current = ip_checksum_add(current, packet.l4(), packet.l4_size());
-  // (3) Fold and close the sum.
-  return ip_checksum_finish(current);
+  return Checksum::ip_checksum_finish(sum);
 }
 
 uint16_t tweak_payload(const uint16_t original_checksum,
@@ -53,7 +42,7 @@ uint16_t tweak_payload(const uint16_t original_checksum,
   if (target_le < original_le) {
     target_le += 0xFFFFU;
   }
-  return Checked::hton<uint16_t>(target_le - original_le);
+  return htons(static_cast<uint16_t>(target_le - original_le));
 }
 
 }  // namespace caracal::Builder
@@ -100,9 +89,9 @@ void init(Packet packet, const in_addr src_addr, const in_addr dst_addr,
   ip_header->ip_dst = dst_addr;
   ip_header->ip_ttl = ttl;
   ip_header->ip_id = htons(id);
-  ip_header->ip_len = Checked::hton<uint16_t>(packet.l3_size());
+  ip_header->ip_len = htons(packet.l3_size());
   ip_header->ip_sum = 0;
-  ip_header->ip_sum = ip_checksum(ip_header, sizeof(ip));
+  ip_header->ip_sum = Checksum::ip_checksum(ip_header, sizeof(ip));
 }
 
 }  // namespace caracal::Builder::IPv4
@@ -122,7 +111,7 @@ void init(Packet packet, const in6_addr src_addr, const in6_addr dst_addr,
   ip_header->ip6_src = src_addr;
   ip_header->ip6_dst = dst_addr;
   ip_header->ip6_hops = ttl;
-  ip_header->ip6_plen = Checked::hton<uint16_t>(packet.l4_size());
+  ip_header->ip6_plen = htons(packet.l4_size());
 }
 
 }  // namespace caracal::Builder::IPv6
@@ -141,7 +130,8 @@ void init(Packet packet, const uint16_t target_checksum,
   icmp_header->icmp_hun.ih_idseq.icd_seq = htons(target_sequence);
 
   // Encode the flow ID in the checksum.
-  const uint16_t original_checksum = ip_checksum(icmp_header, ICMP_HEADER_SIZE);
+  const uint16_t original_checksum =
+      Checksum::ip_checksum(icmp_header, ICMP_HEADER_SIZE);
   *reinterpret_cast<uint16_t *>(packet.payload()) =
       tweak_payload(original_checksum, htons(target_checksum));
   icmp_header->icmp_cksum = htons(target_checksum);
@@ -178,7 +168,7 @@ void init(Packet packet, const uint16_t target_checksum,
           const uint16_t src_port, const uint16_t dst_port) {
   assert_payload_size(packet, PAYLOAD_TWEAK_BYTES);
   auto udp_header = reinterpret_cast<udphdr *>(packet.l4());
-  udp_header->uh_ulen = Checked::hton<uint16_t>(packet.l4_size());
+  udp_header->uh_ulen = htons(packet.l4_size());
   udp_header->uh_sport = htons(src_port);
   udp_header->uh_dport = htons(dst_port);
   udp_header->uh_sum = 0;

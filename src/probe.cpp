@@ -3,8 +3,8 @@
 
 #include <algorithm>
 #include <caracal/checked.hpp>
+#include <caracal/checksum.hpp>
 #include <caracal/constants.hpp>
-#include <caracal/integrity.hpp>
 #include <caracal/probe.hpp>
 #include <caracal/utilities.hpp>
 #include <iostream>
@@ -87,7 +87,8 @@ sockaddr_in6 Probe::sockaddr6() const noexcept {
 
 uint16_t Probe::checksum(uint32_t caracal_id) const noexcept {
   // TODO: IPv6 support? Or just encode the last 32 bits for IPv6?
-  return Integrity::checksum(caracal_id, dst_addr.s6_addr32[3], src_port, ttl);
+  return Checksum::caracal_checksum(caracal_id, dst_addr.s6_addr32[3], src_port,
+                                    ttl);
 }
 
 std::ostream &operator<<(std::ostream &os, Probe const &v) {

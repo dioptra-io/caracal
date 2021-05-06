@@ -89,13 +89,13 @@ std::byte* Packet::l4() const noexcept { return l4_; }
 
 std::byte* Packet::payload() const noexcept { return payload_; }
 
-size_t Packet::l2_size() const noexcept { return end_ - l2_; }
+uint16_t Packet::l2_size() const noexcept { return end_ - l2_; }
 
-size_t Packet::l3_size() const noexcept { return end_ - l3_; }
+uint16_t Packet::l3_size() const noexcept { return end_ - l3_; }
 
-size_t Packet::l4_size() const noexcept { return end_ - l4_; }
+uint16_t Packet::l4_size() const noexcept { return end_ - l4_; }
 
-size_t Packet::payload_size() const noexcept { return end_ - payload_; }
+uint16_t Packet::payload_size() const noexcept { return end_ - payload_; }
 
 Protocols::L2 Packet::l2_protocol() const noexcept { return l2_protocol_; }
 

@@ -8,7 +8,10 @@
 
 namespace caracal::IO {
 
-/// Write zstd-compressed data to file.
+/// Read zstd-compressed data from a file.
+class ZstdReader {};
+
+/// Write zstd-compressed data to a file.
 class ZstdWriter {
  public:
   ZstdWriter();
@@ -19,11 +22,11 @@ class ZstdWriter {
   /// Open the output file `filename`.
   void open(const std::string& filename);
 
-  /// Flush the compressed buffer to the disk and close the output file.
+  /// Write the compressed buffer to the output file and close it.
   void close();
 
   /// Compress the string `s`.
-  /// If the compressed buffer is full, it will be flushed to the disk.
+  /// If the compressed buffer is full, it will be written to the output file.
   void write(const std::string& s);
 
  private:

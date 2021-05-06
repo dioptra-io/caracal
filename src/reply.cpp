@@ -1,8 +1,8 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
 
+#include <caracal/checksum.hpp>
 #include <caracal/constants.hpp>
-#include <caracal/integrity.hpp>
 #include <caracal/pretty.hpp>
 #include <caracal/reply.hpp>
 #include <sstream>
@@ -23,8 +23,8 @@ std::string Reply::to_csv() const {
 
 uint16_t Reply::checksum(uint32_t caracal_id) const {
   // TODO: IPv6 support? Or just encode the last 32 bits for IPv6?
-  return Integrity::checksum(caracal_id, probe_dst_addr.s6_addr32[3],
-                             probe_src_port, probe_ttl_l4);
+  return Checksum::caracal_checksum(caracal_id, probe_dst_addr.s6_addr32[3],
+                                    probe_src_port, probe_ttl_l4);
 }
 
 bool Reply::is_valid(uint32_t caracal_id) const {

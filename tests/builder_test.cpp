@@ -8,12 +8,9 @@
 // Must be included after netinet/ip.h on macOS.
 #include <netinet/icmp6.h>
 
-extern "C" {
-#include <netutils/checksum.h>
-}
-
 #include <array>
 #include <caracal/builder.hpp>
+#include <caracal/checksum.hpp>
 #include <caracal/constants.hpp>
 #include <caracal/protocols.hpp>
 #include <caracal/timestamp.hpp>
@@ -29,6 +26,7 @@ using caracal::Utilities::parse_addr;
 using std::array;
 using std::byte;
 
+namespace Checksum = caracal::Checksum;
 namespace Ethernet = caracal::Builder::Ethernet;
 namespace ICMP = caracal::Builder::ICMP;
 namespace ICMPv6 = caracal::Builder::ICMPv6;
@@ -42,7 +40,7 @@ bool validate_ip_checksum(Packet buffer) {
   const auto ip_header = reinterpret_cast<ip*>(buffer.l3());
   const uint16_t original = ip_header->ip_sum;
   ip_header->ip_sum = 0;
-  const uint16_t correct = ip_checksum(buffer.l3(), sizeof(ip));
+  const uint16_t correct = Checksum::ip_checksum(buffer.l3(), sizeof(ip));
   ip_header->ip_sum = original;
   return original == correct;
 }
@@ -51,7 +49,7 @@ bool validate_icmp_checksum(Packet buffer) {
   const auto icmp_header = reinterpret_cast<icmp*>(buffer.l4());
   const uint16_t original = icmp_header->icmp_cksum;
   icmp_header->icmp_cksum = 0;
-  const uint16_t correct = ip_checksum(buffer.l4(), buffer.l4_size());
+  const uint16_t correct = Checksum::ip_checksum(buffer.l4(), buffer.l4_size());
   icmp_header->icmp_cksum = original;
   return original == correct;
 }

@@ -30,16 +30,16 @@ class Packet {
   [[nodiscard]] std::byte *payload() const noexcept;
 
   /// Size of the packet starting from the L2 header.
-  [[nodiscard]] size_t l2_size() const noexcept;
+  [[nodiscard]] uint16_t l2_size() const noexcept;
 
   /// Size of the packet starting from the L3 header.
-  [[nodiscard]] size_t l3_size() const noexcept;
+  [[nodiscard]] uint16_t l3_size() const noexcept;
 
   /// Size of the packet starting from the L4 header.
-  [[nodiscard]] size_t l4_size() const noexcept;
+  [[nodiscard]] uint16_t l4_size() const noexcept;
 
   /// Size of the packet starting from the payload.
-  [[nodiscard]] size_t payload_size() const noexcept;
+  [[nodiscard]] uint16_t payload_size() const noexcept;
 
   /// Layer 2 protocol.
   [[nodiscard]] Protocols::L2 l2_protocol() const noexcept;
