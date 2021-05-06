@@ -10,6 +10,8 @@ TEST_CASE("Integrity") {
   uint8_t ttl = 7;
   auto checksum = Integrity::checksum(caracal_id, dst_addr, src_port, ttl);
   REQUIRE(Integrity::checksum(caracal_id, dst_addr, src_port, ttl) == checksum);
-  REQUIRE(Integrity::checksum(caracal_id, dst_addr - 2, src_port, ttl + 1) !=
+  REQUIRE(Integrity::checksum(caracal_id, dst_addr - 1, src_port, ttl + 1) !=
+          checksum);
+  REQUIRE(Integrity::checksum(caracal_id, dst_addr, src_port + 2, ttl) !=
           checksum);
 }

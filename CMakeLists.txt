@@ -49,6 +49,7 @@ endif()
 
 # Required packages
 find_package(Catch2 REQUIRED)
+find_package(CRC REQUIRED)
 find_package(cxxopts REQUIRED)
 find_package(libtins REQUIRED)
 find_package(LPM REQUIRED)
@@ -70,7 +71,8 @@ target_compile_features(caracal PUBLIC cxx_std_20)
 target_compile_options(caracal PRIVATE ${CARACAL_PRIVATE_FLAGS})
 target_include_directories(caracal PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
-  caracal PRIVATE NetUtils::NetUtils spdlog::spdlog LPM::LPM Threads::Threads
+  caracal PRIVATE CRC::CRC NetUtils::NetUtils spdlog::spdlog LPM::LPM
+                  Threads::Threads
 )
 # TODO: Remove libtins and zstd from the public headers of caracal?
 # In prober_config.hpp, sender.hpp, utilities.hpp.

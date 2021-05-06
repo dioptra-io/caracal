@@ -48,6 +48,8 @@ cat probes.txt | caracal
 caracal -i probes.txt
 ```
 
+TODO: Document output format (ZSTD-compressed CSV).
+
 ### Reply integrity
 
 Caracal encodes in the ID field of the IP header the following checksum: `ip_checksum(caracal_id, dst_addr, src_port, ttl)`.
@@ -230,12 +232,17 @@ The initial version has been written by [Kévin Vermeulen](https://github.com/kv
 
 This software is released under the [MIT license](/LICENSE), in accordance with the license of its dependencies.
 
+**Note:** We use only a small fraction of libcrc and libnetutils; the relevant functions could probably merged into
+caracal to reduce the number of external dependencies.
+
 Name                                             | License                                                               | Usage
 -------------------------------------------------|-----------------------------------------------------------------------|------
 [Catch2](https://github.com/catchorg/Catch2)     | [Boost Software License 1.0](https://opensource.org/licenses/BSL-1.0) | Unit tests and benchmarks
-[cxxopts](https://github.com/jarro2783/cxxopts)  | [MIT](https://opensource.org/licenses/MIT) | CLI arguments parsing
+[cxxopts](https://github.com/jarro2783/cxxopts)  | [MIT](https://opensource.org/licenses/MIT)                            | CLI arguments parsing
+[libcrc](https://github.com/lammertb/libcrc)     | [MIT](https://opensource.org/licenses/MIT)                            | Probe checksum computation
 [libnetutils](https://android.googlesource.com/platform/system/core/+/master/libnetutils) | [Apache 2.0](https://opensource.org/licenses/Apache-2.0) | IP checksum computation
 [liblpm](https://github.com/rmind/liblpm)        | [2-clause BSD](https://opensource.org/licenses/BSD-2-Clause)          | Longest-prefix matching
 [libtins](https://github.com/mfontanini/libtins) | [2-clause BSD](https://opensource.org/licenses/BSD-2-Clause)          | Packet parsing
 [pybind11](https://github.com/pybind/pybind11)   | [3-clause BSD](https://opensource.org/licenses/BSD-3-Clause)          | Python interface
 [spdlog](https://github.com/gabime/spdlog)       | [MIT](https://opensource.org/licenses/MIT)                            | Logging
+[zstd](https://github.com/facebook/zstd)         | [3-clause BSD](https://opensource.org/licenses/BSD-3-Clause)          | Compression
