@@ -2,6 +2,7 @@
 
 #include <tins/tins.h>
 
+#include <boost/iostreams/filtering_stream.hpp>
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -11,6 +12,7 @@
 #include "statistics.hpp"
 
 namespace fs = std::filesystem;
+namespace io = boost::iostreams;
 
 namespace caracal {
 
@@ -34,7 +36,8 @@ class Sniffer {
 
  private:
   Tins::Sniffer sniffer_;
-  std::ofstream output_csv_;
+  std::ofstream output_csv_ofs_;
+  io::filtering_stream<io::output> output_csv_;
   std::optional<Tins::PacketWriter> output_pcap_;
   std::optional<std::string> meta_round_;
   std::thread thread_;

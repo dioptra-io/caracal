@@ -48,13 +48,13 @@ if(WITH_CONAN)
 endif()
 
 # Required packages
+find_package(Boost REQUIRED)
 find_package(Catch2 REQUIRED)
 find_package(cxxopts REQUIRED)
 find_package(libtins REQUIRED)
 find_package(LPM REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Threads REQUIRED)
-find_package(zstd REQUIRED)
 
 # Optional packages
 find_package(Doxygen COMPONENTS dot)
@@ -69,9 +69,9 @@ target_compile_features(caracal PUBLIC cxx_std_20)
 target_compile_options(caracal PRIVATE ${CARACAL_PRIVATE_FLAGS})
 target_include_directories(caracal PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(caracal PRIVATE spdlog::spdlog LPM::LPM Threads::Threads)
-# TODO: Remove libtins and zstd from the public headers of caracal?
+# TODO: Remove boost and libtins from the public headers of caracal?
 # In prober_config.hpp, sender.hpp, utilities.hpp.
-target_link_libraries(caracal PUBLIC libtins::libtins zstd::zstd)
+target_link_libraries(caracal PUBLIC Boost::iostreams libtins::libtins)
 
 # Executable (Prober)
 add_executable(caracal-bin apps/caracal.cpp)

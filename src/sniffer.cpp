@@ -3,6 +3,8 @@
 #include <spdlog/spdlog.h>
 #include <tins/tins.h>
 
+#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/filter/zstd.hpp>
 #include <caracal/parser.hpp>
 #include <caracal/sniffer.hpp>
 #include <caracal/statistics.hpp>
@@ -12,6 +14,7 @@
 #include <optional>
 #include <thread>
 
+namespace io = boost::iostreams;
 namespace fs = std::filesystem;
 
 namespace caracal {
@@ -42,18 +45,17 @@ Sniffer::Sniffer(const std::string &interface_name,
   spdlog::info("sniffer_filter={}", filter);
 
   Tins::SnifferConfiguration config;
-  // TODO: What happens the buffer is full?
-  // TODO: Log buffer full / dropped packets?
-  config.set_buffer_size(32 * 1024 * 1024);
+  config.set_buffer_size(64 * 1024 * 1024);
   config.set_filter(filter);
   config.set_immediate_mode(true);
-
-  // As sniffer does not have set_configuration, we
-  // copy...
   sniffer_ = Tins::Sniffer(interface_name, config);
 
   if (output_file_csv) {
-    output_csv_.open(*output_file_csv);
+    output_csv_ofs_.open(*output_file_csv);
+    if (output_file_csv->extension() == ".zst") {
+      output_csv_.push(io::zstd_compressor(1));
+    }
+    output_csv_.push(output_csv_ofs_);
   }
 
   if (output_file_pcap) {
