@@ -37,6 +37,7 @@ if(WITH_CONAN)
     PATH_OR_REFERENCE
     ${CMAKE_CURRENT_SOURCE_DIR}
     BUILD
+    b2
     missing
     REMOTE
     conan-center
