@@ -36,6 +36,8 @@ struct Reply {
   uint16_t probe_size;     ///< The size in bytes of the probe packet.
                            ///< For IPv6 this doesn't include the IP header.
   uint8_t probe_protocol;  ///< The protocol of the probe packet.
+  uint8_t quoted_ttl;      ///< The TTL as seen by the host that emitted the
+                           ///< ICMP reply.
   /// @}
 
   /// @name Probe attributes (IP → ICMP → IP → ICMP/UDP)
@@ -46,7 +48,7 @@ struct Reply {
                             ///< in order to vary the flow ID.
   uint16_t probe_dst_port;  ///< The destination port of the probe packet,
                             ///< 0 for ICMP probes.
-  uint8_t probe_ttl_l4;     ///< The TTL that was encoded in the L4
+  uint8_t probe_ttl;        ///< The TTL that was encoded in the L4
                             ///< header, 0 if not available.
   /// @}
 

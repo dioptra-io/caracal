@@ -11,11 +11,9 @@
 namespace caracal {
 
 std::string Reply::to_csv() const {
-  // TODO: Remove the now unused probe_ttl_l3 field from the CSV output.
-  uint8_t probe_ttl_l3 = 0;
   return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{:.1f}",
-                     reply_dst_addr, probe_dst_addr, probe_src_port,
-                     probe_dst_port, probe_ttl_l3, probe_ttl_l4, probe_protocol,
+                     probe_protocol, reply_dst_addr, probe_dst_addr,
+                     probe_src_port, probe_dst_port, probe_ttl, quoted_ttl,
                      reply_src_addr, reply_protocol, reply_icmp_type,
                      reply_icmp_code, reply_ttl, reply_size,
                      fmt::join(reply_mpls_labels, ","), rtt);
@@ -24,7 +22,7 @@ std::string Reply::to_csv() const {
 uint16_t Reply::checksum(uint32_t caracal_id) const {
   // TODO: IPv6 support? Or just encode the last 32 bits for IPv6?
   return Checksum::caracal_checksum(caracal_id, probe_dst_addr.s6_addr32[3],
-                                    probe_src_port, probe_ttl_l4);
+                                    probe_src_port, probe_ttl);
 }
 
 bool Reply::is_valid(uint32_t caracal_id) const {
@@ -56,10 +54,11 @@ std::ostream& operator<<(std::ostream& os, Reply const& v) {
   os << " probe_id=" << v.probe_id;
   os << " probe_size=" << v.probe_size;
   os << " probe_protocol=" << +v.probe_protocol;
-  os << " probe_ttl_l4=" << +v.probe_ttl_l4;
+  os << " probe_ttl=" << +v.probe_ttl;
   os << " probe_dst_addr=" << v.probe_dst_addr;
   os << " probe_src_port=" << v.probe_src_port;
   os << " probe_dst_port=" << v.probe_dst_port;
+  os << " quoted_ttl=" << +v.quoted_ttl;
   os << " rtt=" << v.rtt;
   return os;
 }

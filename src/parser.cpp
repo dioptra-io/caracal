@@ -78,12 +78,14 @@ void parse_inner(Reply& reply, const Tins::IP* ip) noexcept {
   copy(ip->dst_addr(), reply.probe_dst_addr);
   reply.probe_size = ip->tot_len();
   reply.probe_id = ip->id();
+  reply.quoted_ttl = ip->ttl();
 }
 
 void parse_inner(Reply& reply, const Tins::IPv6* ip) noexcept {
   copy(ip->dst_addr(), reply.probe_dst_addr);
   reply.probe_size = ip->payload_length();
-  reply.probe_id = 0;
+  reply.probe_id = 0;  // Not implemented for IPv6.
+  reply.quoted_ttl = ip->hop_limit();
 }
 
 void parse_inner(Reply& reply, const Tins::ICMP* icmp,
@@ -107,18 +109,18 @@ void parse_inner(Reply& reply, const Tins::UDP* udp,
   reply.probe_protocol = IPPROTO_UDP;
   reply.probe_src_port = udp->sport();
   reply.probe_dst_port = udp->dport();
-  reply.probe_ttl_l4 = udp->length() - sizeof(udphdr) - PAYLOAD_TWEAK_BYTES;
+  reply.probe_ttl = udp->length() - sizeof(udphdr) - PAYLOAD_TWEAK_BYTES;
   reply.rtt = Timestamp::difference(timestamp, udp->checksum()) / 10.0;
 }
 
 // Retrieve the TTL encoded in the ICMP payload length.
 void parse_inner_ttl_icmp(Reply& reply, const Tins::IP* ip) noexcept {
-  reply.probe_ttl_l4 =
+  reply.probe_ttl =
       ip->tot_len() - sizeof(ip_hdr) - ICMP_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
 }
 
 void parse_inner_ttl_icmp(Reply& reply, const Tins::IPv6* ip) noexcept {
-  reply.probe_ttl_l4 =
+  reply.probe_ttl =
       ip->payload_length() - ICMPV6_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
 }
 
