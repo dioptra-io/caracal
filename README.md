@@ -217,12 +217,6 @@ branch, but it doesn't show any noticeable performance improvement.
 To increase the probing rate, we would potentially need to resort to a zero-copy solution such as
 [PF_RING ZC](https://www.ntop.org/products/packet-capture/pf_ring/pf_ring-zc-zero-copy/).
 
-## NSDI 2020 paper
-
-Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
-Since then, the code has been refactored and separated in the [diamond-miner](https://github.com/dioptra-io/diamond-miner) and [caracal](https://github.com/dioptra-io/caracal) repositories.
-The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/caracal/releases/tag/nsdi2020) tag.
-
 ## Authors
 
 Caracal is developed and maintained by the [Dioptra group](https://dioptra.io) at Sorbonne Université in Paris, France.
