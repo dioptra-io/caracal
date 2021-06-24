@@ -64,7 +64,9 @@ void LPM::insert_file(const fs::path &p) {
   std::ifstream f{p};
   std::string line;
   while (std::getline(f, line)) {
-    insert(line);
+    if (!line.starts_with("#")) {
+      insert(line);
+    }
   }
 }
 

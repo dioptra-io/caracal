@@ -10,6 +10,7 @@ TEST_CASE("LPM") {
   std::ofstream ofs;
   ofs.open("zzz_input.csv");
   ofs << "192.168.150.0/24\n";
+  ofs << "# Some comment\n";
   ofs << "::ffff:192.168.160.0/24\n";
   ofs << "abcd:abcd::/32\n";
   ofs << "aaaa:bbbb:cccc::/48\n";
