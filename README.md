@@ -125,7 +125,6 @@ For example: `cmake -DCMAKE_BUILD_TYPE=Release ..`
 Target          | Output                    | Description
 :---------------|:--------------------------|:-----------
 `caracal-bin`   | `caracal`                 | Prober
-`caracal-read`  | `caracal-read`            | PCAP parser
 `caracal-test`  | `caracal-test`            | Unit and performance tests
 `caracal-docs`  | `html/*`                  | API documentation
 `_pycaracal`    | ` _pycaracal*.so`         | Python interface

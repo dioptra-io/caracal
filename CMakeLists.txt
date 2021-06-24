@@ -83,14 +83,6 @@ target_link_libraries(
 )
 set_target_properties(caracal-bin PROPERTIES OUTPUT_NAME caracal)
 
-# Executable (Reader)
-add_executable(caracal-read apps/caracal-read.cpp)
-target_compile_options(caracal-read PRIVATE ${CARACAL_PRIVATE_FLAGS})
-target_include_directories(caracal-read PRIVATE "${PROJECT_BINARY_DIR}")
-target_link_libraries(
-  caracal-read PRIVATE cxxopts::cxxopts spdlog::spdlog caracal
-)
-
 # Executable (Tests)
 add_executable(caracal-test ${CARACAL_TESTS_SOURCES})
 target_compile_options(caracal-test PRIVATE ${CARACAL_PRIVATE_FLAGS})
@@ -108,9 +100,7 @@ endif()
 
 # Prevent scikit-build from building unneeded binaries.
 if(SKBUILD)
-  set_target_properties(
-    caracal-bin caracal-read caracal-test PROPERTIES EXCLUDE_FROM_ALL ON
-  )
+  set_target_properties(caracal-bin caracal-test PROPERTIES EXCLUDE_FROM_ALL ON)
 endif()
 
 if(WITH_COVERAGE)
