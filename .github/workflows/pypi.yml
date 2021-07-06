@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: 3.8
       - name: Build wheels
-        uses: joerick/cibuildwheel@v1.10.0
+        uses: joerick/cibuildwheel@v1.12.0
         env:
           CIBW_BUILD: cp38-* cp39-*
           CIBW_ARCHS_LINUX: x86_64
