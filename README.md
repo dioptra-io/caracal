@@ -5,7 +5,7 @@
 [![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/caracal/)
 [![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dioptraio/caracal?logo=docker&logoColor=white)](https://hub.docker.com/r/dioptraio/caracal/tags)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/dioptraio/caracal?color=blue&label=image%20version&logo=docker&logoColor=white&sort=semver)](https://hub.docker.com/r/dioptraio/caracal/tags)
-![PyPI](https://img.shields.io/pypi/v/pycaracal?color=blue&logo=pypi&logoColor=white)
+[![PyPI](https://img.shields.io/pypi/v/pycaracal?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/pycaracal/)
 
 Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ achieving probing rates of 1M+ packets per second.
 It runs on Linux and macOS, on x86-64 and ARM64 systems.
