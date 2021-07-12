@@ -35,7 +35,7 @@ jobs:
       - name: Copy documentation
         run: docker cp debug:/tmp/build-debug/html html
       - name: Upload documentation
-        if: success()
+        if: github.event_name == 'push' && success()
         uses: crazy-max/ghaction-github-pages@v2
         with:
           target_branch: gh-pages
