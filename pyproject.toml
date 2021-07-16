@@ -1,3 +1,17 @@
 [build-system]
 requires = ["setuptools", "setuptools_scm[toml]>=6.0", "wheel", "scikit-build", "cmake", "conan"]
 build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+build = ["cp38-*", "cp39-*"]
+manylinux-x86_64-image = "manylinux2014"
+test-command = "$([[ -f /usr/bin/sudo ]] && echo 'sudo') pytest --log-cli-level=DEBUG {project}/python/tests"
+test-requires = ["pytest", "pytest-asyncio"]
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+
+[tool.cibuildwheel.macos]
+# universal2 wheels are currently broken, see
+# https://github.com/scikit-build/scikit-build/pull/530
+archs = ["universal2"]

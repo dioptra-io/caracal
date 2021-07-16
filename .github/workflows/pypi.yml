@@ -21,16 +21,8 @@ jobs:
         with:
           python-version: 3.8
       - name: Build wheels
-        uses: joerick/cibuildwheel@v1.12.0
+        uses: pypa/cibuildwheel@v2.0.0
         env:
-          CIBW_BUILD: cp38-* cp39-*
-          CIBW_ARCHS_LINUX: x86_64
-          # arm64 and universal2 wheels are currently broken, see
-          # https://github.com/scikit-build/scikit-build/pull/530
-          CIBW_ARCHS_MACOS: universal2
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_TEST_COMMAND: $([[ -f /usr/bin/sudo ]] && echo "sudo") pytest --log-cli-level=DEBUG {project}/python/tests
-          CIBW_TEST_REQUIRES: pytest pytest-asyncio
           MACOSX_DEPLOYMENT_TARGET: 10.15
           MAKEFLAGS: -j8
       - name: Publish to PyPI
