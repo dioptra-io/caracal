@@ -2,8 +2,7 @@ name: Docker Hub
 
 on:
   push:
-    tags:
-      - "*"
+    tags: [ '*' ]
 
 jobs:
   build:
