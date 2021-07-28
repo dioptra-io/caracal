@@ -30,8 +30,17 @@ Sniffer::Sniffer(const std::string &interface_name,
       caracal_id_{caracal_id},
       integrity_check_{integrity_check} {
   Tins::NetworkInterface interface{interface_name};
+
+  std::vector<std::string> address_filters;
+  for (auto address : Utilities::all_ipv4_for(interface)) {
+    address_filters.push_back(fmt::format("dst {}", address.to_string()));
+  }
+  for (auto address : Utilities::all_ipv6_for(interface)) {
+    address_filters.push_back(fmt::format("dst {}", address.to_string()));
+  }
+
   auto filter_template =
-      "(dst {} or dst {}) and (icmp or icmp6) and ("
+      "({}) and (icmp or icmp6) and ("
       "icmp[icmptype] = icmp-echoreply or"
       " icmp[icmptype] = icmp-timxceed or"
       " icmp[icmptype] = icmp-unreach or"
@@ -39,9 +48,8 @@ Sniffer::Sniffer(const std::string &interface_name,
       " icmp6[icmp6type] = icmp6-timeexceeded or"
       " icmp6[icmp6type] = icmp6-destinationunreach"
       ")";
-  auto filter = fmt::format(filter_template,
-                            Utilities::source_ipv4_for(interface).to_string(),
-                            Utilities::source_ipv6_for(interface).to_string());
+  auto filter =
+      fmt::format(filter_template, fmt::join(address_filters, " or "));
   spdlog::info("sniffer_filter={}", filter);
 
   Tins::SnifferConfiguration config;
@@ -114,6 +122,6 @@ pcap_stat Sniffer::pcap_statistics() noexcept {
   pcap_stat ps{};
   pcap_stats(sniffer_.get_pcap_handle(), &ps);
   return ps;
-};
+}
 
 }  // namespace caracal
