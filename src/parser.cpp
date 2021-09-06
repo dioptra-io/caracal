@@ -93,7 +93,7 @@ void parse_inner(Reply& reply, const Tins::ICMP* icmp,
   reply.probe_protocol = IPPROTO_ICMP;
   reply.probe_src_port = icmp->id();
   reply.probe_dst_port = 0;  // Not encoded in ICMP probes.
-  reply.rtt = Timestamp::difference(timestamp, icmp->sequence()) / 10.0;
+  reply.rtt = Timestamp::difference(timestamp, icmp->sequence());
 }
 
 void parse_inner(Reply& reply, const Tins::ICMPv6* icmp,
@@ -101,7 +101,7 @@ void parse_inner(Reply& reply, const Tins::ICMPv6* icmp,
   reply.probe_protocol = IPPROTO_ICMPV6;
   reply.probe_src_port = icmp->identifier();
   reply.probe_dst_port = 0;  // Not encoded in ICMP probes.
-  reply.rtt = Timestamp::difference(timestamp, icmp->sequence()) / 10.0;
+  reply.rtt = Timestamp::difference(timestamp, icmp->sequence());
 }
 
 void parse_inner(Reply& reply, const Tins::UDP* udp,
@@ -110,7 +110,7 @@ void parse_inner(Reply& reply, const Tins::UDP* udp,
   reply.probe_src_port = udp->sport();
   reply.probe_dst_port = udp->dport();
   reply.probe_ttl = udp->length() - sizeof(udphdr) - PAYLOAD_TWEAK_BYTES;
-  reply.rtt = Timestamp::difference(timestamp, udp->checksum()) / 10.0;
+  reply.rtt = Timestamp::difference(timestamp, udp->checksum());
 }
 
 // Retrieve the TTL encoded in the ICMP payload length.

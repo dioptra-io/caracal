@@ -11,7 +11,7 @@
 namespace caracal {
 
 std::string Reply::to_csv() const {
-  return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{:.1f}",
+  return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{}",
                      probe_protocol, reply_dst_addr, probe_dst_addr,
                      probe_src_port, probe_dst_port, probe_ttl, quoted_ttl,
                      reply_src_addr, reply_protocol, reply_icmp_type,
@@ -59,7 +59,7 @@ std::ostream& operator<<(std::ostream& os, Reply const& v) {
   os << " probe_src_port=" << v.probe_src_port;
   os << " probe_dst_port=" << v.probe_dst_port;
   os << " quoted_ttl=" << +v.quoted_ttl;
-  os << " rtt=" << v.rtt;
+  os << " rtt=" << v.rtt / 10.0;
   return os;
 }
 

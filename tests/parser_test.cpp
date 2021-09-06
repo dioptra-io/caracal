@@ -54,7 +54,7 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(reply.probe_src_port == 24000);
     REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.quoted_ttl == 1);
-    REQUIRE(reply.rtt == 6.6);
+    REQUIRE(reply.rtt == 66);
     REQUIRE(reply.is_icmp_time_exceeded());
   }
 
@@ -81,7 +81,7 @@ TEST_CASE("Parser::parse/ICMP") {
     // The sequence number in the inner ICMP header of this reply
     // is different from the one in the probe packet, so we cannot
     // recover the RTT.
-    // REQUIRE(reply.rtt == 55.3);
+    // REQUIRE(reply.rtt == 553);
     REQUIRE(reply.quoted_ttl == 1);
     REQUIRE(reply.is_icmp_time_exceeded());
   }
@@ -106,7 +106,7 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(reply.probe_src_port == 24000);
     REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.quoted_ttl == 0);
-    REQUIRE(reply.rtt == 6.9);
+    REQUIRE(reply.rtt == 69);
     REQUIRE(!reply.is_icmp_time_exceeded());
   }
 }
@@ -133,7 +133,7 @@ TEST_CASE("Parser::parse/ICMPv6") {
     REQUIRE(reply.probe_src_port == 24000);
     REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.quoted_ttl == 1);
-    REQUIRE(reply.rtt == 0.6);
+    REQUIRE(reply.rtt == 6);
     REQUIRE(reply.is_icmp_time_exceeded());
   }
 
@@ -158,7 +158,7 @@ TEST_CASE("Parser::parse/ICMPv6") {
     REQUIRE(reply.probe_src_port == 24000);
     REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.quoted_ttl == 0);
-    REQUIRE(reply.rtt == 1.3);
+    REQUIRE(reply.rtt == 13);
     REQUIRE(!reply.is_icmp_time_exceeded());
   }
 }
@@ -185,7 +185,7 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(reply.probe_src_port == 24000);
     REQUIRE(reply.probe_dst_port == 33434);
     REQUIRE(reply.quoted_ttl == 1);
-    REQUIRE(reply.rtt == 8.3);
+    REQUIRE(reply.rtt == 83);
     REQUIRE(reply.is_icmp_time_exceeded());
   }
 
@@ -210,7 +210,7 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(reply.probe_src_port == 24000);
     REQUIRE(reply.probe_dst_port == 33434);
     REQUIRE(reply.quoted_ttl == 1);
-    REQUIRE(reply.rtt == 0.6);
+    REQUIRE(reply.rtt == 6);
     REQUIRE(reply.is_icmp_time_exceeded());
   }
 }

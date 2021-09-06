@@ -54,7 +54,7 @@ struct Reply {
 
   /// @name Estimated attributes
   /// @{
-  double rtt;  ///< The estimated round-trip time, in milliseconds.
+  uint16_t rtt;  ///< The estimated round-trip time, in tenth of milliseconds.
   /// @}
 
   /// Compute the caracal checksum used to verify the reply integrity.
