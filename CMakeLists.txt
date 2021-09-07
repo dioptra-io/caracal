@@ -39,8 +39,6 @@ if(WITH_CONAN)
     BUILD
     b2
     missing
-    REMOTE
-    conan-center
     SETTINGS
     ${settings}
     build_type=Release
