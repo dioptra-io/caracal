@@ -33,15 +33,24 @@ def test_prober():
         Probe(ip_address("8.8.8.8"), 24000, 33434, 32, protocols.L4.UDP),
     ]
     set_log_level(logging.DEBUG)
-    prober_stats, sniffer_stats = prober.probe(config, [])
+    prober_stats, sniffer_stats, pcap_stats = prober.probe(config, [])
     assert prober_stats.read == 0
-    prober_stats, sniffer_stats = prober.probe(config, probes)
+    assert pcap_stats.received >= sniffer_stats.received_count
+    assert pcap_stats.dropped == 0
+    assert pcap_stats.interface_dropped == 0
+    prober_stats, sniffer_stats, pcap_stats = prober.probe(config, probes)
     assert prober_stats.read == 4
     assert prober_stats.sent == 4
+    assert pcap_stats.received >= sniffer_stats.received_count
+    assert pcap_stats.dropped == 0
+    assert pcap_stats.interface_dropped == 0
     # This is flaky on GitHub Actions...
     # assert sniffer_stats.received_count >= 1
     input_file = Path("zzz_input.csv")
     input_file.write_text("\n".join(probe.to_csv() for probe in probes))
-    prober_stats, sniffer_stats = prober.probe(config, str(input_file))
+    prober_stats, sniffer_stats, pcap_stats = prober.probe(config, str(input_file))
     assert prober_stats.read == 4
     assert prober_stats.sent == 4
+    assert pcap_stats.received >= sniffer_stats.received_count
+    assert pcap_stats.dropped == 0
+    assert pcap_stats.interface_dropped == 0

@@ -1,10 +1,12 @@
 #define PY_SSIZE_T_CLEAN
 
+#include <pcap.h>
 #include <pybind11/pybind11.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 
+#include <caracal/pretty.hpp>
 #include <caracal/probe.hpp>
 #include <caracal/prober.hpp>
 #include <caracal/prober_config.hpp>
@@ -135,4 +137,10 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def_readonly("received_invalid_count",
                     &Statistics::Sniffer::received_invalid_count)
       .def("__str__", fmt::to_string<Statistics::Sniffer>);
+
+  py::class_<pcap_stat>(m_statistics, "PCAP")
+      .def_readonly("received", &pcap_stat::ps_recv)
+      .def_readonly("dropped", &pcap_stat::ps_drop)
+      .def_readonly("interface_dropped", &pcap_stat::ps_ifdrop)
+      .def("__str__", fmt::to_string<pcap_stat>);
 }

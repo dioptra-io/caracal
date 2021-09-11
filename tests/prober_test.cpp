@@ -60,7 +60,8 @@ TEST_CASE("Prober::probe") {
   spdlog::cfg::helpers::load_levels("trace");
 
   SECTION("Base case") {
-    auto [prober_stats, sniffer_stats] = probe(config, "zzz_input.csv");
+    auto [prober_stats, sniffer_stats, pcap_stats] =
+        probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.read == 6);
     REQUIRE(prober_stats.sent == 6);
     REQUIRE(prober_stats.filtered_lo_ttl == 1);
@@ -81,7 +82,8 @@ TEST_CASE("Prober::probe") {
     ofs << "8.8.0.0/16";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats] = probe(config, "zzz_input.csv");
+    auto [prober_stats, sniffer_stats, pcap_stats] =
+        probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.sent == 6);
     if (is_github) {
       REQUIRE(sniffer_stats.received_count >= 1);
@@ -97,7 +99,8 @@ TEST_CASE("Prober::probe") {
     ofs << "";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats] = probe(config, "zzz_input.csv");
+    auto [prober_stats, sniffer_stats, pcap_stats] =
+        probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.sent == 9);
     if (is_github) {
       REQUIRE(sniffer_stats.received_count >= 1);
@@ -113,7 +116,8 @@ TEST_CASE("Prober::probe") {
     ofs << "";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats] = probe(config, "zzz_input.csv");
+    auto [prober_stats, sniffer_stats, pcap_stats] =
+        probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.sent == 0);
     REQUIRE(sniffer_stats.received_count == 0);
     REQUIRE(sniffer_stats.received_invalid_count == 0);

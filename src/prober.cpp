@@ -145,7 +145,7 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
   stats_thread.join();
   log_stats();
 
-  return {stats, sniffer.statistics()};
+  return {stats, sniffer.statistics(), sniffer.pcap_statistics()};
 }
 
 ProbingStatistics probe(const Config& config, std::istream& is) {
