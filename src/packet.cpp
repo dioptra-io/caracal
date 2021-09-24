@@ -76,7 +76,7 @@ Packet::Packet(std::byte* buffer, const size_t buffer_len,
     throw std::invalid_argument{"Packet buffer is too small"};
   }
 
-  if ((end_ - begin_) > std::numeric_limits<uint16_t>::max()) {
+  if ((end_ - begin_) > 65535) {
     throw std::invalid_argument("Packet is too large");
   }
 }
