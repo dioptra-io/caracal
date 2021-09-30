@@ -27,8 +27,8 @@ uint16_t Reply::checksum(uint32_t caracal_id) const {
 
 bool Reply::is_valid(uint32_t caracal_id) const {
   // Currently, we only validate IPv4 ICMP time exceeded and destination
-  // unreachable messages. We cannot validate echo messages as they do not
-  // contain the dest. addr., src. port and TTL of the probe.
+  // unreachable messages. We cannot validate echo replies as they do not
+  // contain the probe_id field contained in the source IP header.
   // TODO: IPv6 support?
   if (reply_protocol == IPPROTO_ICMP &&
       (reply_icmp_type == 3 || reply_icmp_type == 11)) {
