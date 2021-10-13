@@ -28,10 +28,8 @@ jobs:
             --workdir /tmp/build-debug \
             debug \
             cmake --build . --target coverage --parallel 8
-      - name: Upload coverage
-        run: |
-          docker cp debug:/tmp/build-debug/coverage.xml .
-          bash <(curl -s https://codecov.io/bash)
+      - run: docker cp debug:/tmp/build-debug/coverage.xml .
+      - uses: codecov/codecov-action@v2
       - name: Copy documentation
         run: docker cp debug:/tmp/build-debug/html html
       - name: Upload documentation
