@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 build = ["cp38-*", "cp39-*"]
+build-verbosity = 3
 manylinux-x86_64-image = "manylinux2014"
 test-command = "$([[ -f /usr/bin/sudo ]] && echo 'sudo') pytest --log-cli-level=DEBUG {project}/python/tests"
 test-requires = ["pytest", "pytest-asyncio"]
