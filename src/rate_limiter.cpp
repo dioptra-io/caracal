@@ -82,14 +82,4 @@ nanoseconds RateLimiter::sleep_precision() noexcept {
   return worst_case;
 }
 
-bool RateLimiter::test(uint64_t target_rate) noexcept {
-  RateLimiter rl{target_rate};
-  auto start = steady_clock::now();
-  for (unsigned int i = 0; i < target_rate; i++) {
-    rl.wait();
-  }
-  auto delta = duration_cast<milliseconds>(steady_clock::now() - start);
-  return (delta > milliseconds{800}) && (delta < milliseconds{1200});
-}
-
 }  // namespace caracal
