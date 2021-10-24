@@ -3,15 +3,21 @@ requires = ["setuptools", "setuptools_scm[toml]>=6.0", "wheel", "scikit-build", 
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-build = ["cp38-*", "cp39-*"]
-manylinux-x86_64-image = "manylinux2014"
+build = ["cp38-*", "cp39-*", "cp310-*"]
+# To build with musl libc we need https://github.com/rmind/liblpm/pull/18
+skip = ["*-musllinux_*"]
+# `2021-08-01-bce1ff9` is the latest version that uses GCC 9.
+# The current version with GCC 10 has a bug where it references `pthread_cond_clockwait`
+# in the built binary even though it doesn't exists in the bundled libpthread version.
+#   python -c 'import pycaracal'
+#   ImportError: /tmp/tmp.KMYaIL4OLy/lib/python3.8/site-packages/pycaracal/_pycaracal.cpython-38-x86_64-linux-gnu.so: undefined symbol: pthread_cond_clockwait
+manylinux-x86_64-image = "quay.io/pypa/manylinux2014_x86_64:2021-08-01-bce1ff9"
 test-command = "$([[ -f /usr/bin/sudo ]] && echo 'sudo') pytest --log-cli-level=DEBUG {project}/python/tests"
 test-requires = ["pytest", "pytest-asyncio"]
 
 [tool.cibuildwheel.linux]
+# aarch64 on GitHub CI requires emulation, which is extremely slow...
 archs = ["x86_64"]
 
 [tool.cibuildwheel.macos]
-# universal2 wheels are currently broken, see
-# https://github.com/scikit-build/scikit-build/pull/530
 archs = ["universal2"]
