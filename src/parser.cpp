@@ -68,6 +68,7 @@ void parse_outer(Reply& reply, const Tins::ICMPv6* icmp) noexcept {
 
 void parse_outer(Reply& reply, const Tins::ICMPExtension& ext) noexcept {
   // MPLS Label Stack, see https://tools.ietf.org/html/rfc4950 (sec. 7)
+  // TODO: Do we need to iterate the stack?
   if (ext.extension_class() == 1 && ext.extension_type() == 1) {
     Tins::MPLS mpls(ext);
     reply.reply_mpls_labels.push_back(mpls.label());
