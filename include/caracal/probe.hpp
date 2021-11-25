@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 
+#include <array>
 #include <string>
 
 #include "protocols.hpp"
@@ -15,6 +16,8 @@ struct Probe {
   uint16_t dst_port;       ///< Destination port (host order)
   uint8_t ttl;             ///< Time-to-live
   Protocols::L4 protocol;  ///< Protocol
+  std::array<in_addr, 4>
+      tsprespec;  ///< IPv4 timestamp option pre-specified addresses.
 
   [[nodiscard]] static Probe from_csv(const std::string &line);
 

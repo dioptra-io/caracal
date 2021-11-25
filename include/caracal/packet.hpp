@@ -9,7 +9,7 @@ class Packet {
  public:
   Packet(std::byte *buffer, size_t buffer_len, Protocols::L2 l2_protocol,
          Protocols::L3 l3_protocol, Protocols::L4 l4_protocol,
-         size_t payload_size);
+         size_t payload_size, bool with_ip_timestamp);
 
   /// A pointer to the first byte of the packet (may include padding bytes).
   [[nodiscard]] std::byte *begin() const noexcept;

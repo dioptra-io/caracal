@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace caracal {
@@ -16,6 +18,7 @@ struct Reply {
                             ///< For IPv6 this doesn't include the IP header.
   uint8_t reply_ttl;        ///< The TTL of the reply packet.
   uint8_t reply_protocol;   ///< The L3 protocol of the reply.
+  std::array<std::pair<in_addr, uint32_t>, 4> reply_timestamps;
   /// @}
 
   /// @name Reply attributes (IP → ICMP)

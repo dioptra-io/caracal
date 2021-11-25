@@ -87,7 +87,8 @@ TEST_CASE("Builder::ICMP") {
                 Protocols::L4::ICMP,     payload_len};
 
   Ethernet::init(packet, {0}, {0});
-  IPv4::init(packet, src_addr, dst_addr, ttl, probe_id);
+  IPv4::init(packet, src_addr, dst_addr, ttl, probe_id,
+             std::array<in_addr, 4>{});
   ICMP::init(packet, flow_id, timestamp_enc);
 
   REQUIRE(validate_ip_checksum(packet));
@@ -109,7 +110,8 @@ TEST_CASE("Builder::ICMP") {
                   Protocols::L2::Ethernet, Protocols::L3::IPv4,
                   Protocols::L4::ICMP,     payload_len};
     Ethernet::init(packet, {0}, {0});
-    IPv4::init(packet, src_addr, dst_addr, ttl, probe_id);
+    IPv4::init(packet, src_addr, dst_addr, ttl, probe_id,
+               std::array<in_addr, 4>{});
     ICMP::init(packet, flow_id, timestamp_enc);
     return packet;
   };
@@ -166,7 +168,8 @@ TEST_CASE("Builder::UDP/v4") {
                 Protocols::L4::UDP,      payload_len};
 
   Ethernet::init(packet, {0}, {0});
-  IPv4::init(packet, src_addr, dst_addr, ttl, probe_id);
+  IPv4::init(packet, src_addr, dst_addr, ttl, probe_id,
+             std::array<in_addr, 4>{});
   UDP::init(packet, timestamp_enc, src_port, dst_port);
 
   REQUIRE(validate_ip_checksum(packet));
@@ -188,7 +191,8 @@ TEST_CASE("Builder::UDP/v4") {
                   Protocols::L2::Ethernet, Protocols::L3::IPv4,
                   Protocols::L4::UDP,      payload_len};
     Ethernet::init(packet, {0}, {0});
-    IPv4::init(packet, src_addr, dst_addr, ttl, probe_id);
+    IPv4::init(packet, src_addr, dst_addr, ttl, probe_id,
+               std::array<in_addr, 4>{});
     UDP::init(packet, timestamp_enc, src_port, dst_port);
     return packet;
   };

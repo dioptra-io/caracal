@@ -115,8 +115,13 @@ void Sender::send(const Probe &probe) {
   const uint16_t timestamp_enc = Timestamp::encode(timestamp);
 
   const uint16_t payload_length = probe.ttl + PAYLOAD_TWEAK_BYTES;
-  const Packet packet{buffer_.data(), buffer_.size(), l2_protocol_,
-                      l3_protocol,    l4_protocol,    payload_length};
+  const Packet packet{buffer_.data(),
+                      buffer_.size(),
+                      l2_protocol_,
+                      l3_protocol,
+                      l4_protocol,
+                      payload_length,
+                      probe.tsprespec[0].s_addr != 0};
 
   std::fill(packet.begin(), packet.end(), std::byte{0});
 
@@ -137,7 +142,7 @@ void Sender::send(const Probe &probe) {
     case Protocols::L3::IPv4:
       Builder::IPv4::init(packet, src_ip_v4_.sin_addr,
                           probe.sockaddr4().sin_addr, probe.ttl,
-                          probe.checksum(caracal_id_));
+                          probe.checksum(caracal_id_), probe.tsprespec);
       break;
 
     case Protocols::L3::IPv6:

@@ -12,6 +12,8 @@ void parse_outer(Reply& reply, Tins::IP* ip) noexcept;
 
 void parse_outer(Reply& reply, Tins::IPv6* ip) noexcept;
 
+void parse_outer(Reply& reply, const Tins::IP::option& opt) noexcept;
+
 void parse_outer(Reply& reply, Tins::ICMP* icmp) noexcept;
 
 void parse_outer(Reply& reply, Tins::ICMPv6* icmp) noexcept;

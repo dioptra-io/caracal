@@ -79,7 +79,8 @@ void init(Packet packet, const std::array<uint8_t, ETHER_ADDR_LEN> &src_addr,
 namespace caracal::Builder::IPv4 {
 
 void init(Packet packet, const in_addr src_addr, const in_addr dst_addr,
-          const uint8_t ttl, const uint16_t id) {
+          const uint8_t ttl, const uint16_t id,
+          std::array<in_addr, 4> tsprespec) {
   auto ip_header = reinterpret_cast<ip *>(packet.l3());
   ip_header->ip_hl = 5;
   ip_header->ip_v = 4;
@@ -90,8 +91,28 @@ void init(Packet packet, const in_addr src_addr, const in_addr dst_addr,
   ip_header->ip_ttl = ttl;
   ip_header->ip_id = htons(id);
   ip_header->ip_len = htons(packet.l3_size());
+  if (tsprespec[0].s_addr != 0) {
+    ip_header->ip_hl += 9;
+    auto ipt_header =
+        reinterpret_cast<ip_timestamp *>(packet.l3() + sizeof(ip));
+    ipt_header->ipt_code = IPOPT_TS;
+    ipt_header->ipt_len = 4 + (4 * 8);
+    ipt_header->ipt_ptr = 5;
+    ipt_header->ipt_oflw = 0;
+    ipt_header->ipt_flg = IPOPT_TS_PRESPEC;
+    struct ipt_data {
+      uint32_t ipt_addr;
+      uint32_t ipt_time;
+    };
+    for (size_t i = 0; i < 4; i++) {
+      auto data = reinterpret_cast<ipt_data *>(packet.l3() + sizeof(ip) + 4 +
+                                               (i * sizeof(ipt_data)));
+      data->ipt_addr = tsprespec[i].s_addr;
+      data->ipt_time = 0;
+    }
+  }
   ip_header->ip_sum = 0;
-  ip_header->ip_sum = Checksum::ip_checksum(ip_header, sizeof(ip));
+  ip_header->ip_sum = Checksum::ip_checksum(ip_header, ip_header->ip_hl * 4);
 }
 
 }  // namespace caracal::Builder::IPv4

@@ -56,7 +56,7 @@ namespace caracal::Builder::IPv4 {
 /// @param ttl the TTL.
 /// @param id the value of the ID field.
 void init(Packet packet, in_addr src_addr, in_addr dst_addr, uint8_t ttl,
-          uint16_t id);
+          uint16_t id, std::array<in_addr, 4> tsprespec);
 
 }  // namespace caracal::Builder::IPv4
 

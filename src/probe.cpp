@@ -34,12 +34,22 @@ Probe Probe::from_csv(const std::string &line) {
         break;
       case 4:
         probe.protocol = Protocols::l4_from_string(token);
+        break;
+      case 5:
+      case 6:
+      case 7:
+      case 8:
+        if (inet_pton(AF_INET, token.c_str(), &probe.tsprespec[index - 5]) !=
+            1) {
+          throw std::runtime_error("Invalid IPv4 address: " + token);
+        }
+        break;
       default:
         break;
     }
     index++;
   }
-  if (index != 5) {
+  if (index < 4 || index > 9) {
     throw std::runtime_error("Invalid CSV line: " + line);
   }
   return probe;

@@ -39,6 +39,9 @@ void parse_outer(Reply& reply, const Tins::IP* ip) noexcept {
   copy(ip->dst_addr(), reply.reply_dst_addr);
   reply.reply_size = ip->tot_len();
   reply.reply_ttl = ip->ttl();
+  for (const auto& opt : ip->options()) {
+    parse_outer(reply, opt);
+  }
 }
 
 void parse_outer(Reply& reply, const Tins::IPv6* ip) noexcept {
@@ -46,6 +49,25 @@ void parse_outer(Reply& reply, const Tins::IPv6* ip) noexcept {
   copy(ip->dst_addr(), reply.reply_dst_addr);
   reply.reply_size = ip->payload_length();
   reply.reply_ttl = static_cast<uint8_t>(ip->hop_limit());
+}
+
+void parse_outer(Reply& reply, const Tins::IP::option& opt) noexcept {
+  if (opt.option().number == Tins::IP::OptionNumber::TIMESTAMP) {
+    const size_t n_entries = (opt.data_size() - 2) / 8;
+    struct ipt_data {
+      uint32_t ipt_addr;
+      uint32_t ipt_time;
+    };
+    for (size_t i = 0; i < n_entries; i++) {
+      // SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior
+      // runtime error: load of misaligned address 0x000106b04d16 for type
+      // 'const unsigned int', which requires 4 byte alignment
+      const auto data =
+          reinterpret_cast<const ipt_data*>(opt.data_ptr() + 2 + (i * 8));
+      reply.reply_timestamps[i] =
+          std::pair(in_addr{data->ipt_addr}, ntohl(data->ipt_time));
+    }
+  }
 }
 
 void parse_outer(Reply& reply, const Tins::ICMP* icmp) noexcept {
@@ -68,6 +90,7 @@ void parse_outer(Reply& reply, const Tins::ICMPv6* icmp) noexcept {
 
 void parse_outer(Reply& reply, const Tins::ICMPExtension& ext) noexcept {
   // MPLS Label Stack, see https://tools.ietf.org/html/rfc4950 (sec. 7)
+  // TODO: Do we need to iterate the stack?
   if (ext.extension_class() == 1 && ext.extension_type() == 1) {
     Tins::MPLS mpls(ext);
     reply.reply_mpls_labels.push_back(mpls.label());
