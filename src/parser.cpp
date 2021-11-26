@@ -34,6 +34,18 @@ void copy(const Tins::IPv6Address& src, in6_addr& dst) noexcept {
   src.copy(dst.s6_addr);
 }
 
+uint32_t fix_timestamp(const uint32_t originate_timestamp_be,
+                       const uint32_t timestamp) noexcept {
+  // We know that we've encoded our timestamp since midnight UTC in ms in BE.
+  // Choose whichever is the closest to us.
+  if (abs(int64_t(originate_timestamp_be) - int64_t(timestamp)) <
+      abs(int64_t(ntohl(timestamp)) - int64_t(timestamp))) {
+    return timestamp;
+  } else {
+    return ntohl(timestamp);
+  }
+}
+
 void parse_outer(Reply& reply, const Tins::IP* ip) noexcept {
   copy(ip->src_addr(), reply.reply_src_addr);
   copy(ip->dst_addr(), reply.reply_dst_addr);
@@ -74,6 +86,13 @@ void parse_outer(Reply& reply, const Tins::ICMP* icmp) noexcept {
   reply.reply_protocol = IPPROTO_ICMP;
   reply.reply_icmp_code = icmp->code();
   reply.reply_icmp_type = static_cast<uint8_t>(icmp->type());
+  if (icmp->type() == Tins::ICMP::Flags::TIMESTAMP_REPLY) {
+    reply.reply_originate_timestamp = htonl(icmp->original_timestamp());
+    reply.reply_receive_timestamp = fix_timestamp(
+        htonl(icmp->original_timestamp()), htonl(icmp->receive_timestamp()));
+    reply.reply_transmit_timestamp = fix_timestamp(
+        htonl(icmp->original_timestamp()), htonl(icmp->transmit_timestamp()));
+  }
   for (const auto& ext : icmp->extensions().extensions()) {
     parse_outer(reply, ext);
   }
@@ -117,6 +136,13 @@ void parse_inner(Reply& reply, const Tins::ICMP* icmp,
   reply.probe_src_port = icmp->id();
   reply.probe_dst_port = 0;  // Not encoded in ICMP probes.
   reply.rtt = Timestamp::difference(timestamp, icmp->sequence());
+  if (icmp->type() == Tins::ICMP::Flags::TIMESTAMP_REQUEST) {
+    reply.reply_originate_timestamp = htonl(icmp->original_timestamp());
+    reply.reply_receive_timestamp = fix_timestamp(
+        htonl(icmp->original_timestamp()), htonl(icmp->receive_timestamp()));
+    reply.reply_transmit_timestamp = fix_timestamp(
+        htonl(icmp->original_timestamp()), htonl(icmp->transmit_timestamp()));
+  }
 }
 
 void parse_inner(Reply& reply, const Tins::ICMPv6* icmp,
@@ -137,9 +163,15 @@ void parse_inner(Reply& reply, const Tins::UDP* udp,
 }
 
 // Retrieve the TTL encoded in the ICMP payload length.
-void parse_inner_ttl_icmp(Reply& reply, const Tins::IP* ip) noexcept {
+void parse_inner_ttl_icmp(Reply& reply, const Tins::IP* ip,
+                          const Tins::ICMP* icmp) noexcept {
+  auto icmp_header_size = 8;
+  if (icmp->type() == Tins::ICMP::Flags::TIMESTAMP_REQUEST ||
+      icmp->type() == Tins::ICMP::Flags::TIMESTAMP_REPLY) {
+    icmp_header_size = 20;
+  }
   reply.probe_ttl =
-      ip->tot_len() - sizeof(ip_hdr) - ICMP_HEADER_SIZE - PAYLOAD_TWEAK_BYTES;
+      ip->tot_len() - sizeof(ip_hdr) - icmp_header_size - PAYLOAD_TWEAK_BYTES;
 }
 
 void parse_inner_ttl_icmp(Reply& reply, const Tins::IPv6* ip) noexcept {
@@ -188,7 +220,7 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
       if (inner_icmp) {
         // IPv4 → ICMPv4 → IPv4 → ICMPv4
         parse_inner(reply, inner_icmp, timestamp);
-        parse_inner_ttl_icmp(reply, &inner_ip.value());
+        parse_inner_ttl_icmp(reply, &inner_ip.value(), inner_icmp);
       } else if (inner_udp) {
         // IPv4 → ICMPv4 → IPv4 → UDP
         parse_inner(reply, inner_udp, timestamp);
@@ -230,7 +262,16 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
     // IPv4 → ICMPv4
     parse_outer(reply, icmp4);
     parse_inner(reply, icmp4, timestamp);
-    parse_inner_ttl_icmp(reply, ip4);
+    parse_inner_ttl_icmp(reply, ip4, icmp4);
+    return reply;
+  }
+
+  // ICMPv4 Timestamp Reply
+  if (icmp4 && (icmp4->type() == Tins::ICMP::TIMESTAMP_REPLY)) {
+    // IPv4 → ICMPv4
+    parse_outer(reply, icmp4);
+    parse_inner(reply, icmp4, timestamp);
+    parse_inner_ttl_icmp(reply, ip4, icmp4);
     return reply;
   }
 

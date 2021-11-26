@@ -110,6 +110,19 @@ void Sender::send(const Probe &probe) {
   const auto l3_protocol = probe.l3_protocol();
   const auto l4_protocol = probe.l4_protocol();
 
+  auto now = system_clock::now();
+  const time_t tnow = std::chrono::system_clock::to_time_t(now);
+  tm *date = std::gmtime(&tnow);
+  now = std::chrono::system_clock::from_time_t(std::mktime(date));
+  date->tm_hour = 0;
+  date->tm_min = 0;
+  date->tm_sec = 0;
+  const auto midnight =
+      std::chrono::system_clock::from_time_t(std::mktime(date));
+  const uint32_t originate_timestamp =
+      std::chrono::duration_cast<std::chrono::milliseconds>((now - midnight))
+          .count();
+
   const uint64_t timestamp =
       Timestamp::cast<Timestamp::tenth_ms>(system_clock::now());
   const uint16_t timestamp_enc = Timestamp::encode(timestamp);
@@ -154,6 +167,11 @@ void Sender::send(const Probe &probe) {
   switch (l4_protocol) {
     case Protocols::L4::ICMP:
       Builder::ICMP::init(packet, probe.src_port, timestamp_enc);
+      break;
+
+    case Protocols::L4::ICMPTS:
+      Builder::ICMPTS::init(packet, probe.src_port, timestamp_enc,
+                            originate_timestamp);
       break;
 
     case Protocols::L4::ICMPv6:

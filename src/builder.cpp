@@ -142,23 +142,43 @@ namespace caracal::Builder::ICMP {
 void init(Packet packet, const uint16_t target_checksum,
           const uint16_t target_sequence) {
   assert_payload_size(packet, PAYLOAD_TWEAK_BYTES);
-
   auto icmp_header = reinterpret_cast<icmp *>(packet.l4());
-  icmp_header->icmp_type = 8;  // ICMP Echo Request
-  icmp_header->icmp_code = 0;  // ICMP Echo Request
+  icmp_header->icmp_type = ICMP_ECHO;  // ICMP Echo Request
+  icmp_header->icmp_code = 0;          // ICMP Echo Request
   icmp_header->icmp_cksum = 0;
   icmp_header->icmp_hun.ih_idseq.icd_id = htons(target_checksum);
   icmp_header->icmp_hun.ih_idseq.icd_seq = htons(target_sequence);
-
   // Encode the flow ID in the checksum.
-  const uint16_t original_checksum =
-      Checksum::ip_checksum(icmp_header, ICMP_HEADER_SIZE);
+  const uint16_t original_checksum = Checksum::ip_checksum(icmp_header, 8);
   *reinterpret_cast<uint16_t *>(packet.payload()) =
       tweak_payload(original_checksum, htons(target_checksum));
   icmp_header->icmp_cksum = htons(target_checksum);
 }
 
 }  // namespace caracal::Builder::ICMP
+
+namespace caracal::Builder::ICMPTS {
+
+void init(Packet packet, const uint16_t target_checksum,
+          const uint16_t target_sequence, const uint32_t originate_timestamp) {
+  assert_payload_size(packet, PAYLOAD_TWEAK_BYTES);
+  auto icmp_header = reinterpret_cast<icmp *>(packet.l4());
+  icmp_header->icmp_type = ICMP_TSTAMP;
+  icmp_header->icmp_code = 0;
+  icmp_header->icmp_cksum = 0;
+  icmp_header->icmp_hun.ih_idseq.icd_id = htons(target_checksum);
+  icmp_header->icmp_hun.ih_idseq.icd_seq = htons(target_sequence);
+  icmp_header->icmp_dun.id_ts.its_otime = htonl(originate_timestamp);
+  icmp_header->icmp_dun.id_ts.its_rtime = 0;
+  icmp_header->icmp_dun.id_ts.its_ttime = 0;
+  // Encode the flow ID in the checksum.
+  const uint16_t original_checksum = Checksum::ip_checksum(icmp_header, 20);
+  *reinterpret_cast<uint16_t *>(packet.payload()) =
+      tweak_payload(original_checksum, htons(target_checksum));
+  icmp_header->icmp_cksum = htons(target_checksum);
+}
+
+}  // namespace caracal::Builder::ICMPTS
 
 namespace caracal::Builder::ICMPv6 {
 

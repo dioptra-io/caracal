@@ -8,7 +8,7 @@ namespace caracal::Protocols {
 
 enum class L2 { None, BSDLoopback, Ethernet };
 enum class L3 { IPv4, IPv6 };
-enum class L4 { ICMP, ICMPv6, UDP };
+enum class L4 { ICMP, ICMPTS, ICMPv6, UDP };
 
 /// Layer 3 protocol constant (e.g. IPPROTO_IP).
 uint8_t posix_value(L3 const &v);

@@ -25,6 +25,9 @@ struct Reply {
   /// @{
   uint8_t reply_icmp_type;  ///< ICMP type (0 if not an ICMP reply)
   uint8_t reply_icmp_code;  ///< ICMP code (0 if not an ICMP reply)
+  uint32_t reply_originate_timestamp;
+  uint32_t reply_receive_timestamp;
+  uint32_t reply_transmit_timestamp;
   std::vector<uint32_t> reply_mpls_labels;  ///< MPLS labels contained in the
                                             ///< ICMP extension.
   /// @}

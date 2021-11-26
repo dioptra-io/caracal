@@ -42,6 +42,7 @@ Sniffer::Sniffer(const std::string &interface_name,
   auto filter_template =
       "({}) and (icmp or icmp6) and ("
       "icmp[icmptype] = icmp-echoreply or"
+      " icmp[icmptype] = icmp-tstampreply or"
       " icmp[icmptype] = icmp-timxceed or"
       " icmp[icmptype] = icmp-unreach or"
       " icmp6[icmp6type] = icmp6-echoreply or"

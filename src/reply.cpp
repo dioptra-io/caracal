@@ -12,16 +12,18 @@ namespace caracal {
 
 std::string Reply::to_csv() const {
   return fmt::format(
-      "{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{},{},{},{},{},{},{},{},"
+      "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{},{},{},{},{},"
+      "{},{},{},"
       "{}",
       probe_protocol, reply_dst_addr, probe_dst_addr, probe_src_port,
       probe_dst_port, probe_ttl, quoted_ttl, reply_src_addr, reply_protocol,
       reply_icmp_type, reply_icmp_code, reply_ttl, reply_size,
-      fmt::join(reply_mpls_labels, ","), reply_timestamps[0].first,
-      reply_timestamps[0].second, reply_timestamps[1].first,
-      reply_timestamps[1].second, reply_timestamps[2].first,
-      reply_timestamps[2].second, reply_timestamps[3].first,
-      reply_timestamps[3].second, rtt);
+      reply_originate_timestamp, reply_receive_timestamp,
+      reply_transmit_timestamp, fmt::join(reply_mpls_labels, ","),
+      reply_timestamps[0].first, reply_timestamps[0].second,
+      reply_timestamps[1].first, reply_timestamps[1].second,
+      reply_timestamps[2].first, reply_timestamps[2].second,
+      reply_timestamps[3].first, reply_timestamps[3].second, rtt);
 }
 
 uint16_t Reply::checksum(uint32_t caracal_id) const {
@@ -54,6 +56,9 @@ std::ostream& operator<<(std::ostream& os, Reply const& v) {
   os << " reply_protocol=" << +v.reply_protocol;
   os << " reply_icmp_code=" << +v.reply_icmp_code;
   os << " reply_icmp_type=" << +v.reply_icmp_type;
+  os << " reply_originate_timestamp=" << v.reply_originate_timestamp;
+  os << " reply_receive_timestamp=" << v.reply_receive_timestamp;
+  os << " reply_transmit_timestamp=" << v.reply_transmit_timestamp;
   os << " reply_mpls_labels="
      << fmt::format("{}", fmt::join(v.reply_mpls_labels, ","));
   for (const auto& entry : v.reply_timestamps) {

@@ -89,6 +89,11 @@ void init(Packet packet, uint16_t target_checksum, uint16_t target_sequence);
 
 }  // namespace caracal::Builder::ICMP
 
+namespace caracal::Builder::ICMPTS {
+void init(Packet packet, uint16_t target_checksum, uint16_t target_sequence,
+          uint32_t originate_timestamp);
+}
+
 /// Build ICMPv6 echo probes.
 namespace caracal::Builder::ICMPv6 {
 

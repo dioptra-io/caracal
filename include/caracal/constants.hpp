@@ -4,7 +4,7 @@
 #define PAYLOAD_TWEAK_BYTES 2
 
 /// `sizeof(icmp)` returns 28, but we use only the 8 byte header.
-#define ICMP_HEADER_SIZE 8
+// #define ICMP_HEADER_SIZE 8
 #define ICMPV6_HEADER_SIZE 8
 
 // in6_addr.s6_addr32 is not defined on macOS.

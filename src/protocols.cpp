@@ -16,6 +16,7 @@ uint8_t posix_value(L3 const &v) {
 uint8_t posix_value(L4 const &v) {
   switch (v) {
     case L4::ICMP:
+    case L4::ICMPTS:
       return IPPROTO_ICMP;
     case L4::ICMPv6:
       return IPPROTO_ICMPV6;
@@ -27,6 +28,8 @@ uint8_t posix_value(L4 const &v) {
 L4 l4_from_string(std::string const &s) {
   if (s == "icmp") {
     return L4::ICMP;
+  } else if (s == "icmpts") {
+    return L4::ICMPTS;
   } else if (s == "icmp6") {
     return L4::ICMPv6;
   } else if (s == "udp") {
@@ -40,6 +43,8 @@ std::string to_string(L4 const &v) {
   switch (v) {
     case L4::ICMP:
       return "icmp";
+    case L4::ICMPTS:
+      return "icmpts";
     case L4::ICMPv6:
       return "icmp6";
     case L4::UDP:

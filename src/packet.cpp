@@ -10,10 +10,9 @@
 
 namespace caracal {
 
-Packet::Packet(std::byte* buffer, const size_t buffer_len,
-               const Protocols::L2 l2_protocol, const Protocols::L3 l3_protocol,
-               const Protocols::L4 l4_protocol, const size_t payload_size,
-               const bool with_ip_timestamp)
+Packet::Packet(std::byte* buffer, size_t buffer_len, Protocols::L2 l2_protocol,
+               Protocols::L3 l3_protocol, Protocols::L4 l4_protocol,
+               size_t payload_size, bool with_ip_timestamp)
     : l2_protocol_{l2_protocol},
       l3_protocol_{l3_protocol},
       l4_protocol_{l4_protocol} {
@@ -57,7 +56,11 @@ Packet::Packet(std::byte* buffer, const size_t buffer_len,
 
   switch (l4_protocol) {
     case Protocols::L4::ICMP:
-      l4_header_size = ICMP_HEADER_SIZE;
+      l4_header_size = 8;
+      break;
+
+    case Protocols::L4::ICMPTS:
+      l4_header_size = 20;
       break;
 
     case Protocols::L4::ICMPv6:
