@@ -3,11 +3,9 @@
 [![CI](https://img.shields.io/github/workflow/status/dioptra-io/caracal/CI?logo=github)](https://github.com/dioptra-io/caracal/actions?query=workflow%3ACI)
 [![codecov](https://img.shields.io/codecov/c/github/dioptra-io/caracal?logo=codecov&logoColor=white)](https://codecov.io/gh/dioptra-io/caracal)
 [![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/caracal/)
-[![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dioptraio/caracal?logo=docker&logoColor=white)](https://hub.docker.com/r/dioptraio/caracal/tags)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/dioptraio/caracal?color=blue&label=image%20version&logo=docker&logoColor=white&sort=semver)](https://hub.docker.com/r/dioptraio/caracal/tags)
 [![PyPI](https://img.shields.io/pypi/v/pycaracal?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/pycaracal/)
 
-Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ achieving probing rates of 1M+ packets per second.
+Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ with Python bindings.
 It runs on Linux and macOS, on x86-64 and ARM64 systems.
 
 ![Demonstration of the prober usage](data/cast.svg)
@@ -16,7 +14,7 @@ It runs on Linux and macOS, on x86-64 and ARM64 systems.
 
 The easiest way to run Caracal is through Docker:
 ```bash
-docker run dioptraio/caracal --help
+docker run ghcr.io/dioptra-io/caracal --help
 ```
 
 If you're using macOS, we recommend to [build the native executable](#building-from-source) as Docker for Mac
@@ -49,7 +47,9 @@ cat probes.txt | caracal
 caracal -i probes.txt
 ```
 
-TODO: Document output format (ZSTD-compressed CSV).
+If an output file is specified with `-o/--output-file-csv`, the parsed replies will be written to a CSV file (see [`Reply::to_csv()`](src/reply.cpp) for the fields).
+If the file name ends with `.zst` (e.g. `results.csv.zst`), the output will be compressed on-the-fly with [Zstandard](https://facebook.github.io/zstd/).
+To get the raw replies in PCAP format, use `--output-file-pcap`.
 
 ### Reply integrity
 
