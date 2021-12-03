@@ -1,0 +1,16 @@
+name: Docker
+on:
+  push:
+    tags: [ '*' ]
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: dioptra-io/publish-docker-action@v1
+        with:
+          password: ${{ secrets.GITHUB_TOKEN }}
+          platforms: linux/amd64,linux/arm64
