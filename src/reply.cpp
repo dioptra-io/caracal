@@ -20,11 +20,11 @@ std::string Reply::to_csv() const {
   std::vector<std::string> mpls_labels_csv;
   std::transform(reply_mpls_labels.begin(), reply_mpls_labels.end(),
                  std::back_inserter(mpls_labels_csv), mpls_label_to_csv);
-  return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{}",
-                     probe_protocol, reply_dst_addr, probe_dst_addr,
-                     probe_src_port, probe_dst_port, probe_ttl, quoted_ttl,
-                     reply_src_addr, reply_protocol, reply_icmp_type,
-                     reply_icmp_code, reply_ttl, reply_size,
+  return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{}",
+                     capture_timestamp, probe_protocol, reply_dst_addr,
+                     probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl,
+                     quoted_ttl, reply_src_addr, reply_protocol,
+                     reply_icmp_type, reply_icmp_code, reply_ttl, reply_size,
                      fmt::join(mpls_labels_csv, ","), rtt);
 }
 
@@ -52,7 +52,8 @@ bool Reply::is_icmp_time_exceeded() const {
 }
 
 std::ostream& operator<<(std::ostream& os, Reply const& v) {
-  os << "reply_src_addr=" << v.reply_src_addr;
+  os << "capture_timestamp=" << v.capture_timestamp;
+  os << " reply_src_addr=" << v.reply_src_addr;
   os << " reply_dst_addr=" << v.reply_dst_addr;
   os << " reply_ttl=" << +v.reply_ttl;
   os << " reply_protocol=" << +v.reply_protocol;

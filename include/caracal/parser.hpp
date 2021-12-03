@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <optional>
 
 #include "reply.hpp"
@@ -22,12 +23,14 @@ void parse_inner(Reply& reply, Tins::IP* ip) noexcept;
 
 void parse_inner(Reply& reply, Tins::IPv6* ip) noexcept;
 
-void parse_inner(Reply& reply, Tins::ICMP* icmp, uint64_t timestamp) noexcept;
+void parse_inner(Reply& reply, Tins::ICMP* icmp,
+                 std::chrono::microseconds timestamp) noexcept;
 
-void parse_inner(Reply& /* reply */, Tins::ICMPv6* /* icmp */,
-                 uint64_t /* timestamp */) noexcept;
+void parse_inner(Reply& reply, Tins::ICMPv6* icmp,
+                 std::chrono::microseconds timestamp) noexcept;
 
-void parse_inner(Reply& reply, Tins::UDP* udp, uint64_t timestamp) noexcept;
+void parse_inner(Reply& reply, Tins::UDP* udp,
+                 std::chrono::microseconds timestamp) noexcept;
 
 // Retrieve the TTL encoded in the ICMP payload length.
 void parse_inner_ttl_icmp(Reply& reply, Tins::IP* ip) noexcept;

@@ -39,6 +39,7 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
+    REQUIRE(reply.capture_timestamp == 1613155623845580);
     REQUIRE(format_addr(reply.reply_src_addr) == "72.14.204.68");
     REQUIRE(format_addr(reply.reply_dst_addr) == "192.168.1.5");
     REQUIRE(reply.reply_size == 56);
@@ -63,6 +64,7 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
+    REQUIRE(reply.capture_timestamp == 1638522471773669);
     REQUIRE(format_addr(reply.reply_src_addr) == "12.122.28.42");
     REQUIRE(format_addr(reply.reply_dst_addr) == "132.227.123.8");
     REQUIRE(reply.reply_size == 172);
@@ -92,6 +94,7 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
+    REQUIRE(reply.capture_timestamp == 1613155697130290);
     REQUIRE(format_addr(reply.reply_src_addr) == "8.8.8.8");
     REQUIRE(format_addr(reply.reply_dst_addr) == "192.168.1.5");
     REQUIRE(reply.reply_size == 40);
@@ -118,6 +121,7 @@ TEST_CASE("Parser::parse/ICMPv6") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
+    REQUIRE(reply.capture_timestamp == 1615987564867543);
     REQUIRE(format_addr(reply.reply_src_addr) == "2a04:8ec0:0:a::1:119");
     REQUIRE(format_addr(reply.reply_dst_addr) ==
             "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
@@ -143,6 +147,7 @@ TEST_CASE("Parser::parse/ICMPv6") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
+    REQUIRE(reply.capture_timestamp == 1615987338565191);
     REQUIRE(format_addr(reply.reply_src_addr) == "2001:4860:4860::8888");
     REQUIRE(format_addr(reply.reply_dst_addr) ==
             "2a04:8ec0:0:164:620c:e59a:daf8:21e9");
@@ -171,6 +176,7 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
+    REQUIRE(reply.capture_timestamp == 1613155487934429);
     REQUIRE(format_addr(reply.reply_src_addr) == "72.14.204.68");
     REQUIRE(format_addr(reply.reply_dst_addr) == "192.168.1.5");
     REQUIRE(reply.reply_size == 56);
@@ -195,6 +201,7 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
+    REQUIRE(reply.capture_timestamp == 1615987632702320);
     REQUIRE(format_addr(reply.reply_src_addr) == "2a04:8ec0:0:a::1:119");
     REQUIRE(format_addr(reply.reply_dst_addr) ==
             "2a04:8ec0:0:164:620c:e59a:daf8:21e9");

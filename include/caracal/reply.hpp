@@ -11,6 +11,10 @@ using MPLSLabel = std::tuple<uint32_t, uint8_t, uint8_t, uint8_t>;
 /// A traceroute reply (all values are in host order, including the IP
 /// addresses).
 struct Reply {
+  /// @name Capture attributes
+  /// @{
+  int64_t capture_timestamp;  ///< The capture timestamp in microseconds.
+  /// @}
   /// @name Reply attributes (IP)
   /// @{
   in6_addr reply_src_addr;  ///< The source IP of the reply packet.
