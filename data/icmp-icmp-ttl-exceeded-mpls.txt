@@ -1,23 +1,52 @@
 No.     Time           Source                Destination           Protocol Length Info
-   1123 124.953672     fuji.home             142.93.181.71         ICMP     53     Echo (ping) request  id=0x5dc0, seq=33951/40836, ttl=9 (no response found!)
+      1 0.000000       132.227.123.8         65.83.239.127         ICMP     56     Echo (ping) request  id=0x5dc0, seq=48277/38332, ttl=11 (no response found!)
 
-Frame 1123: 53 bytes on wire (424 bits), 53 bytes captured (424 bits) on interface en0, id 0
-Ethernet II, Src: fuji.home (50:ed:3c:15:3d:4d), Dst: livebox.home (30:7c:b2:46:28:3b)
-Internet Protocol Version 4, Src: fuji.home (192.168.1.57), Dst: 142.93.181.71 (142.93.181.71)
+Frame 1: 56 bytes on wire (448 bits), 56 bytes captured (448 bits)
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Dec  3, 2021 10:07:51.684761000 CET
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1638522471.684761000 seconds
+    [Time delta from previous captured frame: 0.000000000 seconds]
+    [Time delta from previous displayed frame: 0.000000000 seconds]
+    [Time since reference or first frame: 0.000000000 seconds]
+    Frame Number: 1
+    Frame Length: 56 bytes (448 bits)
+    Capture Length: 56 bytes (448 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:icmp:data]
+    [Coloring Rule Name: ICMP]
+    [Coloring Rule String: icmp || icmpv6]
+Ethernet II, Src: Dell_b7:ab:d8 (b0:7b:25:b7:ab:d8), Dst: Cisco_d4:4b:00 (f4:cf:e2:d4:4b:00)
+    Destination: Cisco_d4:4b:00 (f4:cf:e2:d4:4b:00)
+        Address: Cisco_d4:4b:00 (f4:cf:e2:d4:4b:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: Dell_b7:ab:d8 (b0:7b:25:b7:ab:d8)
+        Address: Dell_b7:ab:d8 (b0:7b:25:b7:ab:d8)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+Internet Protocol Version 4, Src: 132.227.123.8, Dst: 65.83.239.127
     0100 .... = Version: 4
     .... 0101 = Header Length: 20 bytes (5)
     Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
-    Total Length: 39
-    Identification: 0x0009 (9)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 42
+    Identification: 0xb496 (46230)
     Flags: 0x00
-    Fragment Offset: 0
-    Time to Live: 9
+        0... .... = Reserved bit: Not set
+        .0.. .... = Don't fragment: Not set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 11
     Protocol: ICMP (1)
-    Header Checksum: 0xac47 [correct]
+    Header Checksum: 0xca7e [correct]
     [Header checksum status: Good]
-    [Calculated Checksum: 0xac47]
-    Source Address: fuji.home (192.168.1.57)
-    Destination Address: 142.93.181.71 (142.93.181.71)
+    [Calculated Checksum: 0xca7e]
+    Source Address: 132.227.123.8
+    Destination Address: 65.83.239.127
 Internet Control Message Protocol
     Type: 8 (Echo (ping) request)
     Code: 0
@@ -25,35 +54,68 @@ Internet Control Message Protocol
     [Checksum Status: Good]
     Identifier (BE): 24000 (0x5dc0)
     Identifier (LE): 49245 (0xc05d)
-    Sequence Number (BE): 33951 (0x849f)
-    Sequence Number (LE): 40836 (0x9f84)
+    Sequence Number (BE): 48277 (0xbc95)
+    Sequence Number (LE): 38332 (0x95bc)
     [No response seen]
-    Data (11 bytes)
+        [Expert Info (Warning/Sequence): No response seen to ICMP request]
+            [No response seen to ICMP request]
+            [Severity level: Warning]
+            [Group: Sequence]
+    Data (14 bytes)
 
-0000  b7 df 00 00 00 00 00 00 00 00 00                  ...........
-        Data: b7df000000000000000000
-        [Length: 11]
+0000  7f e9 00 00 00 00 00 00 00 00 00 00 00 00         ..............
+        Data: 7fe9000000000000000000000000
+        [Length: 14]
 
 No.     Time           Source                Destination           Protocol Length Info
-   1124 125.009026     prs-bb1-link.ip.twelve99.net fuji.home             ICMP     182    Time-to-live exceeded (Time to live exceeded in transit)
+      2 0.088908       12.122.28.42          132.227.123.8         ICMP     186    Time-to-live exceeded (Time to live exceeded in transit)
 
-Frame 1124: 182 bytes on wire (1456 bits), 182 bytes captured (1456 bits) on interface en0, id 0
-Ethernet II, Src: livebox.home (30:7c:b2:46:28:3b), Dst: fuji.home (50:ed:3c:15:3d:4d)
-Internet Protocol Version 4, Src: prs-bb1-link.ip.twelve99.net (62.115.118.58), Dst: fuji.home (192.168.1.57)
+Frame 2: 186 bytes on wire (1488 bits), 186 bytes captured (1488 bits)
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Dec  3, 2021 10:07:51.773669000 CET
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1638522471.773669000 seconds
+    [Time delta from previous captured frame: 0.088908000 seconds]
+    [Time delta from previous displayed frame: 0.088908000 seconds]
+    [Time since reference or first frame: 0.088908000 seconds]
+    Frame Number: 2
+    Frame Length: 186 bytes (1488 bits)
+    Capture Length: 186 bytes (1488 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:icmp:ip:icmp:data]
+    [Coloring Rule Name: ICMP errors]
+    [Coloring Rule String: icmp.type eq 3 || icmp.type eq 4 || icmp.type eq 5 || icmp.type eq 11 || icmpv6.type eq 1 || icmpv6.type eq 2 || icmpv6.type eq 3 || icmpv6.type eq 4]
+Ethernet II, Src: Cisco_d4:4b:00 (f4:cf:e2:d4:4b:00), Dst: Dell_b7:ab:d8 (b0:7b:25:b7:ab:d8)
+    Destination: Dell_b7:ab:d8 (b0:7b:25:b7:ab:d8)
+        Address: Dell_b7:ab:d8 (b0:7b:25:b7:ab:d8)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: Cisco_d4:4b:00 (f4:cf:e2:d4:4b:00)
+        Address: Cisco_d4:4b:00 (f4:cf:e2:d4:4b:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+Internet Protocol Version 4, Src: 12.122.28.42, Dst: 132.227.123.8
     0100 .... = Version: 4
     .... 0101 = Header Length: 20 bytes (5)
     Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
-    Total Length: 168
-    Identification: 0x3475 (13429)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 172
+    Identification: 0x2d3a (11578)
     Flags: 0x00
-    Fragment Offset: 0
-    Time to Live: 243
+        0... .... = Reserved bit: Not set
+        .0.. .... = Don't fragment: Not set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 239
     Protocol: ICMP (1)
-    Header Checksum: 0x1c51 [correct]
+    Header Checksum: 0x7587 [correct]
     [Header checksum status: Good]
-    [Calculated Checksum: 0x1c51]
-    Source Address: prs-bb1-link.ip.twelve99.net (62.115.118.58)
-    Destination Address: fuji.home (192.168.1.57)
+    [Calculated Checksum: 0x7587]
+    Source Address: 12.122.28.42
+    Destination Address: 132.227.123.8
 Internet Control Message Protocol
     Type: 11 (Time-to-live exceeded)
     Code: 0 (Time to live exceeded in transit)
@@ -63,46 +125,58 @@ Internet Control Message Protocol
     Length: 17
     [Length of original datagram: 68]
     Unused: 0000
-    Internet Protocol Version 4, Src: fuji.home (192.168.1.57), Dst: 142.93.181.71 (142.93.181.71)
+    Internet Protocol Version 4, Src: 132.227.123.8, Dst: 65.83.239.127
         0100 .... = Version: 4
         .... 0101 = Header Length: 20 bytes (5)
         Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
-        Total Length: 38
-        Identification: 0x0008 (8)
+            0000 00.. = Differentiated Services Codepoint: Default (0)
+            .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+        Total Length: 42
+        Identification: 0xb496 (46230)
         Flags: 0x00
-        Fragment Offset: 0
-        Time to Live: 1
+            0... .... = Reserved bit: Not set
+            .0.. .... = Don't fragment: Not set
+            ..0. .... = More fragments: Not set
+        ...0 0000 0000 0000 = Fragment Offset: 0
+        Time to Live: 2
+            [Expert Info (Note/Sequence): "Time To Live" only 2]
+                ["Time To Live" only 2]
+                [Severity level: Note]
+                [Group: Sequence]
         Protocol: ICMP (1)
-        Header Checksum: 0xb449 [correct]
+        Header Checksum: 0xd37e [correct]
         [Header checksum status: Good]
-        [Calculated Checksum: 0xb449]
-        Source Address: fuji.home (192.168.1.57)
-        Destination Address: 142.93.181.71 (142.93.181.71)
-    Internet Control Message Protocol
-        Type: 8 (Echo (ping) request)
-        Code: 0
-        Checksum: 0x5dc0 [unverified] [in ICMP error packet]
-        [Checksum Status: Unverified]
-        Identifier (BE): 24000 (0x5dc0)
-        Identifier (LE): 49245 (0xc05d)
-        Sequence Number (BE): 33582 (0x832e)
-        Sequence Number (LE): 11907 (0x2e83)
-        Data (10 bytes)
-
-0000  b9 50 00 00 00 00 00 00 00 00                     .P........
-            Data: b9500000000000000000
-            [Length: 10]
-    ICMP Multi-Part Extensions
-        Version: 2
-        .... 0000 0000 0000 = Reserved: 0x000
-        Checksum: 0x1797 [correct]
-        [Checksum Status: Good]
-        MPLS Stack Entry
-            Length: 8
-            Class: MPLS Label Stack Class (1)
-            C-Type: 1
-            Label: 26092, Exp: 0, S: 1, TTL: 1
-                0000 0110 0101 1110 1100 .... = Label: 26092
-                .... .... .... .... .... 000. = Experimental: 0
-                .... .... .... .... .... ...1 = Stack bit: Set
-                Time to live: 1
+        [Calculated Checksum: 0xd37e]
+        Source Address: 132.227.123.8
+        Destination Address: 65.83.239.127
+  Internet Control Message Protocol
+    Type: 8 (Echo (ping) request)
+    Code: 0
+    Checksum: 0x5dc0 [in ICMP error packet]
+    Checksum Status: Unverified
+    Identifier (BE): 24000 (0x5dc0)
+    Identifier (LE): 49245 (0xc05d)
+    Sequence Number (BE): 48277 (0xbc95)
+    Sequence Number (LE): 38332 (0x95bc)
+    Data ????
+      Data: 7fe9000000000000000000000000
+      Length: 14
+  ICMP Multi-Part Extensions
+    Version: 2
+    .... 0000 0000 0000 = Reserved: 0x000
+    Checksum: 0x707d [correct]
+    Checksum Status: Good
+    MPLS Stack Entry
+      Length: 12
+      Class: MPLS Label Stack Class (1)
+      C-Type: 1
+      Label: 29657, Exp: 0, S: 0, TTL: 1
+        0000 0111 0011 1101 1001 .... = Label: 29657
+        .... .... .... .... .... 000. = Experimental: 0
+        .... .... .... .... .... ...0 = Stack bit: Not set
+        Time to live: 1
+      Label: 25437, Exp: 0, S: 1, TTL: 1
+        0000 0110 0011 0101 1101 .... = Label: 25437
+        .... .... .... .... .... 000. = Experimental: 0
+        .... .... .... .... .... ...1 = Stack bit: Set
+        Time to live: 1

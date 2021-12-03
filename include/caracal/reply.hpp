@@ -1,9 +1,12 @@
 #pragma once
 
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace caracal {
+
+using MPLSLabel = std::tuple<uint32_t, uint8_t, uint8_t, uint8_t>;
 
 /// A traceroute reply (all values are in host order, including the IP
 /// addresses).
@@ -22,8 +25,9 @@ struct Reply {
   /// @{
   uint8_t reply_icmp_type;  ///< ICMP type (0 if not an ICMP reply)
   uint8_t reply_icmp_code;  ///< ICMP code (0 if not an ICMP reply)
-  std::vector<uint32_t> reply_mpls_labels;  ///< MPLS labels contained in the
-                                            ///< ICMP extension.
+  std::vector<MPLSLabel>
+      reply_mpls_labels;  ///< MPLS labels contained in the
+                          ///< ICMP extension (label, exp, stack bit, ttl).
   /// @}
 
   /// @name Probe attributes (IP → ICMP → IP)

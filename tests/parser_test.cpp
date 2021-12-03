@@ -63,18 +63,19 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(res.size() == 1);
 
     auto reply = res[0];
-    REQUIRE(format_addr(reply.reply_src_addr) == "62.115.118.58");
-    REQUIRE(format_addr(reply.reply_dst_addr) == "192.168.1.57");
-    REQUIRE(reply.reply_size == 168);
-    REQUIRE(reply.reply_ttl == 243);
+    REQUIRE(format_addr(reply.reply_src_addr) == "12.122.28.42");
+    REQUIRE(format_addr(reply.reply_dst_addr) == "132.227.123.8");
+    REQUIRE(reply.reply_size == 172);
+    REQUIRE(reply.reply_ttl == 239);
     REQUIRE(reply.reply_protocol == IPPROTO_ICMP);
     REQUIRE(reply.reply_icmp_type == 11);
     REQUIRE(reply.reply_icmp_code == 0);
-    REQUIRE(reply.reply_mpls_labels.size() == 1);
-    REQUIRE(reply.reply_mpls_labels.at(0) == 26092);
-    REQUIRE(format_addr(reply.probe_dst_addr) == "142.93.181.71");
-    REQUIRE(reply.probe_size == 38);
-    REQUIRE(reply.probe_ttl == 8);
+    REQUIRE(reply.reply_mpls_labels.size() == 2);
+    REQUIRE(reply.reply_mpls_labels.at(0) == std::tuple{29657, 0, 0, 1});
+    REQUIRE(reply.reply_mpls_labels.at(1) == std::tuple{25437, 0, 1, 1});
+    REQUIRE(format_addr(reply.probe_dst_addr) == "65.83.239.127");
+    REQUIRE(reply.probe_size == 42);
+    REQUIRE(reply.probe_ttl == 12);
     REQUIRE(reply.probe_protocol == IPPROTO_ICMP);
     REQUIRE(reply.probe_src_port == 24000);
     REQUIRE(reply.probe_dst_port == 0);
@@ -82,7 +83,7 @@ TEST_CASE("Parser::parse/ICMP") {
     // is different from the one in the probe packet, so we cannot
     // recover the RTT.
     // REQUIRE(reply.rtt == 553);
-    REQUIRE(reply.quoted_ttl == 1);
+    REQUIRE(reply.quoted_ttl == 2);
     REQUIRE(reply.is_icmp_time_exceeded());
   }
 

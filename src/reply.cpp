@@ -10,13 +10,22 @@
 
 namespace caracal {
 
+std::string mpls_label_to_csv(MPLSLabel mpls_label) {
+  return fmt::format("({},{},{},{})", std::get<0>(mpls_label),
+                     std::get<1>(mpls_label), std::get<2>(mpls_label),
+                     std::get<3>(mpls_label));
+}
+
 std::string Reply::to_csv() const {
+  std::vector<std::string> mpls_labels_csv;
+  std::transform(reply_mpls_labels.begin(), reply_mpls_labels.end(),
+                 std::back_inserter(mpls_labels_csv), mpls_label_to_csv);
   return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{}",
                      probe_protocol, reply_dst_addr, probe_dst_addr,
                      probe_src_port, probe_dst_port, probe_ttl, quoted_ttl,
                      reply_src_addr, reply_protocol, reply_icmp_type,
                      reply_icmp_code, reply_ttl, reply_size,
-                     fmt::join(reply_mpls_labels, ","), rtt);
+                     fmt::join(mpls_labels_csv, ","), rtt);
 }
 
 uint16_t Reply::checksum(uint32_t caracal_id) const {
@@ -49,8 +58,9 @@ std::ostream& operator<<(std::ostream& os, Reply const& v) {
   os << " reply_protocol=" << +v.reply_protocol;
   os << " reply_icmp_code=" << +v.reply_icmp_code;
   os << " reply_icmp_type=" << +v.reply_icmp_type;
-  os << " reply_mpls_labels="
-     << fmt::format("{}", fmt::join(v.reply_mpls_labels, ","));
+  for (const auto& mpls_label : v.reply_mpls_labels) {
+    os << "reply_mpls_label=" << mpls_label_to_csv(mpls_label);
+  }
   os << " probe_id=" << v.probe_id;
   os << " probe_size=" << v.probe_size;
   os << " probe_protocol=" << +v.probe_protocol;
