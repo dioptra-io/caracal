@@ -20,12 +20,12 @@ std::string Reply::to_csv() const {
   std::vector<std::string> mpls_labels_csv;
   std::transform(reply_mpls_labels.begin(), reply_mpls_labels.end(),
                  std::back_inserter(mpls_labels_csv), mpls_label_to_csv);
-  return fmt::format("{},{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{}",
-                     capture_timestamp, probe_protocol, reply_dst_addr,
-                     probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl,
-                     quoted_ttl, reply_src_addr, reply_protocol,
-                     reply_icmp_type, reply_icmp_code, reply_ttl, reply_size,
-                     fmt::join(mpls_labels_csv, ","), rtt);
+  return fmt::format(
+      "{},{},{},{},{},{},{},{},{},{},{},{},{},{},\"[{}]\",{}",
+      capture_timestamp / 1'000'000, probe_protocol, reply_dst_addr,
+      probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl, quoted_ttl,
+      reply_src_addr, reply_protocol, reply_icmp_type, reply_icmp_code,
+      reply_ttl, reply_size, fmt::join(mpls_labels_csv, ","), rtt);
 }
 
 uint16_t Reply::checksum(uint32_t caracal_id) const {
