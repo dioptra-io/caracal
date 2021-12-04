@@ -27,7 +27,7 @@ seems to rewrite the IP header fields where encode probe information.
 
 - **Constant flow-id:** Caracal doesn't vary the flow identifier for two probes with the same specification, making it suitable to discover load-balanced paths on the Internet.
 - **Fast:** Caracal uses the standard socket API, yet on a 2020 M1 MacBook Air it can send 1.3M packets per second. See [Potential optimizations](#potential-optimizations) for a discussion of possible performance improvements.
-- **Stateless:** classical probing tools such as traceroute needs to remember which probes they have sent, in order to match the replies (e.g. to know the TTL of the probe). Caracal takes inspiration from [yarrp](https://github.com/cmand/yarrp) and encodes the probe information in the section of the probe packet that is included back in ICMP messages. Thus it doesn't need to remember each probe sent, allowing it to send millions of probes per second with a minimal memory footprint.
+- **Stateless:** classical probing tools such as traceroute needs to remember which probes they have sent, in order to match the replies (e.g. to know the TTL of the probe). Caracal takes inspiration from [yarrp](https://github.com/cmand/yarrp) and encodes the probe information in the section of the probe packet that is included back in ICMP messages. Thus, it doesn't need to remember each probe sent, allowing it to send millions of probes per second with a minimal memory footprint.
 
 ## Usage
 
@@ -55,12 +55,23 @@ cat probes.txt | caracal > replies.csv
 caracal -i probes.txt -o replies.csv
 ```
 
+### Integration with standard tools
+
+It is easy to integrate caracal with standard UNIX tools by taking advantage of the standard input/output.
+For example, to store the replies in a SQLite database:
+```bash
+echo "8.8.8.8,24000,33434,64,icmp" | caracal | sqlite3 caracal.db ".import --csv /dev/stdin replies"
+sqlite3 -header caracal.db "SELECT * FROM replies"
+# capture_timestamp|probe_protocol|probe_src_addr|probe_dst_addr|probe_src_port|probe_dst_port|probe_ttl|quoted_ttl|reply_src_addr|reply_protocol|reply_icmp_type|reply_icmp_code|reply_ttl|reply_size|reply_mpls_labels|rtt|round
+# 1638618261|1|::ffff:10.17.0.137|::|24000|0|64|0|::ffff:8.8.8.8|1|0|0|107|94|[]|564|1
+```
+
 ### Reply integrity
 
 Caracal encodes in the ID field of the IP header the following checksum: `ip_checksum(caracal_id, dst_addr, src_port, ttl)`.
 This allows caracal to check that the reply it gets corresponds (excluding checksum collisions) to valid probes.
 
-By default, replies for which the checksum in the ID field is invalid are dropped, this can be overriden with the
+By default, replies for which the checksum in the ID field is invalid are dropped, this can be overridden with the
 `--no-integrity-check` flag.
 Furthermore, the `caracal_id` value can be changed with the `--caracal-id` option.
 
