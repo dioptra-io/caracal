@@ -8,6 +8,9 @@
 Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ with Python bindings.
 It runs on Linux and macOS, on x86-64 and ARM64 systems.
 
+
+Caracal reads probe specifications, sends the corresponding probe packets at the specified rate, parse the eventual replies and outputs them in CSV format.
+
 ![Demonstration of the prober usage](data/cast.svg)
 
 ## Quickstart
@@ -23,12 +26,17 @@ seems to rewrite the IP header fields where encode probe information.
 ## Features
 
 - **Constant flow-id:** Caracal doesn't vary the flow identifier for two probes with the same specification, making it suitable to discover load-balanced paths on the Internet.
-- **Fast:** Caracal uses the standard socket API, yet on a 2020 M1 MacBook Air it can send 1.3M packets per second. Work is underway to use [`PACKET_TX_RING`](https://www.kernel.org/doc/html/latest/networking/packet_mmap.html) on Linux to go above 1M packets per second. We do not plan to use [`PF_RING`](https://www.ntop.org/products/packet-capture/pf_ring/) as the standard version doesn't improve packet sending speed, and the Zero Copy (ZC) version is not free.
+- **Fast:** Caracal uses the standard socket API, yet on a 2020 M1 MacBook Air it can send 1.3M packets per second. See [Potential optimizations](#potential-optimizations) for a discussion of possible performance improvements.
 - **Stateless:** classical probing tools such as traceroute needs to remember which probes they have sent, in order to match the replies (e.g. to know the TTL of the probe). Caracal takes inspiration from [yarrp](https://github.com/cmand/yarrp) and encodes the probe information in the section of the probe packet that is included back in ICMP messages. Thus it doesn't need to remember each probe sent, allowing it to send millions of probes per second with a minimal memory footprint.
 
 ## Usage
 
 Caracal reads probe specifications from the standard input or, if specified with `-i/--input-file`, from a file with one probe per line.  
+It outputs the replies in CSV format on the standard output or, if specified with `-o/--output-file-csv`, to a file with one reply per line.
+If the file name ends with `.zst` the output will be compressed on-the-fly with [Zstandard](https://facebook.github.io/zstd/).  
+In addition, if `--output-file-pcap` is specified, the raw captured frames will be written to the specified file in PCAP format.  
+Log messages are printed on the standard error stream.
+
 The specification is `dst_addr,src_port,dst_port,ttl,protocol`, where `dst_addr` can be an IPv4 address in dotted notation (e.g. `8.8.8.8`),
 an IPv4-mapped IPv6 address (e.g. `::ffff:8.8.8.8`) or an IPv6 address (e.g. `2001:4860:4860::8888`), and `protocol` is `icmp`, `icmp6` or `udp`.  
 For UDP probes, the ports are encoded directly in the UDP header. For ICMP probes, the source port is encoded in the ICMP checksum (which varies the flow-id).
@@ -41,15 +49,11 @@ For example, to probe Google DNS servers at TTL 32:
 2001:4860:4860::8844,24000,33434,32,icmp
 ```
 ```bash
-# Standard input
-cat probes.txt | caracal
-# File input
-caracal -i probes.txt
+# Standard input/output
+cat probes.txt | caracal > replies.csv
+# File input/output
+caracal -i probes.txt -o replies.csv
 ```
-
-If an output file is specified with `-o/--output-file-csv`, the parsed replies will be written to a CSV file (see [`Reply::to_csv()`](src/reply.cpp) for the fields).
-If the file name ends with `.zst` (e.g. `results.csv.zst`), the output will be compressed on-the-fly with [Zstandard](https://facebook.github.io/zstd/).
-To get the raw replies in PCAP format, use `--output-file-pcap`.
 
 ### Reply integrity
 

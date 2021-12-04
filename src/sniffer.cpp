@@ -11,6 +11,7 @@
 #include <caracal/utilities.hpp>
 #include <chrono>
 #include <filesystem>
+#include <iostream>
 #include <optional>
 #include <thread>
 
@@ -64,6 +65,8 @@ Sniffer::Sniffer(const std::string &interface_name,
       output_csv_.push(io::zstd_compressor(1));
     }
     output_csv_.push(output_csv_ofs_);
+  } else {
+    output_csv_.push(std::cout);
   }
 
   if (output_file_pcap) {
@@ -79,6 +82,7 @@ Sniffer::~Sniffer() {
 }
 
 void Sniffer::start() noexcept {
+  output_csv_ << Reply::csv_header() << "\n";
   auto handler = [this](Tins::Packet &packet) {
     auto reply = Parser::parse(packet);
 
@@ -88,8 +92,7 @@ void Sniffer::start() noexcept {
       if (reply->is_icmp_time_exceeded()) {
         statistics_.icmp_messages_path.insert(reply->reply_src_addr);
       }
-      output_csv_ << fmt::format("{},{}\n", reply->to_csv(),
-                                 meta_round_.value_or("1"));
+      output_csv_ << reply->to_csv(meta_round_.value_or("1")) << "\n";
     } else {
       auto data = packet.pdu()->serialize();
       spdlog::trace("invalid_packet_hex={:02x}", fmt::join(data, ""));

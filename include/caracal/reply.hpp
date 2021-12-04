@@ -76,7 +76,9 @@ struct Reply {
 
   /// Serialize the reply in the CSV format.
   /// @return the reply in CSV format.
-  [[nodiscard]] std::string to_csv() const;
+  [[nodiscard]] std::string to_csv(const std::string &round) const;
+
+  [[nodiscard]] static std::string csv_header();
 };
 
 std::ostream &operator<<(std::ostream &os, Reply const &v);

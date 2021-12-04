@@ -1,5 +1,6 @@
 #include <caracal-config.h>
 #include <spdlog/cfg/helpers.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 #include <caracal/prober.hpp>
@@ -14,10 +15,10 @@ namespace fs = std::filesystem;
 using std::string;
 
 int main(int argc, char** argv) {
-  std::cout << "caracal"
+  std::cerr << "caracal"
             << " v" << CARACAL_SEMVER << " (" << CARACAL_BUILD_TYPE
             << " build)";
-  std::cout << std::endl;
+  std::cerr << std::endl;
 
   caracal::Prober::Config config;
   cxxopts::Options options("caracal");
@@ -118,6 +119,11 @@ int main(int argc, char** argv) {
     }
 
     spdlog::cfg::helpers::load_levels(result["log-level"].as<string>());
+    // See
+    // https://github.com/gabime/spdlog/wiki/0.-FAQ#switch-the-default-logger-to-stderr
+    // for why we need to create a dummy logger.
+    spdlog::set_default_logger(spdlog::stderr_color_st("dummy"));
+    spdlog::set_default_logger(spdlog::stderr_color_st(""));
 
     if (result.count("input-file")) {
       fs::path path{result["input-file"].as<string>()};
