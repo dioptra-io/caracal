@@ -21,7 +21,7 @@ docker run ghcr.io/dioptra-io/caracal --help
 ```
 
 If you're using macOS, we recommend to [build the native executable](#building-from-source) as Docker for Mac
-seems to rewrite the IP header fields where encode probe information.
+seems to rewrite the IP header fields where we encode probe information.
 
 ## Features
 
