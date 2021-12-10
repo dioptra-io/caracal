@@ -1,27 +1,33 @@
 ---
-title: 'Gala: A Python package for galactic dynamics'
+title: 'caracal: a fast and versatile traceroute engine for Internet mapping'
 tags:
+  - C++
   - Python
-  - astronomy
-  - dynamics
-  - galactic dynamics
-  - milky way
+  - Internet measurement
 authors:
-  - name: Adrian M. Price-Whelan^[co-first author] # note this makes a footnote saying 'co-first author'
-    orcid: 0000-0003-0872-7098
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Author Without ORCID^[co-first author] # note this makes a footnote saying 'co-first author'
-    affiliation: 2
-  - name: Author with no affiliation^[corresponding author]
+  - name: Maxime Mouchet
+    orcid: 0000-0002-7302-4818
+    affiliation: "1, 2"
+  - name: Kévin Vermeulen
+    orcid: 0000-0001-6168-7887
     affiliation: 3
+  - name: Matthieu Gouel
+    orcid: 0000-0003-0579-7023
+    affiliation: "1, 2"
+  - name: Olivier Fourmaux
+    orcid: 0000-0002-6885-9378
+    affiliation: 1
+  - name: Timur Friedman
+    orcid: 0000-0002-1653-3552
+    affiliation: "1, 2"
 affiliations:
- - name: Lyman Spitzer, Jr. Fellow, Princeton University
+ - name: LIP6, Sorbonne Université
    index: 1
- - name: Institution Name
+ - name: LINCS
    index: 2
- - name: Independent Researcher
+ - name: LAAS-CNRS
    index: 3
-date: 13 August 2017
+date: 1 February 2022
 bibliography: paper.bib
 
 # Optional fields if submitting to a AAS journal too, see this blog post:
