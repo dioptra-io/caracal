@@ -20,4 +20,5 @@ test-requires = ["pytest", "pytest-asyncio"]
 archs = ["x86_64"]
 
 [tool.cibuildwheel.macos]
-archs = ["universal2"]
+# universal2 and arm64 wheels seems to be broken (because of conan?)
+archs = ["x86_64"]
