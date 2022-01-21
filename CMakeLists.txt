@@ -56,7 +56,6 @@ find_package(spdlog REQUIRED)
 find_package(Threads REQUIRED)
 
 # Optional packages
-find_package(Doxygen COMPONENTS dot)
 find_package(pybind11)
 
 include(Catch)
@@ -128,9 +127,4 @@ if(WITH_SANITIZER)
   set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined"
   )
-endif()
-
-if(DOXYGEN_FOUND)
-  set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
-  doxygen_add_docs(caracal-docs "${PROJECT_SOURCE_DIR}/include/caracal")
 endif()

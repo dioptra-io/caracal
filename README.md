@@ -1,8 +1,9 @@
 # 🙀 Caracal
 
-[![CI](https://img.shields.io/github/workflow/status/dioptra-io/caracal/CI?logo=github)](https://github.com/dioptra-io/caracal/actions?query=workflow%3ACI)
-[![codecov](https://img.shields.io/codecov/c/github/dioptra-io/caracal?logo=codecov&logoColor=white)](https://codecov.io/gh/dioptra-io/caracal)
-[![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/caracal/)
+[![Coverage](https://img.shields.io/codecov/c/github/dioptra-io/caracal?logo=codecov&logoColor=white)](https://codecov.io/gh/dioptra-io/caracal)
+[![Docker Status](https://img.shields.io/github/workflow/status/dioptra-io/caracal/Docker?logo=github&label=docker)](https://github.com/dioptra-io/caracal/actions/workflows/docker.yml)
+[![PyPI Status](https://img.shields.io/github/workflow/status/dioptra-io/caracal/PyPI?logo=github&label=pypi)](https://github.com/dioptra-io/caracal/actions/workflows/pypi.yml)
+[![Tests Status](https://img.shields.io/github/workflow/status/dioptra-io/caracal/Tests?logo=github&label=tests)](https://github.com/dioptra-io/caracal/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/pycaracal?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/pycaracal/)
 
 Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ with Python bindings.
@@ -94,14 +95,14 @@ cd caracal
 #### Build tools
 
 To build this project, CMake, Conan, and a compiler implementing C++20 are required.
-Optionally, Doxygen can be used to generate the API documentation, and Gcovr to compute the test coverage.
+Optionally, Gcovr can be used to compute the test coverage.
 
 ```bash
 # macOS
-brew install cmake conan doxygen gcovr graphviz
+brew install cmake conan gcovr graphviz
 
 # Ubuntu 20.04+
-apt install build-essential cmake doxygen gcovr git graphviz python3-dev python3-pip
+apt install build-essential cmake gcovr git graphviz python3-dev python3-pip
 pip3 install conan
 
 # Executables installed by Python are not in the path by default on Ubuntu.
@@ -142,24 +143,9 @@ Target          | Output                    | Description
 :---------------|:--------------------------|:-----------
 `caracal-bin`   | `caracal`                 | Prober
 `caracal-test`  | `caracal-test`            | Unit and performance tests
-`caracal-docs`  | `html/*`                  | API documentation
 `_pycaracal`    | ` _pycaracal*.so`         | Python interface
 
 To build a specific target, use `cmake --build . --target TARGET`.
-
-### API documentation
-
-Caracal source code is documented using [Doxygen](https://github.com/doxygen/doxygen).
-The documentation for the latest commit is built with the [`build.yml`](.github/workflows/build.yml) workflow and is
-hosted on GitHub Pages: https://dioptra-io.github.io/caracal/.
-
-To build the documentation locally, run:
-```bash
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-cmake --build . --target caracal-docs
-```
-The documentation will be at `build/html/index.html`.
 
 ### :whale2: Docker image
 
