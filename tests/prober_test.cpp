@@ -8,12 +8,12 @@
 #include <filesystem>
 #include <iostream>
 
+#include "environment.hpp"
+
 namespace fs = std::filesystem;
 
 using caracal::Prober::Config;
 using caracal::Prober::probe;
-
-const bool is_github = std::getenv("GITHUB_ACTIONS") != nullptr;
 
 TEST_CASE("Prober::probe") {
   auto protocol = GENERATE("icmp", "udp");
@@ -68,12 +68,12 @@ TEST_CASE("Prober::probe") {
     REQUIRE(prober_stats.filtered_hi_ttl == 1);
     REQUIRE(prober_stats.filtered_prefix_excl == 1);
     REQUIRE(prober_stats.filtered_prefix_not_incl == 1);
-    // TTL 2 does not reply on GitHub CI.
-    // REQUIRE(sniffer_stats.received_count == 6);
-    REQUIRE(sniffer_stats.received_count >= 2);
-    REQUIRE(sniffer_stats.received_invalid_count == 0);
-    REQUIRE(!sniffer_stats.icmp_messages_all.empty());
-    REQUIRE(!sniffer_stats.icmp_messages_path.empty());
+    if (!is_github) {
+      REQUIRE(sniffer_stats.received_count >= 2);
+      REQUIRE(sniffer_stats.received_invalid_count == 0);
+      REQUIRE(!sniffer_stats.icmp_messages_all.empty());
+      REQUIRE(!sniffer_stats.icmp_messages_path.empty());
+    }
   }
 
   SECTION("Include list with missing new line") {
@@ -85,9 +85,7 @@ TEST_CASE("Prober::probe") {
     auto [prober_stats, sniffer_stats, pcap_stats] =
         probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.sent == 6);
-    if (is_github) {
-      REQUIRE(sniffer_stats.received_count >= 1);
-    } else {
+    if (!is_github) {
       REQUIRE(sniffer_stats.received_count == 6);
     }
     REQUIRE(sniffer_stats.received_invalid_count == 0);
@@ -102,9 +100,7 @@ TEST_CASE("Prober::probe") {
     auto [prober_stats, sniffer_stats, pcap_stats] =
         probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.sent == 9);
-    if (is_github) {
-      REQUIRE(sniffer_stats.received_count >= 1);
-    } else {
+    if (!is_github) {
       REQUIRE(sniffer_stats.received_count == 9);
     }
     REQUIRE(sniffer_stats.received_invalid_count == 0);
