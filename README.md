@@ -1,4 +1,4 @@
-# 🙀 Caracal
+# :cat: Caracal
 
 [![Coverage](https://img.shields.io/codecov/c/github/dioptra-io/caracal?logo=codecov&logoColor=white)](https://codecov.io/gh/dioptra-io/caracal)
 [![Docker Status](https://img.shields.io/github/workflow/status/dioptra-io/caracal/Docker?logo=github&label=docker)](https://github.com/dioptra-io/caracal/actions/workflows/docker.yml)
