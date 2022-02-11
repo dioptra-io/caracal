@@ -49,8 +49,8 @@ Sniffer::Sniffer(const std::string &interface_name,
       " icmp6[icmp6type] = icmp6-timeexceeded or"
       " icmp6[icmp6type] = icmp6-destinationunreach"
       ")";
-  auto filter =
-      fmt::format(filter_template, fmt::join(address_filters, " or "));
+  auto filter = fmt::format(fmt::runtime(filter_template),
+                            fmt::join(address_filters, " or "));
   spdlog::info("sniffer_filter={}", filter);
 
   Tins::SnifferConfiguration config;
