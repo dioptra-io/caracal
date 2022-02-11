@@ -2,24 +2,31 @@
 
 #include <pcap.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 
+#include <caracal/experimental.hpp>
 #include <caracal/pretty.hpp>
 #include <caracal/probe.hpp>
 #include <caracal/prober.hpp>
 #include <caracal/prober_config.hpp>
 #include <caracal/protocols.hpp>
+#include <caracal/reply.hpp>
+#include <caracal/utilities.hpp>
 #include <memory>
 
 #include "conversions.hpp"
 
 namespace py = pybind11;
+namespace Experimental = caracal::Experimental;
 namespace Protocols = caracal::Protocols;
 namespace Statistics = caracal::Statistics;
+namespace Utilities = caracal::Utilities;
 
 using caracal::Probe;
+using caracal::Reply;
 using caracal::Prober::Config;
 using caracal::Prober::Iterator;
 using caracal::Prober::probe;
@@ -80,6 +87,27 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def("to_csv", &Probe::to_csv)
       .def("__eq__", &Probe::operator==)
       .def("__str__", &fmt::to_string<Probe>);
+
+  py::class_<Reply>(m, "Reply")
+      .def_readonly("capture_timestamp", &Reply::capture_timestamp)
+      .def_readonly("reply_src_addr", &Reply::reply_src_addr)
+      .def_readonly("reply_dst_addr", &Reply::reply_dst_addr)
+      .def_readonly("reply_size", &Reply::reply_size)
+      .def_readonly("reply_ttl", &Reply::reply_ttl)
+      .def_readonly("reply_protocol", &Reply::reply_protocol)
+      .def_readonly("reply_icmp_type", &Reply::reply_icmp_type)
+      .def_readonly("reply_icmp_code", &Reply::reply_icmp_code)
+      .def_readonly("reply_mpls_labels", &Reply::reply_mpls_labels)
+      .def_readonly("probe_dst_addr", &Reply::probe_dst_addr)
+      .def_readonly("probe_id", &Reply::probe_id)
+      .def_readonly("probe_size", &Reply::probe_size)
+      .def_readonly("probe_protocol", &Reply::probe_protocol)
+      .def_readonly("quoted_ttl", &Reply::quoted_ttl)
+      .def_readonly("probe_src_port", &Reply::probe_src_port)
+      .def_readonly("probe_dst_port", &Reply::probe_dst_port)
+      .def_readonly("probe_ttl", &Reply::probe_ttl)
+      .def_readonly("rtt", &Reply::rtt)
+      .def("__str__", &fmt::to_string<Reply>);
 
   // pycaracal.prober
   auto m_prober = m.def_submodule("prober");
@@ -143,4 +171,14 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def_readonly("dropped", &pcap_stat::ps_drop)
       .def_readonly("interface_dropped", &pcap_stat::ps_ifdrop)
       .def("__str__", fmt::to_string<pcap_stat>);
+
+  // pycaracal.utilities
+  auto m_utilities = m.def_submodule("utilities");
+  m_utilities.def("get_default_interface", &Config::get_default_interface);
+
+  // pycaracal.experimental
+  auto m_experimental = m.def_submodule("experimental");
+  py::class_<Experimental::Prober>(m_experimental, "Prober")
+      .def(py::init<std::string, uint64_t, uint16_t, bool>())
+      .def("probe", &Experimental::Prober::probe);
 }
