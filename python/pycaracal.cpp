@@ -179,6 +179,6 @@ PYBIND11_MODULE(_pycaracal, m) {
   // pycaracal.experimental
   auto m_experimental = m.def_submodule("experimental");
   py::class_<Experimental::Prober>(m_experimental, "Prober")
-      .def(py::init<std::string, uint64_t, uint16_t, bool>())
+      .def(py::init<std::string, uint64_t, uint64_t, uint16_t, bool>())
       .def("probe", &Experimental::Prober::probe);
 }

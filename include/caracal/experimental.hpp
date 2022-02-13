@@ -14,8 +14,8 @@ namespace caracal::Experimental {
 
 class Sniffer {
  public:
-  Sniffer(const std::string& interface_name, uint16_t caracal_id,
-          bool integrity_check);
+  Sniffer(const std::string& interface_name, uint64_t buffer_size,
+          uint16_t caracal_id, bool integrity_check);
   ~Sniffer();
   void start() noexcept;
   void stop() noexcept;
@@ -32,8 +32,9 @@ class Sniffer {
 class Prober {
  public:
   Prober(const std::string& interface, uint64_t probing_rate,
-         uint16_t caracal_id, bool integrity_check);
-  std::vector<Reply> probe(const std::vector<Probe>& probes);
+         uint64_t buffer_size, uint16_t caracal_id, bool integrity_check);
+  std::vector<Reply> probe(const std::vector<Probe>& probes,
+                           uint64_t timeout_ms);
 
  private:
   Sender sender_;

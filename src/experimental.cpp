@@ -9,27 +9,43 @@
 #include "caracal/parser.hpp"
 #include "caracal/utilities.hpp"
 
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::steady_clock;
+
 namespace caracal::Experimental {
 
 Prober::Prober(const std::string &interface, const uint64_t probing_rate,
-               const uint16_t caracal_id, const bool integrity_check)
+               const uint64_t buffer_size, const uint16_t caracal_id,
+               const bool integrity_check)
     : sender_{interface, caracal_id},
-      sniffer_{Sniffer{interface, caracal_id, integrity_check}},
+      sniffer_{Sniffer{interface, buffer_size, caracal_id, integrity_check}},
       rate_limiter_{probing_rate, 1, "auto"} {
   sniffer_.start();
 }
 
-std::vector<Reply> Prober::probe(const std::vector<Probe> &probes) {
+std::vector<Reply> Prober::probe(const std::vector<Probe> &probes,
+                                 const uint64_t timeout_ms) {
   sniffer_.replies.clear();
   for (auto probe : probes) {
     sender_.send(probe);
     rate_limiter_.wait();
   }
+  auto start_tp = steady_clock::now();
+  auto last_tp = start_tp;
+  auto timeout = milliseconds{timeout_ms};
+  while (duration_cast<milliseconds>(steady_clock::now() - start_tp) <
+         timeout) {
+    if (sniffer_.replies.size() >= probes.size()) {
+      break;
+    }
+    std::this_thread::sleep_for(milliseconds{10});
+  }
   return sniffer_.replies;
 }
 
-Sniffer::Sniffer(const std::string &interface_name, uint16_t caracal_id,
-                 bool integrity_check)
+Sniffer::Sniffer(const std::string &interface_name, const uint64_t buffer_size,
+                 const uint16_t caracal_id, bool integrity_check)
     : sniffer_{interface_name},
       caracal_id_{caracal_id},
       integrity_check_{integrity_check} {
@@ -57,7 +73,7 @@ Sniffer::Sniffer(const std::string &interface_name, uint16_t caracal_id,
   spdlog::info("sniffer_filter={}", filter);
 
   Tins::SnifferConfiguration config;
-  config.set_buffer_size(64 * 1024 * 1024);
+  config.set_buffer_size(buffer_size);
   config.set_filter(filter);
   config.set_immediate_mode(true);
   sniffer_ = Tins::Sniffer(interface_name, config);
