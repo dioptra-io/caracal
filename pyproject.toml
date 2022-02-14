@@ -14,3 +14,6 @@ skip = ["*-musllinux_*"]
 manylinux-x86_64-image = "quay.io/pypa/manylinux2014_x86_64:2021-08-01-bce1ff9"
 test-command = "$([[ -f /usr/bin/sudo ]] && echo 'sudo') pytest --log-cli-level=DEBUG {project}/python/tests"
 test-requires = ["pytest", "pytest-asyncio"]
+# Avoid testing on emulated architectures, some syscalls are not supported:
+# `RuntimeError: eth0: SIOCETHTOOL(ETHTOOL_GET_TS_INFO) ioctl failed: Function not implemented`
+test-skip = "*-*linux_{aarch64,ppc64le,s390x}"
