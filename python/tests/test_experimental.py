@@ -6,7 +6,7 @@ from pycaracal import Probe, experimental, protocols, set_log_level, utilities
 
 def test_prober():
     prober = experimental.Prober(
-        utilities.get_default_interface(), 1024 * 1024, 100, 1, True
+        utilities.get_default_interface(), 100, 1024 * 1024, 1, True
     )
     probes = [
         Probe(ip_address("8.8.4.4"), 24000, 33434, 32, protocols.L4.ICMP),

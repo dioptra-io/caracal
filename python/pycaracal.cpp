@@ -76,12 +76,40 @@ Probe make_probe(const std::string& data, const uint16_t src_port,
   return probe;
 }
 
+class ProberWrapper {
+ public:
+  ProberWrapper(const std::string& interface, uint64_t probing_rate,
+                uint64_t buffer_size, uint16_t caracal_id, bool integrity_check)
+      : prober_{interface, probing_rate, buffer_size, caracal_id,
+                integrity_check} {};
+
+  std::vector<Reply> probe(const std::vector<Probe>& probes,
+                           uint64_t timeout_ms) {
+    std::function<void()> check_exception = [&]() {
+      if (PyErr_CheckSignals() != 0) {
+        throw py::error_already_set();
+      }
+    };
+    return prober_.probe(probes, timeout_ms, check_exception);
+  }
+
+ private:
+  Experimental::Prober prober_;
+};
+
+void check_exception() {
+  if (PyErr_CheckSignals() != 0) {
+    throw py::error_already_set();
+  }
+}
+
 PYBIND11_MODULE(_pycaracal, m) {
   m.doc() = "Python bindings to a small subset of caracal.";
 
   m.def("make_probe", &make_probe);
   m.def("log_to_stderr", &log_to_stderr);
   m.def("set_log_level", &set_log_level);
+  m.def("check_exception", &check_exception);
 
   py::class_<Probe>(m, "Probe")
       .def_readonly("dst_addr", &Probe::dst_addr)
@@ -185,7 +213,7 @@ PYBIND11_MODULE(_pycaracal, m) {
 
   // pycaracal.experimental
   auto m_experimental = m.def_submodule("experimental");
-  py::class_<Experimental::Prober>(m_experimental, "Prober")
+  py::class_<ProberWrapper>(m_experimental, "Prober")
       .def(py::init<std::string, uint64_t, uint64_t, uint16_t, bool>())
-      .def("probe", &Experimental::Prober::probe);
+      .def("probe", &ProberWrapper::probe);
 }

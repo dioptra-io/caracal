@@ -25,11 +25,13 @@ Prober::Prober(const std::string &interface, const uint64_t probing_rate,
 }
 
 std::vector<Reply> Prober::probe(const std::vector<Probe> &probes,
-                                 const uint64_t timeout_ms) {
+                                 const uint64_t timeout_ms,
+                                 std::function<void()> &check_exception) {
   sniffer_.replies.clear();
   for (auto probe : probes) {
     sender_.send(probe);
     rate_limiter_.wait();
+    check_exception();
   }
   auto start_tp = steady_clock::now();
   auto timeout = milliseconds{timeout_ms};
@@ -38,6 +40,7 @@ std::vector<Reply> Prober::probe(const std::vector<Probe> &probes,
     if (sniffer_.replies.size() >= probes.size()) {
       break;
     }
+    check_exception();
     std::this_thread::sleep_for(milliseconds{10});
   }
   return sniffer_.replies;
