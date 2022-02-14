@@ -2,7 +2,15 @@ import logging
 from ipaddress import ip_address
 from pathlib import Path
 
-from pycaracal import Probe, cast_addr, make_probe, prober, protocols, set_log_level
+from pycaracal import (
+    Probe,
+    cast_addr,
+    log_to_stderr,
+    make_probe,
+    prober,
+    protocols,
+    set_log_level,
+)
 
 
 def test_probe():
@@ -32,6 +40,7 @@ def test_prober():
         Probe(ip_address("8.8.4.4"), 24000, 33434, 32, protocols.L4.ICMP),
         Probe(ip_address("8.8.8.8"), 24000, 33434, 32, protocols.L4.UDP),
     ]
+    log_to_stderr()
     set_log_level(logging.DEBUG)
     prober_stats, sniffer_stats, pcap_stats = prober.probe(config, [])
     assert prober_stats.read == 0

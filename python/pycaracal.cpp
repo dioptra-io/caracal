@@ -5,6 +5,7 @@
 #include <pybind11/stl.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 #include <caracal/experimental.hpp>
@@ -44,6 +45,11 @@ ProbingStatistics py_probe(const Config& config, pybind11::iterable it) {
   return probe(config, iterator);
 }
 
+void log_to_stderr() {
+  spdlog::set_default_logger(spdlog::stderr_color_st("dummy"));
+  spdlog::set_default_logger(spdlog::stderr_color_st(""));
+}
+
 void set_log_level(int level) {
   if (level >= 50) {
     spdlog::set_level(spdlog::level::critical);
@@ -74,6 +80,7 @@ PYBIND11_MODULE(_pycaracal, m) {
   m.doc() = "Python bindings to a small subset of caracal.";
 
   m.def("make_probe", &make_probe);
+  m.def("log_to_stderr", &log_to_stderr);
   m.def("set_log_level", &set_log_level);
 
   py::class_<Probe>(m, "Probe")

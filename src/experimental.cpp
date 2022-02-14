@@ -32,7 +32,6 @@ std::vector<Reply> Prober::probe(const std::vector<Probe> &probes,
     rate_limiter_.wait();
   }
   auto start_tp = steady_clock::now();
-  auto last_tp = start_tp;
   auto timeout = milliseconds{timeout_ms};
   while (duration_cast<milliseconds>(steady_clock::now() - start_tp) <
          timeout) {
