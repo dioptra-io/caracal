@@ -4,15 +4,16 @@ on:
   push:
     branches: [ main ]
     tags: [ '*' ]
-    paths-ignore: ['**.md']
+    paths-ignore: [ '**.md' ]
   pull_request:
 
+env:
+  MACOSX_DEPLOYMENT_TARGET: 10.15
+  MAKEFLAGS: -j8
+
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ ubuntu-20.04, macOS-10.15 ]
+  sdist:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
@@ -20,19 +21,73 @@ jobs:
           submodules: true
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.8
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.3.1
-        env:
-          MACOSX_DEPLOYMENT_TARGET: 10.15
-          MAKEFLAGS: -j8
+          python-version: '3.x'
       - name: Publish to PyPI
         # Publish only when the current ref. is a tag.
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          python3 -m pip install --upgrade build twine
+          python3 -m pip install build twine
           python3 -m build --sdist
-          python3 -m twine upload --skip-existing dist/*.tar.gz wheelhouse/*.whl
+          python3 -m twine upload --skip-existing dist/*.tar.gz
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [ x86_64, aarch64 ]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CIBW_ARCHS: ${{ matrix.arch }}
+      - name: Publish to PyPI
+        # Publish only when the current ref. is a tag.
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          python3 -m pip install twine
+          python3 -m twine upload --skip-existing wheelhouse/*.whl
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+
+  macos:
+    runs-on: macos-10.15
+    strategy:
+      matrix:
+        # universal2 and arm64 wheels seems to be broken (because of conan?)
+        arch: [ x86_64 ]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CIBW_ARCHS: ${{ matrix.arch }}
+      - name: Publish to PyPI
+        # Publish only when the current ref. is a tag.
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          python3 -m pip install twine
+          python3 -m twine upload --skip-existing wheelhouse/*.whl
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
