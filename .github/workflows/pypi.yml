@@ -37,7 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [ x86_64, aarch64 ]
+        arch: [ "x86_64", "aarch64" ]
+        build: [ "cp38-*", "cp39-*", "cp310-*" ]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -54,6 +55,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.3.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_BUILD: ${{ matrix.build }}
       - name: Publish to PyPI
         # Publish only when the current ref. is a tag.
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -69,7 +71,8 @@ jobs:
     strategy:
       matrix:
         # universal2 and arm64 wheels seems to be broken (because of conan?)
-        arch: [ x86_64 ]
+        arch: [ "x86_64" ]
+        build: [ "cp38-*", "cp39-*", "cp310-*" ]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -82,6 +85,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.3.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_BUILD: ${{ matrix.build }}
       - name: Publish to PyPI
         # Publish only when the current ref. is a tag.
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}

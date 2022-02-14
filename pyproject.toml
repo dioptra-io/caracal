@@ -3,7 +3,6 @@ requires = ["setuptools", "setuptools_scm[toml]>=6.0", "wheel", "scikit-build", 
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-build = ["cp38-*", "cp39-*", "cp310-*"]
 # To build with musl libc we need https://github.com/rmind/liblpm/pull/18
 skip = ["*-musllinux_*"]
 # `2021-08-01-bce1ff9` is the latest version that uses GCC 9.
