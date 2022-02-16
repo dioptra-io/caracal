@@ -33,6 +33,12 @@ configure_file(apps/caracal-config.h.in caracal-config.h)
 if(WITH_CONAN)
   include(conan)
   conan_cmake_autodetect(settings)
+  # Set `arch=...` setting if the `CONAN_ARCH` env. variable is set.
+  # This is useful to cross-compile on macOS, e.g. to compile for arm64:
+  # CMAKE_OSX_ARCHITECTURES=arm64 CONAN_ARCH=armv8
+  if(DEFINED ENV{CONAN_ARCH})
+    set(settings ${settings} arch=$ENV{CONAN_ARCH})
+  endif()
   conan_cmake_install(
     PATH_OR_REFERENCE
     ${CMAKE_CURRENT_SOURCE_DIR}
