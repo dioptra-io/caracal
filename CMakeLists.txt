@@ -44,6 +44,7 @@ if(WITH_CONAN)
     ${CMAKE_CURRENT_SOURCE_DIR}
     BUILD
     b2
+    libpcap # 20220303: Fix an issue with the pre-built macOS arm64 library.
     missing
     SETTINGS
     ${settings}
