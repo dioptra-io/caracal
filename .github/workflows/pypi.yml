@@ -92,7 +92,6 @@ jobs:
           CIBW_BUILD: ${{ matrix.build }}
           CONAN_ARCH: ${{ matrix.conan_arch }}
           CMAKE_OSX_ARCHITECTURES: ${{ matrix.arch }}
-          MACOSX_DEPLOYMENT_TARGET: 10.15
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
