@@ -18,7 +18,7 @@
 #include <caracal/utilities.hpp>
 #include <memory>
 
-#include "conversions.hpp"
+#include "./conversions.hpp"
 
 namespace py = pybind11;
 namespace Experimental = caracal::Experimental;
@@ -101,6 +101,14 @@ void check_exception() {
   if (PyErr_CheckSignals() != 0) {
     throw py::error_already_set();
   }
+}
+
+std::string source_ipv4_for(const std::string& interface_name) {
+  return Utilities::source_ipv4_for(interface_name).to_string();
+}
+
+std::string source_ipv6_for(const std::string& interface_name) {
+  return Utilities::source_ipv6_for(interface_name).to_string();
 }
 
 PYBIND11_MODULE(_pycaracal, m) {
@@ -210,6 +218,8 @@ PYBIND11_MODULE(_pycaracal, m) {
   // pycaracal.utilities
   auto m_utilities = m.def_submodule("utilities");
   m_utilities.def("get_default_interface", &Config::get_default_interface);
+  m_utilities.def("source_ipv4_for", &source_ipv4_for);
+  m_utilities.def("source_ipv6_for", &source_ipv6_for);
 
   // pycaracal.experimental
   auto m_experimental = m.def_submodule("experimental");
