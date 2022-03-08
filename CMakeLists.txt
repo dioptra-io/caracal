@@ -44,6 +44,7 @@ if(WITH_CONAN)
     ${CMAKE_CURRENT_SOURCE_DIR}
     BUILD
     b2
+    libpcap
     missing
     SETTINGS
     ${settings}

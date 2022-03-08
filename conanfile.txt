@@ -1,7 +1,7 @@
 [requires]
 boost/1.78.0
 cxxopts/3.0.0
-libpcap/1.9.1
+libpcap/1.10.0
 libtins/4.3
 spdlog/1.9.2
 
