@@ -67,7 +67,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 
   macos:
-    runs-on: macos-latest
+    runs-on: macos-10.15
     strategy:
       matrix:
         arch: [ "x86_64", "arm64" ]
@@ -92,6 +92,7 @@ jobs:
           CIBW_BUILD: ${{ matrix.build }}
           CONAN_ARCH: ${{ matrix.conan_arch }}
           CMAKE_OSX_ARCHITECTURES: ${{ matrix.arch }}
+          MACOSX_DEPLOYMENT_TARGET: 10.15
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
