@@ -10,7 +10,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: dioptra-io/publish-docker-action@v1
+      - uses: dioptra-io/publish-docker-action@v1.3
         with:
           password: ${{ secrets.GITHUB_TOKEN }}
           platforms: linux/amd64,linux/arm64
