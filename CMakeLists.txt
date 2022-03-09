@@ -58,11 +58,14 @@ find_package(Catch2 REQUIRED)
 find_package(cxxopts REQUIRED)
 find_package(libtins REQUIRED)
 find_package(LPM REQUIRED)
+find_package(
+  Python
+  COMPONENTS Development.Module Interpreter
+  REQUIRED
+)
+find_package(pybind11 REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Threads REQUIRED)
-
-# Optional packages
-find_package(pybind11)
 
 include(Catch)
 include(CTest)
