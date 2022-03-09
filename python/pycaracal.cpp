@@ -135,6 +135,7 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def_readonly("capture_timestamp", &Reply::capture_timestamp)
       .def_readonly("reply_src_addr", &Reply::reply_src_addr)
       .def_readonly("reply_dst_addr", &Reply::reply_dst_addr)
+      .def_readonly("reply_id", &Reply::reply_id)
       .def_readonly("reply_size", &Reply::reply_size)
       .def_readonly("reply_ttl", &Reply::reply_ttl)
       .def_readonly("reply_protocol", &Reply::reply_protocol)

@@ -19,6 +19,7 @@ struct Reply {
   /// @{
   in6_addr reply_src_addr;  ///< The source IP of the reply packet.
   in6_addr reply_dst_addr;  ///< The destination IP of the reply packet.
+  uint16_t reply_id;        ///< The ID field of the reply packet (0 for IPv6).
   uint16_t reply_size;      ///< The size in bytes of the reply packet.
                             ///< For IPv6 this doesn't include the IP header.
   uint8_t reply_ttl;        ///< The TTL of the reply packet.

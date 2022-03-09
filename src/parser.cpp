@@ -37,6 +37,7 @@ void copy(const Tins::IPv6Address& src, in6_addr& dst) noexcept {
 void parse_outer(Reply& reply, const Tins::IP* ip) noexcept {
   copy(ip->src_addr(), reply.reply_src_addr);
   copy(ip->dst_addr(), reply.reply_dst_addr);
+  reply.reply_id = ip->id();
   reply.reply_size = ip->tot_len();
   reply.reply_ttl = ip->ttl();
 }
@@ -44,6 +45,7 @@ void parse_outer(Reply& reply, const Tins::IP* ip) noexcept {
 void parse_outer(Reply& reply, const Tins::IPv6* ip) noexcept {
   copy(ip->src_addr(), reply.reply_src_addr);
   copy(ip->dst_addr(), reply.reply_dst_addr);
+  reply.probe_id = 0;  // Not implemented for IPv6.
   reply.reply_size = ip->payload_length();
   reply.reply_ttl = static_cast<uint8_t>(ip->hop_limit());
 }
@@ -81,15 +83,15 @@ void parse_outer(Reply& reply, const Tins::ICMPExtension& ext) noexcept {
 
 void parse_inner(Reply& reply, const Tins::IP* ip) noexcept {
   copy(ip->dst_addr(), reply.probe_dst_addr);
-  reply.probe_size = ip->tot_len();
   reply.probe_id = ip->id();
+  reply.probe_size = ip->tot_len();
   reply.quoted_ttl = ip->ttl();
 }
 
 void parse_inner(Reply& reply, const Tins::IPv6* ip) noexcept {
   copy(ip->dst_addr(), reply.probe_dst_addr);
-  reply.probe_size = ip->payload_length();
   reply.probe_id = 0;  // Not implemented for IPv6.
+  reply.probe_size = ip->payload_length();
   reply.quoted_ttl = ip->hop_limit();
 }
 
