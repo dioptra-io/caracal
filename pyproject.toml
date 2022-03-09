@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "setuptools_scm[toml]>=6.0", "wheel", "scikit-build", "cmake", "conan"]
+requires = ["setuptools", "setuptools_scm[toml]>=6.0", "wheel", "scikit-build", "cmake", "conan", "ninja"]
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
