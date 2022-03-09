@@ -31,12 +31,12 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install --yes build-essential cmake gcovr git python3-dev python3-pip
+          sudo apt install --yes build-essential cmake gcovr git ninja-build python3-dev python3-pip
           pip3 install conan
       - name: Configure project
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON
       - name: Build and run tests
-        run: sudo --preserve-env=CI cmake --build build --target coverage --parallel 4
+        run: sudo --preserve-env=CI cmake --build build --target coverage
       - uses: codecov/codecov-action@v2
         with:
           directory: build
@@ -53,11 +53,11 @@ jobs:
           path: ~/.conan/data
           key: ${{ runner.os }}
       - name: Install dependencies
-        run: brew install cmake conan gcovr
+        run: brew install cmake conan gcovr ninja
       - name: Configure project
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON
       - name: Build and run tests
-        run: sudo --preserve-env=CI cmake --build build --target coverage --parallel 4
+        run: sudo --preserve-env=CI cmake --build build --target coverage
         env:
           GITHUB_ACTIONS: 1
       - uses: codecov/codecov-action@v2
