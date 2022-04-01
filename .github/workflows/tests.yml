@@ -10,7 +10,7 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - name: Build Docker image
@@ -21,7 +21,7 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - uses: actions/cache@v2
@@ -45,7 +45,7 @@ jobs:
     # bison fails to build on macos-11 on GitHub actions.
     runs-on: macos-10.15
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - uses: actions/cache@v2
