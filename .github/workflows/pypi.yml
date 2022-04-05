@@ -16,18 +16,11 @@ jobs:
           fetch-depth: 0
           submodules: true
       - uses: actions/setup-python@v3
+      - uses: dioptra-io/publish-python-action@v1
         with:
-          python-version: '3.x'
-      - name: Publish to PyPI
-        # Publish only when the current ref. is a tag.
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        run: |
-          python3 -m pip install build twine
-          python3 -m build --sdist
-          python3 -m twine upload --skip-existing dist/*.tar.gz
-        env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          password: ${{ secrets.PYPI_TOKEN }}
+          upload: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          wheel: false
 
   linux:
     runs-on: ubuntu-latest
@@ -45,8 +38,6 @@ jobs:
           path: ~/.conan/data
           key: ${{ runner.os }}-${{ matrix.arch }}-${{ matrix.build }}
       - uses: actions/setup-python@v3
-        with:
-          python-version: '3.x'
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
         with:
@@ -57,19 +48,18 @@ jobs:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.build }}
           CIBW_ENVIRONMENT: CONAN_USER_HOME=/host/home/runner
+        with:
+          output-dir: dist
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          path: ./wheelhouse/*.whl
-      - name: Publish to PyPI
-        # Publish only when the current ref. is a tag.
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        run: |
-          python3 -m pip install twine
-          python3 -m twine upload --skip-existing wheelhouse/*.whl
-        env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          path: dist/*.whl
+      - uses: dioptra-io/publish-python-action@v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
+          upload: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          sdist: false
+          wheel: false
 
   macos:
     runs-on: macos-10.15
@@ -95,8 +85,6 @@ jobs:
           path: ~/.conan/data
           key: ${{ runner.os }}-${{ matrix.arch }}-${{ matrix.build }}
       - uses: actions/setup-python@v3
-        with:
-          python-version: '3.x'
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.3.1
         env:
@@ -105,16 +93,15 @@ jobs:
           CONAN_ARCH: ${{ matrix.conan_arch }}
           CMAKE_OSX_ARCHITECTURES: ${{ matrix.arch }}
           MACOSX_DEPLOYMENT_TARGET: 10.15
+        with:
+          output-dir: dist
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          path: ./wheelhouse/*.whl
-      - name: Publish to PyPI
-        # Publish only when the current ref. is a tag.
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        run: |
-          python3 -m pip install twine
-          python3 -m twine upload --skip-existing wheelhouse/*.whl
-        env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          path: dist/*.whl
+      - uses: dioptra-io/publish-python-action@v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
+          upload: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          sdist: false
+          wheel: false
