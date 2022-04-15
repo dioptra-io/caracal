@@ -130,8 +130,9 @@ Option             | Default  | Description
 :------------------|:---------|:------------
 `CMAKE_BUILD_TYPE` | `Debug`  | Set to `Release` for a production build.
 `WITH_CONAN`       | `ON`     | Whether to run `conan install` on configure or not.
-`WITH_COVERAGE`    | `OFF`    | Whether to enable code coverage report or not.
-`WITH_SANITIZER`   | `OFF`    | Whether to enable compiler sanitizers or not.
+`WITH_BINARY`      | `ON`     | Whether to enable the `caracal-bin` target or not.
+`WITH_PYTHON`      | `ON`     | Whether to enable the `_pycaracal` target or not.
+`WITH_TESTS`       | `ON`     | Whether to enable the `caracal-test` target or not.
 
 Use `-DOPTION=Value` to set an option.
 For example: `cmake -DCMAKE_BUILD_TYPE=Release ..`

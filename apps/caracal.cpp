@@ -16,7 +16,7 @@ using std::string;
 
 int main(int argc, char** argv) {
   std::cerr << "caracal"
-            << " v" << CARACAL_SEMVER << " (" << CARACAL_BUILD_TYPE
+            << " v" << CARACAL_VERSION << " (" << CARACAL_BUILD_TYPE
             << " build)";
   std::cerr << std::endl;
 

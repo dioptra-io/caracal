@@ -18,6 +18,20 @@ jobs:
       - name: Test Docker image
         run: docker run caracal --help
 
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: cachix/install-nix-action@v17
+      - uses: cachix/cachix-action@v10
+        with:
+          name: ${{ secrets.CACHIX_NAME }}
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Build flake
+        run: nix build '.?submodules=1'
+
   linux:
     runs-on: ubuntu-latest
     steps:
@@ -34,12 +48,14 @@ jobs:
           sudo apt install --yes build-essential cmake gcovr git ninja-build python3-dev python3-pip
           pip3 install conan
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON
-      - name: Build and run tests
-        run: sudo --preserve-env=CI cmake --build build --target coverage
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined"
+      - name: Build tests
+        run: cmake --build build --target caracal-test
+      - name: Run tests
+        run: sudo --preserve-env=CI build/caracal-test --benchmark-warmup-time 0 --benchmark-samples 1
+      - name: Compute coverage
+        run: gcovr --exclude-unreachable-branches --exclude-throw-branches --exclude apps --exclude extern --exclude tests --output coverage.xml --xml
       - uses: codecov/codecov-action@v2
-        with:
-          directory: build
 
   macos:
     # bison fails to build on macos-11 on GitHub actions.
@@ -55,11 +71,11 @@ jobs:
       - name: Install dependencies
         run: brew install cmake conan gcovr ninja
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=ON -DWITH_SANITIZER=ON
-      - name: Build and run tests
-        run: sudo --preserve-env=CI cmake --build build --target coverage
-        env:
-          GITHUB_ACTIONS: 1
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined"
+      - name: Build tests
+        run: cmake --build build --target caracal-test
+      - name: Run tests
+        run: sudo --preserve-env=CI build/caracal-test --benchmark-warmup-time 0 --benchmark-samples 1
+      - name: Compute coverage
+        run: gcovr --exclude-unreachable-branches --exclude-throw-branches --exclude apps --exclude extern --exclude tests --output coverage.xml --xml
       - uses: codecov/codecov-action@v2
-        with:
-          directory: build
