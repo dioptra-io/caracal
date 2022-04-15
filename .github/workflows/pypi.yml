@@ -82,6 +82,9 @@ jobs:
           path: ~/.conan/data
           key: ${{ runner.os }}-${{ matrix.arch }}-${{ matrix.build }}
       - uses: actions/setup-python@v3
+      # Remove built-in Python that conflicts with CMake auto-detection.
+      - name: Remove built-in Python
+        run: rm -rf /usr/local/Frameworks/Python.framework/
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.3.1
         env:

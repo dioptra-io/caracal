@@ -57,6 +57,11 @@ if(WITH_BINARY)
 endif()
 
 if(WITH_PYTHON)
+  find_package(
+    Python
+    COMPONENTS Development.Module Interpreter
+    REQUIRED
+  )
   find_package(pybind11 REQUIRED)
 endif()
 
