@@ -16,6 +16,8 @@ Caracal reads probe specifications, sends the corresponding probe packets at the
 
 ## Quickstart
 
+### Docker
+
 The easiest way to run Caracal is through Docker:
 ```bash
 docker run ghcr.io/dioptra-io/caracal --help
@@ -23,6 +25,13 @@ docker run ghcr.io/dioptra-io/caracal --help
 
 If you're using macOS, we recommend to [build the native executable](#building-from-source) as Docker for Mac
 seems to rewrite the IP header fields where we encode probe information.
+
+### Nix
+
+If you're using the [Nix](https://nixos.org) package manager, you can use the following command:
+```bash
+nix run github:dioptra-io/caracal -- --help
+```
 
 ## Features
 
