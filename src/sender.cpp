@@ -1,12 +1,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#ifdef __APPLE__
-#include <net/if.h>
-#include <net/ndrv.h>
-#elif __linux__
-#include <netpacket/packet.h>
-#endif
+#include <pcap/pcap.h>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 #include <tins/tins.h>
@@ -29,17 +24,12 @@ namespace caracal {
 Sender::Sender(const std::string &interface_name, uint16_t caracal_id)
     : buffer_{},
       l2_protocol_{Protocols::L2::Ethernet},
-#ifdef __APPLE__
-      socket_{AF_NDRV, SOCK_RAW, 0},
-#elif __linux__
-      socket_{AF_PACKET, SOCK_RAW, 0},
-#endif
-      if_{},
       src_mac_{},
       dst_mac_{},
       src_ip_v4_{},
       src_ip_v6_{},
-      caracal_id_{caracal_id} {
+      caracal_id_{caracal_id},
+      handle_{nullptr} {
   Tins::NetworkInterface interface { interface_name };
 
   // Find the interface type:
@@ -79,20 +69,6 @@ Sender::Sender(const std::string &interface_name, uint16_t caracal_id)
   std::copy(if_mac.begin(), if_mac.end(), src_mac_.begin());
   std::copy(gateway_mac.begin(), gateway_mac.end(), dst_mac_.begin());
 
-  // Initialize the source interface kernel structures.
-#ifdef __APPLE__
-  std::copy(interface_name.begin(), interface_name.end(), if_.snd_name);
-  if_.snd_family = AF_NDRV;
-  if_.snd_len = sizeof(sockaddr_ndrv);
-  socket_.bind(&if_);
-#elif __linux__
-  std::copy(dst_mac_.begin(), dst_mac_.end(), if_.sll_addr);
-  if_.sll_family = AF_PACKET;
-  if_.sll_halen = ETHER_ADDR_LEN;
-  if_.sll_ifindex = interface.id();
-  if_.sll_protocol = 0;
-#endif
-
   // Set the source IPv4 address.
   src_ip_v4_.sin_family = AF_INET;
   inet_pton(AF_INET, Utilities::source_ipv4_for(interface).to_string().c_str(),
@@ -106,7 +82,18 @@ Sender::Sender(const std::string &interface_name, uint16_t caracal_id)
   spdlog::info("dst_mac={:02x}", fmt::join(dst_mac_, ":"));
   spdlog::info("src_ip_v4={} src_ip_v6={}", src_ip_v4_.sin_addr,
                src_ip_v6_.sin6_addr);
+
+  // Open pcap interface.
+  char pcap_err[PCAP_ERRBUF_SIZE] = {};
+  handle_ = pcap_open_live(interface_name.c_str(), 0, 0, 0, pcap_err);
+  if (handle_ == nullptr) {
+    throw std::runtime_error(pcap_err);
+  } else if (strlen(pcap_err) > 0) {
+    spdlog::warn("{}", pcap_err);
+  }
 }
+
+Sender::~Sender() { pcap_close(handle_); }
 
 void Sender::send(const Probe &probe) {
   const auto l3_protocol = probe.l3_protocol();
@@ -162,6 +149,8 @@ void Sender::send(const Probe &probe) {
       break;
   }
 
-  socket_.sendto(packet.l2(), packet.l2_size(), 0, &if_);
+  if (pcap_inject(handle_, packet.l2(), packet.l2_size()) == PCAP_ERROR) {
+    throw std::runtime_error(pcap_geterr(handle_));
+  }
 }
 }  // namespace caracal
