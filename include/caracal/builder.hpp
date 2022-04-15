@@ -1,10 +1,11 @@
 #pragma once
 
+#include <sys/types.h>
 #include <net/ethernet.h>
 
 #include <array>
 
-#include "packet.hpp"
+#include "./packet.hpp"
 
 /// Build probe packets.
 namespace caracal::Builder {

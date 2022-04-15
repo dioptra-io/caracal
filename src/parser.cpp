@@ -1,3 +1,5 @@
+#include <sys/types.h>
+#include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
 #include <tins/tins.h>

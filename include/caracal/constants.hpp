@@ -7,8 +7,8 @@
 #define ICMP_HEADER_SIZE 8
 #define ICMPV6_HEADER_SIZE 8
 
-// in6_addr.s6_addr32 is not defined on macOS.
-#ifdef __APPLE__
+// in6_addr.s6_addr32 is not defined on BSD/macOS.
+#ifndef __linux__
 #define s6_addr32 __u6_addr.__u6_addr32
 #endif
 

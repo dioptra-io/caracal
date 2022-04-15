@@ -1,3 +1,5 @@
+#include <sys/types.h>
+#include <netinet/in.h>
 #include <netinet/ip.h>
 #ifdef __APPLE__
 #include <net/if.h>
@@ -38,7 +40,7 @@ Sender::Sender(const std::string &interface_name, uint16_t caracal_id)
       src_ip_v4_{},
       src_ip_v6_{},
       caracal_id_{caracal_id} {
-  Tins::NetworkInterface interface{interface_name};
+  Tins::NetworkInterface interface { interface_name };
 
   // Find the interface type:
   // - Linux Ethernet link [Ethernet header -> IP header]
