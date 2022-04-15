@@ -14,10 +14,12 @@ file(GLOB CARACAL_LIBRARY_SOURCES src/*.cpp)
 file(GLOB CARACAL_BENCH_SOURCES tests/*_bench.cpp)
 file(GLOB CARACAL_TESTS_SOURCES tests/*_test.cpp)
 
+option(WITH_BINARY "Enable binary target" ON)
 option(WITH_CONAN "Run conan install on configure" ON)
 option(WITH_COVERAGE "Enable code coverage" OFF)
 option(WITH_PYTHON "Enable Python target" ON)
 option(WITH_SANITIZER "Enable compiler sanitizers" OFF)
+option(WITH_TESTS "Enable tests target" ON)
 configure_file(apps/caracal-config.h.in caracal-config.h)
 
 # Install the dependencies with conan, this is equivalent to `conan install ..`.
@@ -80,33 +82,32 @@ target_link_libraries(caracal PRIVATE spdlog::spdlog LPM::LPM Threads::Threads)
 target_link_libraries(caracal PUBLIC Boost::iostreams libtins::libtins)
 
 # Executable (Prober)
-add_executable(caracal-bin apps/caracal.cpp)
-target_compile_options(caracal-bin PRIVATE ${CARACAL_PRIVATE_FLAGS})
-target_include_directories(caracal-bin PRIVATE "${PROJECT_BINARY_DIR}")
-target_link_libraries(
-  caracal-bin PRIVATE cxxopts::cxxopts spdlog::spdlog caracal
-)
-set_target_properties(caracal-bin PROPERTIES OUTPUT_NAME caracal)
-install(TARGETS caracal-bin RUNTIME DESTINATION bin)
+if(WITH_BINARY)
+  add_executable(caracal-bin apps/caracal.cpp)
+  target_compile_options(caracal-bin PRIVATE ${CARACAL_PRIVATE_FLAGS})
+  target_include_directories(caracal-bin PRIVATE "${PROJECT_BINARY_DIR}")
+  target_link_libraries(
+    caracal-bin PRIVATE cxxopts::cxxopts spdlog::spdlog caracal
+  )
+  set_target_properties(caracal-bin PROPERTIES OUTPUT_NAME caracal)
+  install(TARGETS caracal-bin RUNTIME DESTINATION bin)
+endif()
 
 # Executable (Tests)
-add_executable(caracal-test ${CARACAL_TESTS_SOURCES})
-target_compile_options(caracal-test PRIVATE ${CARACAL_PRIVATE_FLAGS})
-target_link_libraries(
-  caracal-test PRIVATE Catch2::Catch2WithMain spdlog::spdlog caracal
-)
-catch_discover_tests(caracal-test)
+if(WITH_TESTS)
+  add_executable(caracal-test ${CARACAL_TESTS_SOURCES})
+  target_compile_options(caracal-test PRIVATE ${CARACAL_PRIVATE_FLAGS})
+  target_link_libraries(
+    caracal-test PRIVATE Catch2::Catch2WithMain spdlog::spdlog caracal
+  )
+  catch_discover_tests(caracal-test)
+endif()
 
-# Python Module (pycaracal)
+# Python bindings
 if(WITH_PYTHON)
   pybind11_add_module(_pycaracal MODULE python/pycaracal.cpp)
   target_link_libraries(_pycaracal PRIVATE caracal spdlog::spdlog)
   install(TARGETS _pycaracal LIBRARY DESTINATION .)
-endif()
-
-# Prevent scikit-build from building unneeded binaries.
-if(SKBUILD)
-  set_target_properties(caracal-bin caracal-test PROPERTIES EXCLUDE_FROM_ALL ON)
 endif()
 
 if(WITH_COVERAGE)

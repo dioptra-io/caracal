@@ -37,13 +37,8 @@
             cmakeFlags = [
               "-DWITH_CONAN=OFF"
               "-DWITH_PYTHON=OFF"
+              "-DWITH_TESTS=OFF"
             ];
-            buildPhase = ''
-              cmake --build . --target caracal-bin
-            '';
-            installPhase = ''
-              cmake --install .
-            '';
           };
         };
         defaultPackage = self.packages.${system}.caracal;

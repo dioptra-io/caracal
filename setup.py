@@ -19,5 +19,9 @@ setup(
     python_requires=">=3.8",
     package_dir={"": "python"},
     packages=["pycaracal"],
+    cmake_args=[
+        "-DWITH_BINARY=OFF",
+        "-DWITH_TESTS=OFF",
+    ],
     cmake_install_dir="python/pycaracal",
 )
