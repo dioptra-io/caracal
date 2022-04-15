@@ -18,7 +18,7 @@ RUN python3 -m pip install --no-cache-dir build conan>=1.35
 WORKDIR /tmp
 COPY . .
 
-RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_LTO=ON && \
+RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && \
     cmake --build build --target caracal-bin
 
 # Main
