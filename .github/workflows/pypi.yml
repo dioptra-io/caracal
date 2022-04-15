@@ -13,7 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
           submodules: true
       - uses: actions/setup-python@v3
       - uses: dioptra-io/publish-python-action@v1
@@ -31,7 +30,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
           submodules: true
       - uses: actions/cache@v3.0.1
         with:
@@ -78,7 +76,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
           submodules: true
       - uses: actions/cache@v3.0.1
         with:

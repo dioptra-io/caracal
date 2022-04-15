@@ -1,17 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
+project(caracal VERSION 0.8.1)
 
 # We have Find* modules in two places:
 # - The build directory, for the libraries fetched by Conan
 # - The cmake/ directory, for the libraries not available with Conan
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
-
-# Find the version from Git if `git` is installed and `.git/` is found.
-# If not, the version will be set to `0.0.0`.
-include(MunkeiVersionFromGit)
-version_from_git(LOG ON)
-
-project(caracal VERSION ${VERSION})
 
 set(CARACAL_PRIVATE_FLAGS -Wall -Wextra -pedantic -fPIC)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
