@@ -23,6 +23,7 @@ file(GLOB CARACAL_TESTS_SOURCES tests/*_test.cpp)
 option(WITH_CONAN "Run conan install on configure" ON)
 option(WITH_COVERAGE "Enable code coverage" OFF)
 option(WITH_LTO "Enable link time optimization" OFF)
+option(WITH_PYTHON "Enable Python target" ON)
 option(WITH_SANITIZER "Enable compiler sanitizers" OFF)
 configure_file(apps/caracal-config.h.in caracal-config.h)
 
@@ -61,8 +62,9 @@ find_package(LPM REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Threads REQUIRED)
 
-# Optional packages
-find_package(pybind11)
+if(WITH_PYTHON)
+  find_package(pybind11 REQUIRED)
+endif()
 
 include(Catch)
 include(CTest)
@@ -92,6 +94,7 @@ target_link_libraries(
   caracal-bin PRIVATE cxxopts::cxxopts spdlog::spdlog caracal
 )
 set_target_properties(caracal-bin PROPERTIES OUTPUT_NAME caracal)
+install(TARGETS caracal-bin RUNTIME DESTINATION bin)
 
 # Executable (Tests)
 add_executable(caracal-test ${CARACAL_TESTS_SOURCES})
@@ -102,7 +105,7 @@ target_link_libraries(
 catch_discover_tests(caracal-test)
 
 # Python Module (pycaracal)
-if(pybind11_FOUND)
+if(WITH_PYTHON)
   pybind11_add_module(_pycaracal MODULE python/pycaracal.cpp)
   target_link_libraries(_pycaracal PRIVATE caracal spdlog::spdlog)
   install(TARGETS _pycaracal LIBRARY DESTINATION .)
