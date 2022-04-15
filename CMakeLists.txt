@@ -53,7 +53,7 @@ if(WITH_CONAN)
 endif()
 
 # Required packages
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS iostreams)
 find_package(Catch2 REQUIRED)
 find_package(cxxopts REQUIRED)
 find_package(libtins REQUIRED)
@@ -66,6 +66,13 @@ find_package(pybind11)
 
 include(Catch)
 include(CTest)
+
+# If libtins is installed with conan, the `libtins::libtins` target is defined,
+# but if libtins is installed with another package manager, the `tins` target is defined instead.
+# To handle both cases we alias `tins` to `libtins::libtins`.
+if(TARGET tins)
+  add_library(libtins::libtins ALIAS tins)
+endif()
 
 # Library
 add_library(caracal ${CARACAL_LIBRARY_SOURCES})
