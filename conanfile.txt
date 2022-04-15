@@ -1,7 +1,9 @@
 [requires]
 boost/1.78.0
+catch2/2.13.8
 cxxopts/3.0.0
 libtins/4.3
+pybind11/2.9.1
 spdlog/1.9.2
 
 [generators]

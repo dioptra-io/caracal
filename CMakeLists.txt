@@ -11,8 +11,7 @@ set(CARACAL_PRIVATE_FLAGS -Wall -Wextra -pedantic -fPIC)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 file(GLOB CARACAL_LIBRARY_SOURCES src/*.cpp)
-file(GLOB CARACAL_BENCH_SOURCES tests/*_bench.cpp)
-file(GLOB CARACAL_TESTS_SOURCES tests/*_test.cpp)
+file(GLOB CARACAL_TESTS_SOURCES tests/*.cpp)
 
 option(WITH_BINARY "Enable binary target" ON)
 option(WITH_CONAN "Run conan install on configure" ON)
@@ -58,6 +57,11 @@ if(WITH_BINARY)
 endif()
 
 if(WITH_PYTHON)
+  find_package(
+    Python
+    COMPONENTS Development.Module Interpreter
+    REQUIRED
+  )
   find_package(pybind11 REQUIRED)
 endif()
 
@@ -101,9 +105,12 @@ endif()
 
 if(WITH_TESTS)
   add_executable(caracal-test ${CARACAL_TESTS_SOURCES})
+  target_compile_definitions(
+    caracal-test PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING
+  )
   target_compile_options(caracal-test PRIVATE ${CARACAL_PRIVATE_FLAGS})
   target_link_libraries(
-    caracal-test PRIVATE Catch2::Catch2WithMain spdlog::spdlog caracal
+    caracal-test PRIVATE Catch2::Catch2 spdlog::spdlog caracal
   )
   catch_discover_tests(caracal-test)
 endif()

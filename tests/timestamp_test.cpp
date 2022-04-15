@@ -1,9 +1,9 @@
 #include <caracal/timestamp.hpp>
-#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch.hpp>
 #include <chrono>
 #include <thread>
 
-#include "environment.hpp"
+#include "./environment.hpp"
 
 namespace Timestamp = caracal::Timestamp;
 

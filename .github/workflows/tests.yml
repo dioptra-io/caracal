@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
       - name: Build Docker image
         run: docker build --tag caracal .
       - name: Test Docker image
@@ -22,22 +20,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
       - uses: cachix/install-nix-action@v17
       - uses: cachix/cachix-action@v10
         with:
           name: ${{ secrets.CACHIX_NAME }}
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Build flake
-        run: nix build '.?submodules=1'
+        run: nix build
 
   linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
       - uses: actions/cache@v3
         with:
           path: ~/.conan/data
@@ -62,8 +56,6 @@ jobs:
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
       - uses: actions/cache@v3
         with:
           path: ~/.conan/data
