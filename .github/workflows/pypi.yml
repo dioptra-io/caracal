@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
       - uses: actions/setup-python@v3
       - uses: dioptra-io/publish-python-action@v1
         with:
@@ -29,8 +27,6 @@ jobs:
         build: [ "cp38-*", "cp39-*", "cp310-*" ]
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
       - uses: actions/cache@v3
         with:
           path: ~/.conan/data
@@ -75,8 +71,6 @@ jobs:
           #   conan_arch: "armv8"
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
       - uses: actions/cache@v3
         with:
           path: ~/.conan/data
