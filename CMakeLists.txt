@@ -16,9 +16,7 @@ file(GLOB CARACAL_TESTS_SOURCES tests/*_test.cpp)
 
 option(WITH_BINARY "Enable binary target" ON)
 option(WITH_CONAN "Run conan install on configure" ON)
-option(WITH_COVERAGE "Enable code coverage" OFF)
 option(WITH_PYTHON "Enable Python target" ON)
-option(WITH_SANITIZER "Enable compiler sanitizers" OFF)
 option(WITH_TESTS "Enable tests target" ON)
 configure_file(apps/caracal-config.h.in caracal-config.h)
 
@@ -50,19 +48,24 @@ endif()
 
 # Required packages
 find_package(Boost REQUIRED COMPONENTS iostreams)
-find_package(Catch2 REQUIRED)
-find_package(cxxopts REQUIRED)
 find_package(libtins REQUIRED)
 find_package(LPM REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Threads REQUIRED)
 
+if(WITH_BINARY)
+  find_package(cxxopts REQUIRED)
+endif()
+
 if(WITH_PYTHON)
   find_package(pybind11 REQUIRED)
 endif()
 
-include(Catch)
-include(CTest)
+if(WITH_TESTS)
+  find_package(Catch2 REQUIRED)
+  include(Catch)
+  include(CTest)
+endif()
 
 # If libtins is installed with conan, the `libtins::libtins` target is defined,
 # but if libtins is installed with another package manager, the `tins` target is defined instead.
@@ -71,17 +74,14 @@ if(TARGET tins)
   add_library(libtins::libtins ALIAS tins)
 endif()
 
-# Library
 add_library(caracal ${CARACAL_LIBRARY_SOURCES})
 target_compile_features(caracal PUBLIC cxx_std_20)
 target_compile_options(caracal PRIVATE ${CARACAL_PRIVATE_FLAGS})
 target_include_directories(caracal PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(caracal PRIVATE spdlog::spdlog LPM::LPM Threads::Threads)
 # TODO: Remove boost and libtins from the public headers of caracal?
-# In prober_config.hpp, sender.hpp, utilities.hpp.
 target_link_libraries(caracal PUBLIC Boost::iostreams libtins::libtins)
 
-# Executable (Prober)
 if(WITH_BINARY)
   add_executable(caracal-bin apps/caracal.cpp)
   target_compile_options(caracal-bin PRIVATE ${CARACAL_PRIVATE_FLAGS})
@@ -93,7 +93,12 @@ if(WITH_BINARY)
   install(TARGETS caracal-bin RUNTIME DESTINATION bin)
 endif()
 
-# Executable (Tests)
+if(WITH_PYTHON)
+  pybind11_add_module(_pycaracal MODULE python/pycaracal.cpp)
+  target_link_libraries(_pycaracal PRIVATE caracal spdlog::spdlog)
+  install(TARGETS _pycaracal LIBRARY DESTINATION .)
+endif()
+
 if(WITH_TESTS)
   add_executable(caracal-test ${CARACAL_TESTS_SOURCES})
   target_compile_options(caracal-test PRIVATE ${CARACAL_PRIVATE_FLAGS})
@@ -101,36 +106,4 @@ if(WITH_TESTS)
     caracal-test PRIVATE Catch2::Catch2WithMain spdlog::spdlog caracal
   )
   catch_discover_tests(caracal-test)
-endif()
-
-# Python bindings
-if(WITH_PYTHON)
-  pybind11_add_module(_pycaracal MODULE python/pycaracal.cpp)
-  target_link_libraries(_pycaracal PRIVATE caracal spdlog::spdlog)
-  install(TARGETS _pycaracal LIBRARY DESTINATION .)
-endif()
-
-if(WITH_COVERAGE)
-  include(CodeCoverage)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
-  setup_target_for_coverage_gcovr_xml(
-    NAME
-    coverage
-    EXECUTABLE
-    caracal-test
-    --benchmark-warmup-time
-    0
-    --benchmark-samples
-    1
-    EXCLUDE
-    "${PROJECT_SOURCE_DIR}/apps/*"
-    "${PROJECT_SOURCE_DIR}/extern/*"
-    "${PROJECT_SOURCE_DIR}/tests/*"
-  )
-endif()
-
-if(WITH_SANITIZER)
-  set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined"
-  )
 endif()

@@ -1,4 +1,4 @@
 // clang-format off
 #pragma once
-#define CARACAL_SEMVER "@SEMVER@"
+#define CARACAL_VERSION "@CMAKE_PROJECT_VERSION@"
 #define CARACAL_BUILD_TYPE "@CMAKE_BUILD_TYPE@"

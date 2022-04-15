@@ -7,7 +7,6 @@ RUN apt-get update && \
         build-essential \
         cmake \
         ninja-build \
-        python3-dev \
         python3-pip && \
     rm --force --recursive /var/lib/apt/lists/*
 
@@ -17,7 +16,7 @@ RUN python3 -m pip install --no-cache-dir build conan>=1.35
 WORKDIR /tmp
 COPY . .
 
-RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && \
+RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_PYTHON=OFF -DWITH_TESTS=OFF && \
     cmake --build build --target caracal-bin
 
 # Main
