@@ -2,13 +2,12 @@
 
 #include <caracal/prober.hpp>
 #include <caracal/prober_config.hpp>
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include <catch2/catch.hpp>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
 
-#include "environment.hpp"
+#include "./environment.hpp"
 
 namespace fs = std::filesystem;
 

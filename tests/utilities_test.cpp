@@ -1,8 +1,7 @@
 #include <arpa/inet.h>
 
 #include <caracal/utilities.hpp>
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include <catch2/catch.hpp>
 
 using caracal::Utilities::format_addr;
 using caracal::Utilities::parse_addr;

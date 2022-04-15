@@ -1,6 +1,5 @@
 #include <caracal/checksum.hpp>
-#include <catch2/benchmark/catch_benchmark.hpp>
-#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch.hpp>
 
 using caracal::Checksum::caracal_checksum;
 using caracal::Checksum::ip_checksum;

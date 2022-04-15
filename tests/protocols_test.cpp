@@ -1,7 +1,7 @@
 #include <netinet/in.h>
 
 #include <caracal/protocols.hpp>
-#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch.hpp>
 
 using caracal::Protocols::L3;
 using caracal::Protocols::L4;
