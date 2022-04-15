@@ -7,7 +7,7 @@
 [![PyPI](https://img.shields.io/pypi/v/pycaracal?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/pycaracal/)
 
 Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ with Python bindings.
-It runs on Linux and macOS, on x86-64 and ARM64 systems.
+It runs on BSD, Linux and macOS, on x86-64 and ARM64 systems.
 
 
 Caracal reads probe specifications, sends the corresponding probe packets at the specified rate, parse the eventual replies and outputs them in CSV format.
@@ -131,7 +131,6 @@ Option             | Default  | Description
 `CMAKE_BUILD_TYPE` | `Debug`  | Set to `Release` for a production build.
 `WITH_CONAN`       | `ON`     | Whether to run `conan install` on configure or not.
 `WITH_COVERAGE`    | `OFF`    | Whether to enable code coverage report or not.
-`WITH_LTO`         | `OFF`    | Whether to enable link time optimization or not.
 `WITH_SANITIZER`   | `OFF`    | Whether to enable compiler sanitizers or not.
 
 Use `-DOPTION=Value` to set an option.

@@ -118,7 +118,7 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
       try {
         sender.send(p);
         stats.sent++;
-      } catch (const std::system_error& e) {
+      } catch (const std::runtime_error& e) {
         spdlog::error("probe={} error={}", p, e.what());
         stats.failed++;
       }

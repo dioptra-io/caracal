@@ -16,7 +16,6 @@ file(GLOB CARACAL_TESTS_SOURCES tests/*_test.cpp)
 
 option(WITH_CONAN "Run conan install on configure" ON)
 option(WITH_COVERAGE "Enable code coverage" OFF)
-option(WITH_LTO "Enable link time optimization" OFF)
 option(WITH_PYTHON "Enable Python target" ON)
 option(WITH_SANITIZER "Enable compiler sanitizers" OFF)
 configure_file(apps/caracal-config.h.in caracal-config.h)
@@ -127,10 +126,6 @@ if(WITH_COVERAGE)
     "${PROJECT_SOURCE_DIR}/extern/*"
     "${PROJECT_SOURCE_DIR}/tests/*"
   )
-endif()
-
-if(WITH_LTO)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
 endif()
 
 if(WITH_SANITIZER)
