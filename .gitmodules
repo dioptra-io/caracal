@@ -1,4 +1,0 @@
-[submodule "extern/liblpm"]
-	path = extern/liblpm
-	url = https://github.com/rmind/liblpm.git
-	shallow = true
