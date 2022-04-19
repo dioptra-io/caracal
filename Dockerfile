@@ -1,5 +1,5 @@
 # Builder
-FROM ubuntu:20.04 as builder
+FROM ubuntu:22.04 as builder
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
@@ -20,6 +20,6 @@ RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_PYTHON=OFF -D
     cmake --build build --target caracal-bin
 
 # Main
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 COPY --from=builder /tmp/build/caracal /usr/bin/caracal
 ENTRYPOINT ["caracal"]
