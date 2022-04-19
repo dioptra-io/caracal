@@ -107,7 +107,7 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(reply.reply_icmp_type == 0);
     REQUIRE(reply.reply_icmp_code == 0);
     REQUIRE(reply.reply_mpls_labels.empty());
-    REQUIRE(format_addr(reply.probe_dst_addr) == "::");
+    REQUIRE(format_addr(reply.probe_dst_addr) == "8.8.8.8");
     REQUIRE(reply.probe_size == 0);
     REQUIRE(reply.probe_ttl == 10);
     REQUIRE(reply.probe_protocol == IPPROTO_ICMP);
@@ -165,7 +165,7 @@ TEST_CASE("Parser::parse/ICMPv6") {
     REQUIRE(reply.reply_icmp_type == 129);
     REQUIRE(reply.reply_icmp_code == 0);
     REQUIRE(reply.reply_mpls_labels.empty());
-    REQUIRE(format_addr(reply.probe_dst_addr) == "::");
+    REQUIRE(format_addr(reply.probe_dst_addr) == "2001:4860:4860::8888");
     REQUIRE(reply.probe_size == 0);
     REQUIRE(reply.probe_ttl == 8);
     REQUIRE(reply.probe_protocol == IPPROTO_ICMPV6);
