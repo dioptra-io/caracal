@@ -72,8 +72,14 @@ struct Reply {
   /// True if the caracal checksum is equal to the checksum stored in the probe.
   [[nodiscard]] bool is_valid(uint32_t caracal_id) const;
 
+  /// True if the reply is an ICMP of ICMPv6 destination unreachable message.
+  [[nodiscard]] bool is_destination_unreachable() const;
+
+  /// True if the reply is an ICMP of ICMPv6 echo reply message.
+  [[nodiscard]] bool is_echo_reply() const;
+
   /// True if the reply is an ICMP of ICMPv6 time exceeded message.
-  [[nodiscard]] bool is_icmp_time_exceeded() const;
+  [[nodiscard]] bool is_time_exceeded() const;
 
   /// Serialize the reply in the CSV format.
   /// @return the reply in CSV format.

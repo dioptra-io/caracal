@@ -56,7 +56,9 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.quoted_ttl == 1);
     REQUIRE(reply.rtt == 66);
-    REQUIRE(reply.is_icmp_time_exceeded());
+    REQUIRE(!reply.is_destination_unreachable());
+    REQUIRE(!reply.is_echo_reply());
+    REQUIRE(reply.is_time_exceeded());
   }
 
   SECTION("ICMP TTL Exceeded with MPLS Extensions") {
@@ -86,7 +88,9 @@ TEST_CASE("Parser::parse/ICMP") {
     // recover the RTT.
     // REQUIRE(reply.rtt == 553);
     REQUIRE(reply.quoted_ttl == 2);
-    REQUIRE(reply.is_icmp_time_exceeded());
+    REQUIRE(!reply.is_destination_unreachable());
+    REQUIRE(!reply.is_echo_reply());
+    REQUIRE(reply.is_time_exceeded());
   }
 
   SECTION("ICMP Echo Reply") {
@@ -111,7 +115,9 @@ TEST_CASE("Parser::parse/ICMP") {
     REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.quoted_ttl == 0);
     REQUIRE(reply.rtt == 69);
-    REQUIRE(!reply.is_icmp_time_exceeded());
+    REQUIRE(!reply.is_destination_unreachable());
+    REQUIRE(reply.is_echo_reply());
+    REQUIRE(!reply.is_time_exceeded());
   }
 }
 
@@ -139,7 +145,9 @@ TEST_CASE("Parser::parse/ICMPv6") {
     REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.quoted_ttl == 1);
     REQUIRE(reply.rtt == 6);
-    REQUIRE(reply.is_icmp_time_exceeded());
+    REQUIRE(!reply.is_destination_unreachable());
+    REQUIRE(!reply.is_echo_reply());
+    REQUIRE(reply.is_time_exceeded());
   }
 
   SECTION("ICMPv6 Echo Reply") {
@@ -165,7 +173,9 @@ TEST_CASE("Parser::parse/ICMPv6") {
     REQUIRE(reply.probe_dst_port == 0);
     REQUIRE(reply.quoted_ttl == 0);
     REQUIRE(reply.rtt == 13);
-    REQUIRE(!reply.is_icmp_time_exceeded());
+    REQUIRE(!reply.is_destination_unreachable());
+    REQUIRE(reply.is_echo_reply());
+    REQUIRE(!reply.is_time_exceeded());
   }
 }
 
@@ -193,7 +203,9 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(reply.probe_dst_port == 33434);
     REQUIRE(reply.quoted_ttl == 1);
     REQUIRE(reply.rtt == 83);
-    REQUIRE(reply.is_icmp_time_exceeded());
+    REQUIRE(!reply.is_destination_unreachable());
+    REQUIRE(!reply.is_echo_reply());
+    REQUIRE(reply.is_time_exceeded());
   }
 
   SECTION("ICMPv6 TTL Exceeded") {
@@ -219,6 +231,8 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(reply.probe_dst_port == 33434);
     REQUIRE(reply.quoted_ttl == 1);
     REQUIRE(reply.rtt == 6);
-    REQUIRE(reply.is_icmp_time_exceeded());
+    REQUIRE(!reply.is_destination_unreachable());
+    REQUIRE(!reply.is_echo_reply());
+    REQUIRE(reply.is_time_exceeded());
   }
 }

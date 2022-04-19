@@ -137,6 +137,10 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def_readonly("probe_dst_port", &Reply::probe_dst_port)
       .def_readonly("probe_ttl", &Reply::probe_ttl)
       .def_readonly("rtt", &Reply::rtt)
+      .def_property_readonly("destination_unreachable",
+                             &Reply::is_destination_unreachable)
+      .def_property_readonly("echo_reply", &Reply::is_echo_reply)
+      .def_property_readonly("time_exceeded", &Reply::is_time_exceeded)
       .def("__repr__", repr<Reply>("Reply"));
 
   // pycaracal.prober

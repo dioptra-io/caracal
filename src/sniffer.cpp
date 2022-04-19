@@ -30,7 +30,7 @@ Sniffer::Sniffer(const std::string &interface_name,
       statistics_{},
       caracal_id_{caracal_id},
       integrity_check_{integrity_check} {
-  Tins::NetworkInterface interface{interface_name};
+  Tins::NetworkInterface interface { interface_name };
 
   std::vector<std::string> address_filters;
   for (auto address : Utilities::all_ipv4_for(interface)) {
@@ -89,7 +89,7 @@ void Sniffer::start() noexcept {
     if (reply && (!integrity_check_ || reply->is_valid(caracal_id_))) {
       spdlog::trace(reply.value());
       statistics_.icmp_messages_all.insert(reply->reply_src_addr);
-      if (reply->is_icmp_time_exceeded()) {
+      if (reply->is_time_exceeded()) {
         statistics_.icmp_messages_path.insert(reply->reply_src_addr);
       }
       output_csv_ << reply->to_csv(meta_round_.value_or("1")) << "\n";

@@ -67,7 +67,17 @@ bool Reply::is_valid(uint32_t caracal_id) const {
   return true;
 }
 
-bool Reply::is_icmp_time_exceeded() const {
+bool Reply::is_destination_unreachable() const {
+  return (reply_protocol == IPPROTO_ICMP && reply_icmp_type == 3) ||
+         (reply_protocol == IPPROTO_ICMPV6 && reply_icmp_type == 1);
+}
+
+bool Reply::is_echo_reply() const {
+  return (reply_protocol == IPPROTO_ICMP && reply_icmp_type == 0) ||
+         (reply_protocol == IPPROTO_ICMPV6 && reply_icmp_type == 129);
+}
+
+bool Reply::is_time_exceeded() const {
   return (reply_protocol == IPPROTO_ICMP && reply_icmp_type == 11) ||
          (reply_protocol == IPPROTO_ICMPV6 && reply_icmp_type == 3);
 }
