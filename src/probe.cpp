@@ -54,7 +54,7 @@ std::string Probe::to_csv() const noexcept {
 bool Probe::operator==(const Probe &other) const noexcept {
   return IN6_ARE_ADDR_EQUAL(&dst_addr, &other.dst_addr) &&
          (src_port == other.src_port) && (dst_port == other.dst_port) &&
-         (ttl == other.ttl);
+         (ttl == other.ttl) && (protocol == other.protocol);
 }
 
 Protocols::L3 Probe::l3_protocol() const noexcept {
@@ -92,15 +92,10 @@ uint16_t Probe::checksum(uint32_t caracal_id) const noexcept {
 }
 
 std::ostream &operator<<(std::ostream &os, Probe const &v) {
-  auto addr = Utilities::format_addr(v.dst_addr);
-  if (v.l3_protocol() == Protocols::L3::IPv4) {
-    os << fmt::format("{}:{}:{}:{}@{}", Protocols::to_string(v.protocol),
-                      v.src_port, addr, v.dst_port, v.ttl);
-  } else {
-    os << fmt::format("{}:{}:[{}]:{}@{}", Protocols::to_string(v.protocol),
-                      v.src_port, addr, v.dst_port, v.ttl);
-  }
-  return os;
+  return os << fmt::format(
+             "dst_addr={} src_port={} dst_port={} ttl={} protocol={}",
+             Utilities::format_addr(v.dst_addr), v.src_port, v.dst_port, v.ttl,
+             Protocols::to_string(v.protocol));
 }
 
 }  // namespace caracal

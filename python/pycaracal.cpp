@@ -32,6 +32,7 @@ using caracal::Prober::Config;
 using caracal::Prober::Iterator;
 using caracal::Prober::probe;
 using caracal::Prober::ProbingStatistics;
+using pybind11::literals::operator"" _a;
 
 /// Proxy a Python `iterable` to a Prober `Iterator`.
 ProbingStatistics py_probe(const Config& config, pybind11::iterable it) {
@@ -43,37 +44,6 @@ ProbingStatistics py_probe(const Config& config, pybind11::iterable it) {
     return true;
   };
   return probe(config, iterator);
-}
-
-void log_to_stderr() {
-  spdlog::set_default_logger(spdlog::stderr_color_st("dummy"));
-  spdlog::set_default_logger(spdlog::stderr_color_st(""));
-}
-
-void set_log_level(int level) {
-  if (level >= 50) {
-    spdlog::set_level(spdlog::level::critical);
-  } else if (level >= 40) {
-    spdlog::set_level(spdlog::level::err);
-  } else if (level >= 30) {
-    spdlog::set_level(spdlog::level::warn);
-  } else if (level >= 20) {
-    spdlog::set_level(spdlog::level::info);
-  } else if (level >= 10) {
-    spdlog::set_level(spdlog::level::trace);
-  }
-}
-
-Probe make_probe(const std::string& data, const uint16_t src_port,
-                 const uint16_t dst_port, const uint8_t ttl,
-                 const std::string& protocol) {
-  Probe probe{};
-  std::copy(data.begin(), data.end(), probe.dst_addr.s6_addr);
-  probe.src_port = src_port;
-  probe.dst_port = dst_port;
-  probe.ttl = ttl;
-  probe.protocol = Protocols::l4_from_string(protocol);
-  return probe;
 }
 
 class ProberWrapper {
@@ -97,27 +67,35 @@ class ProberWrapper {
   Experimental::Prober prober_;
 };
 
-void check_exception() {
-  if (PyErr_CheckSignals() != 0) {
-    throw py::error_already_set();
-  }
-}
-
-std::string source_ipv4_for(const std::string& interface_name) {
-  return Utilities::source_ipv4_for(interface_name).to_string();
-}
-
-std::string source_ipv6_for(const std::string& interface_name) {
-  return Utilities::source_ipv6_for(interface_name).to_string();
+template <typename T>
+auto repr(const std::string& name) {
+  return [name](const T& v) { return fmt::format("{}({})", name, v); };
 }
 
 PYBIND11_MODULE(_pycaracal, m) {
   m.doc() = "Python bindings to a small subset of caracal.";
 
-  m.def("make_probe", &make_probe);
-  m.def("log_to_stderr", &log_to_stderr);
-  m.def("set_log_level", &set_log_level);
-  m.def("check_exception", &check_exception);
+  m.def("log_to_stderr", []() {
+    spdlog::set_default_logger(spdlog::stderr_color_st("dummy"));
+    spdlog::set_default_logger(spdlog::stderr_color_st(""));
+  });
+
+  m.def(
+      "set_log_level",
+      [](int level) {
+        if (level >= 50) {
+          spdlog::set_level(spdlog::level::critical);
+        } else if (level >= 40) {
+          spdlog::set_level(spdlog::level::err);
+        } else if (level >= 30) {
+          spdlog::set_level(spdlog::level::warn);
+        } else if (level >= 20) {
+          spdlog::set_level(spdlog::level::info);
+        } else if (level >= 10) {
+          spdlog::set_level(spdlog::level::trace);
+        }
+      },
+      "level"_a);
 
   py::class_<Probe>(m, "Probe")
       .def_readonly("dst_addr", &Probe::dst_addr)
@@ -125,11 +103,19 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def_readonly("dst_port", &Probe::dst_port)
       .def_readonly("ttl", &Probe::ttl)
       .def_readonly("protocol", &Probe::protocol)
-      .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t, Protocols::L4>())
-      .def("from_csv", &Probe::from_csv)
-      .def("to_csv", &Probe::to_csv)
+      .def(py::init([](const std::string& dst_addr, const uint16_t src_port,
+                       const uint16_t dst_port, const uint8_t ttl,
+                       const Protocols::L4 protocol) {
+             Probe probe{.src_port = src_port,
+                         .dst_port = dst_port,
+                         .ttl = ttl,
+                         .protocol = protocol};
+             caracal::Utilities::parse_addr(dst_addr, probe.dst_addr);
+             return probe;
+           }),
+           "dst_addr"_a, "src_port"_a, "dst_port"_a, "ttl"_a, "protocol"_a)
       .def("__eq__", &Probe::operator==)
-      .def("__str__", &fmt::to_string<Probe>);
+      .def("__repr__", repr<Probe>("Probe"));
 
   py::class_<Reply>(m, "Reply")
       .def_readonly("capture_timestamp", &Reply::capture_timestamp)
@@ -151,7 +137,7 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def_readonly("probe_dst_port", &Reply::probe_dst_port)
       .def_readonly("probe_ttl", &Reply::probe_ttl)
       .def_readonly("rtt", &Reply::rtt)
-      .def("__str__", &fmt::to_string<Reply>);
+      .def("__repr__", repr<Reply>("Reply"));
 
   // pycaracal.prober
   auto m_prober = m.def_submodule("prober");
@@ -178,7 +164,7 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def("set_filter_min_ttl", &Config::set_filter_min_ttl)
       .def("set_filter_max_ttl", &Config::set_filter_max_ttl)
       .def("set_meta_round", &Config::set_meta_round)
-      .def("__str__", &fmt::to_string<Config>);
+      .def("__repr__", repr<Config>("Config"));
 
   // pycaracal.protocols
   auto m_proto = m.def_submodule("protocols");
@@ -202,25 +188,35 @@ PYBIND11_MODULE(_pycaracal, m) {
                     &Statistics::Prober::filtered_prefix_excl)
       .def_readonly("filtered_prefix_not_incl",
                     &Statistics::Prober::filtered_prefix_not_incl)
-      .def("__str__", fmt::to_string<Statistics::Prober>);
+      .def("__repr__", repr<Statistics::Prober>("statistics.Prober"));
 
   py::class_<Statistics::Sniffer>(m_statistics, "Sniffer")
       .def_readonly("received_count", &Statistics::Sniffer::received_count)
       .def_readonly("received_invalid_count",
                     &Statistics::Sniffer::received_invalid_count)
-      .def("__str__", fmt::to_string<Statistics::Sniffer>);
+      .def("__repr__", repr<Statistics::Sniffer>("statistics.Sniffer"));
 
   py::class_<pcap_stat>(m_statistics, "PCAP")
       .def_readonly("received", &pcap_stat::ps_recv)
       .def_readonly("dropped", &pcap_stat::ps_drop)
       .def_readonly("interface_dropped", &pcap_stat::ps_ifdrop)
-      .def("__str__", fmt::to_string<pcap_stat>);
+      .def("__repr__", repr<pcap_stat>("statistics.PCAP"));
 
   // pycaracal.utilities
   auto m_utilities = m.def_submodule("utilities");
   m_utilities.def("get_default_interface", &Config::get_default_interface);
-  m_utilities.def("source_ipv4_for", &source_ipv4_for);
-  m_utilities.def("source_ipv6_for", &source_ipv6_for);
+  m_utilities.def(
+      "source_ipv4_for",
+      [](const std::string& interface_name) {
+        return Utilities::source_ipv4_for(interface_name).to_string();
+      },
+      "interface_name"_a);
+  m_utilities.def(
+      "source_ipv6_for",
+      [](const std::string& interface_name) {
+        return Utilities::source_ipv6_for(interface_name).to_string();
+      },
+      "interface_name"_a);
 
   // pycaracal.experimental
   auto m_experimental = m.def_submodule("experimental");

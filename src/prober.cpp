@@ -87,12 +87,12 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
 
     // TTL filter
     if (config.filter_min_ttl && (p.ttl < *config.filter_min_ttl)) {
-      spdlog::trace("probe={} filter=ttl_too_low", p);
+      spdlog::trace("{} filter=ttl_too_low", p);
       stats.filtered_lo_ttl++;
       continue;
     }
     if (config.filter_max_ttl && (p.ttl > *config.filter_max_ttl)) {
-      spdlog::trace("probe={} filter=ttl_too_high", p);
+      spdlog::trace("{} filter=ttl_too_high", p);
       stats.filtered_hi_ttl++;
       continue;
     }
@@ -100,26 +100,26 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
     // Prefix filter
     // Do not send probes to excluded prefixes (deny list).
     if (config.prefix_excl_file && prefix_excl.lookup(p.dst_addr)) {
-      spdlog::trace("probe={} filter=prefix_excluded", p);
+      spdlog::trace("{} filter=prefix_excluded", p);
       stats.filtered_prefix_excl++;
       continue;
     }
     // Do not send probes to *not* included prefixes.
     // i.e. send probes only to included prefixes (allow list).
     if (config.prefix_incl_file && !prefix_incl.lookup(p.dst_addr)) {
-      spdlog::trace("probe={} filter=prefix_not_included", p);
+      spdlog::trace("{} filter=prefix_not_included", p);
       stats.filtered_prefix_not_incl++;
       continue;
     }
 
     for (uint64_t i = 0; i < config.n_packets; i++) {
-      spdlog::trace("probe={} id={} packet={}", p,
-                    p.checksum(config.caracal_id), i + 1);
+      spdlog::trace("{} id={} packet={}", p, p.checksum(config.caracal_id),
+                    i + 1);
       try {
         sender.send(p);
         stats.sent++;
       } catch (const std::runtime_error& e) {
-        spdlog::error("probe={} error={}", p, e.what());
+        spdlog::error("{} error={}", p, e.what());
         stats.failed++;
       }
       // Rate limit every `batch_size` packets sent.
