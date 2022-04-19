@@ -218,6 +218,14 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
     parse_outer(reply, icmp4);
     parse_inner(reply, icmp4, capture_timestamp);
     parse_inner_ttl_icmp(reply, ip4);
+    // Since there is no quoted ICMP header in an echo reply, we cannot retrieve
+    // the *true* probe destination address. In previous versions of caracal,
+    // we used to leave the `probe_dst_addr` field empty to indicate this.
+    // However, this complicates downstream code, and in the vast majority of
+    // the cases, the reply comes from the probe destination.
+    // Users can still filter-out echo replies if they fear to infer false
+    // links.
+    reply.probe_dst_addr = reply.reply_src_addr;
     return reply;
   }
 
@@ -226,6 +234,8 @@ optional<Reply> parse(const Tins::Packet& packet) noexcept {
     parse_outer(reply, icmp6);
     parse_inner(reply, icmp6, capture_timestamp);
     parse_inner_ttl_icmp(reply, ip6);
+    // Same remark as for ICMP(v4) echo replies.
+    reply.probe_dst_addr = reply.reply_src_addr;
     return reply;
   }
 
