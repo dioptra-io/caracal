@@ -1,24 +1,26 @@
 import logging
+from ipaddress import IPv6Address
 from pathlib import Path
 
-from pycaracal import Probe, log_to_stderr, prober, protocols, set_log_level
+from pycaracal import Probe, log_to_stderr, prober, set_log_level
 
 
 def test_probe():
-    p1 = Probe("8.8.4.4", 24000, 33434, 32, protocols.L4.UDP)
-    p2 = Probe("::ffff:8.8.4.4", 24000, 33434, 32, protocols.L4.UDP)
-    p3 = Probe("::ffff:8.8.4.4", 24000, 33434, 32, protocols.L4.ICMP)
+    p1 = Probe("8.8.4.4", 24000, 33434, 32, "udp")
+    p2 = Probe("::ffff:8.8.4.4", 24000, 33434, 32, "udp")
+    p3 = Probe("::ffff:8.8.4.4", 24000, 33434, 32, "icmp")
+    p4 = Probe(int(IPv6Address("::ffff:8.8.4.4")), 24000, 33434, 32, "icmp")
     assert (
         str(p1)
         == "Probe(dst_addr=8.8.4.4 src_port=24000 dst_port=33434 ttl=32 protocol=udp)"
     )
-    assert p1 == p2 != p3
-
-
-def test_protocol_from_string():
-    assert protocols.l4_from_string("udp") == protocols.L4.UDP
-    assert protocols.l4_from_string("icmp") == protocols.L4.ICMP
-    assert protocols.l4_from_string("icmp6") == protocols.L4.ICMPv6
+    assert p1 == p2
+    assert p2 != p3
+    assert p3 == p4
+    assert p1.dst_addr == "8.8.4.4"
+    assert p1.src_port == 24000
+    assert p1.dst_port == 33434
+    assert p1.protocol == "udp"
 
 
 def test_prober():
@@ -26,10 +28,10 @@ def test_prober():
     config.set_output_file_csv("zzz_output.csv")
     config.set_sniffer_wait_time(1)
     probes = [
-        Probe("8.8.4.4", 24000, 33434, 32, protocols.L4.ICMP),
-        Probe("8.8.4.4", 24000, 33434, 32, protocols.L4.UDP),
-        Probe("8.8.8.8", 24000, 33434, 32, protocols.L4.ICMP),
-        Probe("8.8.8.8", 24000, 33434, 32, protocols.L4.UDP),
+        Probe("8.8.4.4", 24000, 33434, 32, "icmp"),
+        Probe("8.8.4.4", 24000, 33434, 32, "udp"),
+        Probe("8.8.8.8", 24000, 33434, 32, "icmp"),
+        Probe("8.8.8.8", 24000, 33434, 32, "udp"),
     ]
     log_to_stderr()
     set_log_level(logging.DEBUG)

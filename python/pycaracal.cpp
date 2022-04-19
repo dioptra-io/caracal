@@ -98,45 +98,38 @@ PYBIND11_MODULE(_pycaracal, m) {
       "level"_a);
 
   py::class_<Probe>(m, "Probe")
-      .def_readonly("dst_addr", &Probe::dst_addr)
-      .def_readonly("src_port", &Probe::src_port)
-      .def_readonly("dst_port", &Probe::dst_port)
-      .def_readonly("ttl", &Probe::ttl)
-      .def_readonly("protocol", &Probe::protocol)
-      .def(py::init([](const std::string& dst_addr, const uint16_t src_port,
-                       const uint16_t dst_port, const uint8_t ttl,
-                       const Protocols::L4 protocol) {
-             Probe probe{.src_port = src_port,
-                         .dst_port = dst_port,
-                         .ttl = ttl,
-                         .protocol = protocol};
-             caracal::Utilities::parse_addr(dst_addr, probe.dst_addr);
-             return probe;
-           }),
+      .def(py::init<>())
+      .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t, Protocols::L4>(),
            "dst_addr"_a, "src_port"_a, "dst_port"_a, "ttl"_a, "protocol"_a)
+      .def_readwrite("dst_addr", &Probe::dst_addr)
+      .def_readwrite("src_port", &Probe::src_port)
+      .def_readwrite("dst_port", &Probe::dst_port)
+      .def_readwrite("ttl", &Probe::ttl)
+      .def_readwrite("protocol", &Probe::protocol)
       .def("__eq__", &Probe::operator==)
       .def("__repr__", repr<Probe>("Probe"));
 
   py::class_<Reply>(m, "Reply")
-      .def_readonly("capture_timestamp", &Reply::capture_timestamp)
-      .def_readonly("reply_src_addr", &Reply::reply_src_addr)
-      .def_readonly("reply_dst_addr", &Reply::reply_dst_addr)
-      .def_readonly("reply_id", &Reply::reply_id)
-      .def_readonly("reply_size", &Reply::reply_size)
-      .def_readonly("reply_ttl", &Reply::reply_ttl)
-      .def_readonly("reply_protocol", &Reply::reply_protocol)
-      .def_readonly("reply_icmp_type", &Reply::reply_icmp_type)
-      .def_readonly("reply_icmp_code", &Reply::reply_icmp_code)
-      .def_readonly("reply_mpls_labels", &Reply::reply_mpls_labels)
-      .def_readonly("probe_dst_addr", &Reply::probe_dst_addr)
-      .def_readonly("probe_id", &Reply::probe_id)
-      .def_readonly("probe_size", &Reply::probe_size)
-      .def_readonly("probe_protocol", &Reply::probe_protocol)
-      .def_readonly("quoted_ttl", &Reply::quoted_ttl)
-      .def_readonly("probe_src_port", &Reply::probe_src_port)
-      .def_readonly("probe_dst_port", &Reply::probe_dst_port)
-      .def_readonly("probe_ttl", &Reply::probe_ttl)
-      .def_readonly("rtt", &Reply::rtt)
+      .def(py::init<>())
+      .def_readwrite("capture_timestamp", &Reply::capture_timestamp)
+      .def_readwrite("reply_src_addr", &Reply::reply_src_addr)
+      .def_readwrite("reply_dst_addr", &Reply::reply_dst_addr)
+      .def_readwrite("reply_id", &Reply::reply_id)
+      .def_readwrite("reply_size", &Reply::reply_size)
+      .def_readwrite("reply_ttl", &Reply::reply_ttl)
+      .def_readwrite("reply_protocol", &Reply::reply_protocol)
+      .def_readwrite("reply_icmp_type", &Reply::reply_icmp_type)
+      .def_readwrite("reply_icmp_code", &Reply::reply_icmp_code)
+      .def_readwrite("reply_mpls_labels", &Reply::reply_mpls_labels)
+      .def_readwrite("probe_dst_addr", &Reply::probe_dst_addr)
+      .def_readwrite("probe_id", &Reply::probe_id)
+      .def_readwrite("probe_size", &Reply::probe_size)
+      .def_readwrite("probe_protocol", &Reply::probe_protocol)
+      .def_readwrite("quoted_ttl", &Reply::quoted_ttl)
+      .def_readwrite("probe_src_port", &Reply::probe_src_port)
+      .def_readwrite("probe_dst_port", &Reply::probe_dst_port)
+      .def_readwrite("probe_ttl", &Reply::probe_ttl)
+      .def_readwrite("rtt", &Reply::rtt)
       .def_property_readonly("destination_unreachable",
                              &Reply::is_destination_unreachable)
       .def_property_readonly("echo_reply", &Reply::is_echo_reply)
@@ -169,15 +162,6 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def("set_filter_max_ttl", &Config::set_filter_max_ttl)
       .def("set_meta_round", &Config::set_meta_round)
       .def("__repr__", repr<Config>("Config"));
-
-  // pycaracal.protocols
-  auto m_proto = m.def_submodule("protocols");
-  m_proto.def("l4_from_string", &Protocols::l4_from_string);
-  py::enum_<Protocols::L4>(m_proto, "L4")
-      .value("ICMP", Protocols::L4::ICMP)
-      .value("ICMPv6", Protocols::L4::ICMPv6)
-      .value("UDP", Protocols::L4::UDP)
-      .export_values();
 
   // pycaracal.statistics
   auto m_statistics = m.def_submodule("statistics");

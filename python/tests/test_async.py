@@ -2,7 +2,7 @@ import logging
 from ipaddress import ip_address
 
 import pytest
-from pycaracal import Probe, prober, protocols, set_log_level
+from pycaracal import Probe, prober, set_log_level
 
 
 @pytest.mark.asyncio
@@ -12,7 +12,7 @@ async def test_probe_async():
     # doesn't happen anymore.
     def gen():
         for _ in range(10_000):
-            yield Probe(ip_address("127.0.0.1"), 24000, 33434, 32, protocols.L4.ICMP)
+            yield Probe("127.0.0.1", 24000, 33434, 32, "icmp")
 
     logging.basicConfig(level=logging.DEBUG)
     set_log_level(logging.DEBUG)
