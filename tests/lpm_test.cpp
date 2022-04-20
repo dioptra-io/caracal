@@ -37,4 +37,8 @@ TEST_CASE("LPM") {
   REQUIRE(lpm.lookup(addr));
   parse_addr("192.168.150.1", addr);
   REQUIRE(lpm.lookup(addr));
+
+  REQUIRE_THROWS_AS(lpm.insert_file("zzz"), std::invalid_argument);
+  REQUIRE_THROWS_AS(lpm.insert("zzz"), std::runtime_error);
+  REQUIRE_THROWS_AS(lpm.lookup("zzz"), std::runtime_error);
 }
