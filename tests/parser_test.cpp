@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+using caracal::Parser::build_inner;
 using caracal::Parser::parse;
 using caracal::Utilities::format_addr;
 
@@ -238,7 +239,16 @@ TEST_CASE("Parser::parse/UDP") {
 }
 
 // Non-IP data.
-TEST_CASE("Parser::parse/ARP") {
-  auto res = parse_file(data / "arp.pcap");
-  REQUIRE(res.empty());
+TEST_CASE("Parser::parse/Invalid") {
+  SECTION("Non-IP") {
+    auto res = parse_file(data / "arp.pcap");
+    REQUIRE(res.empty());
+  }
+  SECTION("Null PDU") {
+    uint8_t invalid_data[4] = {0x00, 0x01, 0x02, 0x03};
+    Tins::RawPDU invalid_pdu = Tins::RawPDU(&invalid_data[0], 4);
+    REQUIRE(!build_inner<Tins::IP>(nullptr));
+    REQUIRE(!build_inner<Tins::IP>(&invalid_pdu));
+    REQUIRE(!parse(Tins::Packet{}));
+  }
 }
