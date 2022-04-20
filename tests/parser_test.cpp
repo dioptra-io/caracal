@@ -236,3 +236,9 @@ TEST_CASE("Parser::parse/UDP") {
     REQUIRE(reply.is_time_exceeded());
   }
 }
+
+// Non-IP data.
+TEST_CASE("Parser::parse/ARP") {
+  auto res = parse_file(data / "arp.pcap");
+  REQUIRE(res.empty());
+}
