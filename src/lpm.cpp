@@ -45,18 +45,6 @@ void LPM::insert(const std::string &s) {
   }
 }
 
-void LPM::insert(const in6_addr &addr, const uint32_t preflen) {
-  int ret;
-  if (IN6_IS_ADDR_V4MAPPED(&addr)) {
-    ret = lpm_insert(lpm, &addr.s6_addr32[3], 4, preflen, tag);
-  } else {
-    ret = lpm_insert(lpm, &addr, 16, preflen, tag);
-  }
-  if (ret != 0) {
-    throw std::runtime_error("LPM: failed to insert address");
-  }
-}
-
 void LPM::insert_file(const fs::path &p) {
   if (!fs::exists(p)) {
     throw std::invalid_argument(p.string() + " does not exists");

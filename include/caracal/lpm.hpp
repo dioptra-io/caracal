@@ -19,7 +19,6 @@ class LPM {
   LPM();
   ~LPM();
   void insert(const std::string &s);
-  void insert(const in6_addr &addr, uint32_t preflen);
   void insert_file(const fs::path &p);
   bool lookup(const std::string &s);
   bool lookup(const in6_addr &addr);
