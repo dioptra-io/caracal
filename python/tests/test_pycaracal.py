@@ -2,7 +2,7 @@ import logging
 from ipaddress import IPv6Address
 from pathlib import Path
 
-from pycaracal import Probe, log_to_stderr, prober, set_log_level
+from pycaracal import Probe, log_to_stderr, prober, set_log_format, set_log_level
 
 
 def test_probe():
@@ -35,6 +35,7 @@ def test_prober():
     ]
     log_to_stderr()
     set_log_level(logging.DEBUG)
+    set_log_format("[%Y-%m-%d %H:%M:%S.%e] [%l] [caracal] %v")
     prober_stats, sniffer_stats, pcap_stats = prober.probe(config, [])
     assert prober_stats.read == 0
     assert pcap_stats.received >= sniffer_stats.received_count

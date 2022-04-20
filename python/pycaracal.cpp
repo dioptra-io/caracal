@@ -5,7 +5,7 @@
 #include <pybind11/stl.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
 
 #include <caracal/experimental.hpp>
@@ -76,9 +76,14 @@ PYBIND11_MODULE(_pycaracal, m) {
   m.doc() = "Python bindings to a small subset of caracal.";
 
   m.def("log_to_stderr", []() {
-    spdlog::set_default_logger(spdlog::stderr_color_st("dummy"));
-    spdlog::set_default_logger(spdlog::stderr_color_st(""));
+    spdlog::set_default_logger(spdlog::stderr_logger_st("dummy"));
+    spdlog::set_default_logger(spdlog::stderr_logger_st(""));
   });
+
+  m.def(
+      "set_log_format",
+      [](const std::string& pattern) { spdlog::set_pattern(pattern); },
+      "pattern"_a);
 
   m.def(
       "set_log_level",
