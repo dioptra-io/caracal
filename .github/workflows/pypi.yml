@@ -45,7 +45,7 @@ jobs:
         with:
           output-dir: dist
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: dist/*.whl
       - uses: dioptra-io/publish-python-action@v1
@@ -90,7 +90,7 @@ jobs:
         with:
           output-dir: dist
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: dist/*.whl
       - uses: dioptra-io/publish-python-action@v1
