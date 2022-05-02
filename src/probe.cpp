@@ -34,12 +34,16 @@ Probe Probe::from_csv(const std::string &line) {
         break;
       case 4:
         probe.protocol = Protocols::l4_from_string(token);
+        break;
+      case 5:
+        probe.wait_ms = Checked::stou32(token);
+        break;
       default:
         break;
     }
     index++;
   }
-  if (index != 5) {
+  if (index < 5 || index > 6) {
     throw std::runtime_error("Invalid CSV line: " + line);
   }
   return probe;
@@ -47,8 +51,8 @@ Probe Probe::from_csv(const std::string &line) {
 
 std::string Probe::to_csv() const noexcept {
   auto addr = Utilities::format_addr(dst_addr);
-  return fmt::format("{},{},{},{},{}", addr, src_port, dst_port, ttl,
-                     Protocols::to_string(protocol));
+  return fmt::format("{},{},{},{},{},{}", addr, src_port, dst_port, ttl,
+                     Protocols::to_string(protocol), wait_ms);
 }
 
 bool Probe::operator==(const Probe &other) const noexcept {
@@ -93,9 +97,10 @@ uint16_t Probe::checksum(uint32_t caracal_id) const noexcept {
 
 std::ostream &operator<<(std::ostream &os, Probe const &v) {
   return os << fmt::format(
-             "dst_addr={} src_port={} dst_port={} ttl={} protocol={}",
+             "dst_addr={} src_port={} dst_port={} ttl={} protocol={} "
+             "wait_ms={}",
              Utilities::format_addr(v.dst_addr), v.src_port, v.dst_port, v.ttl,
-             Protocols::to_string(v.protocol));
+             Protocols::to_string(v.protocol), v.wait_ms);
 }
 
 }  // namespace caracal

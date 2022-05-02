@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "protocols.hpp"
+#include "./protocols.hpp"
 
 namespace caracal {
 
@@ -15,6 +15,7 @@ struct Probe {
   uint16_t dst_port;       ///< Destination port (host order)
   uint8_t ttl;             ///< Time-to-live
   Protocols::L4 protocol;  ///< Protocol
+  uint32_t wait_ms;  ///< Milliseconds to wait before the next probe (optional)
 
   [[nodiscard]] static Probe from_csv(const std::string &line);
 

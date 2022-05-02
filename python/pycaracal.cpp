@@ -104,13 +104,16 @@ PYBIND11_MODULE(_pycaracal, m) {
 
   py::class_<Probe>(m, "Probe")
       .def(py::init<>())
-      .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t, Protocols::L4>(),
-           "dst_addr"_a, "src_port"_a, "dst_port"_a, "ttl"_a, "protocol"_a)
+      .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t, Protocols::L4,
+                    uint32_t>(),
+           "dst_addr"_a, "src_port"_a, "dst_port"_a, "ttl"_a, "protocol"_a,
+           "wait_ms"_a)
       .def_readwrite("dst_addr", &Probe::dst_addr)
       .def_readwrite("src_port", &Probe::src_port)
       .def_readwrite("dst_port", &Probe::dst_port)
       .def_readwrite("ttl", &Probe::ttl)
       .def_readwrite("protocol", &Probe::protocol)
+      .def_readwrite("wait_ms", &Probe::wait_ms)
       .def("__eq__", &Probe::operator==)
       .def("__repr__", repr<Probe>("Probe"));
 

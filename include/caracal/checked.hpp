@@ -53,6 +53,13 @@ template <typename To, typename From>
   }
 }
 
+/// Equivalent of std::stoul for uint32_t.
+/// @param str the string to parse.
+/// @return the parsed string.
+[[nodiscard]] inline uint32_t stou32(const std::string& str) {
+  return numeric_cast<uint32_t>(std::stoul(str));
+}
+
 /// Equivalent of std::stoul for uint16_t.
 /// @param str the string to parse.
 /// @return the parsed string.

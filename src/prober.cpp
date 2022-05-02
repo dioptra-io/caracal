@@ -119,6 +119,10 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
         spdlog::error("{} error={}", p, e.what());
         stats.failed++;
       }
+      // Wait if requested.
+      if (p.wait_ms > 0) {
+        std::this_thread::sleep_for(milliseconds{p.wait_ms});
+      }
       // Rate limit every `batch_size` packets sent.
       if ((stats.sent + stats.failed) % config.batch_size == 0) {
         rl.wait();

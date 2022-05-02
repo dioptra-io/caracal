@@ -6,13 +6,13 @@ from pycaracal import Probe, log_to_stderr, prober, set_log_format, set_log_leve
 
 
 def test_probe():
-    p1 = Probe("8.8.4.4", 24000, 33434, 32, "udp")
-    p2 = Probe("::ffff:8.8.4.4", 24000, 33434, 32, "udp")
-    p3 = Probe("::ffff:8.8.4.4", 24000, 33434, 32, "icmp")
-    p4 = Probe(int(IPv6Address("::ffff:8.8.4.4")), 24000, 33434, 32, "icmp")
+    p1 = Probe("8.8.4.4", 24000, 33434, 32, "udp", 0)
+    p2 = Probe("::ffff:8.8.4.4", 24000, 33434, 32, "udp", 0)
+    p3 = Probe("::ffff:8.8.4.4", 24000, 33434, 32, "icmp", 0)
+    p4 = Probe(int(IPv6Address("::ffff:8.8.4.4")), 24000, 33434, 32, "icmp", 0)
     assert (
         str(p1)
-        == "Probe(dst_addr=8.8.4.4 src_port=24000 dst_port=33434 ttl=32 protocol=udp)"
+        == "Probe(dst_addr=8.8.4.4 src_port=24000 dst_port=33434 ttl=32 protocol=udp wait_ms=0)"
     )
     assert p1 == p2
     assert p2 != p3
@@ -28,10 +28,10 @@ def test_prober():
     config.set_output_file_csv("zzz_output.csv")
     config.set_sniffer_wait_time(1)
     probes = [
-        Probe("8.8.4.4", 24000, 33434, 32, "icmp"),
-        Probe("8.8.4.4", 24000, 33434, 32, "udp"),
-        Probe("8.8.8.8", 24000, 33434, 32, "icmp"),
-        Probe("8.8.8.8", 24000, 33434, 32, "udp"),
+        Probe("8.8.4.4", 24000, 33434, 32, "icmp", 0),
+        Probe("8.8.4.4", 24000, 33434, 32, "udp", 0),
+        Probe("8.8.8.8", 24000, 33434, 32, "icmp", 0),
+        Probe("8.8.8.8", 24000, 33434, 32, "udp", 0),
     ]
     log_to_stderr()
     set_log_level(logging.DEBUG)
