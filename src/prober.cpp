@@ -22,10 +22,6 @@ namespace caracal::Prober {
 namespace io = boost::iostreams;
 using std::chrono::milliseconds;
 
-// NOTE: Should we expose this as a parameter?
-/// Number of probes to send before calling the rate limiter.
-const uint64_t batch_size = 128;
-
 ProbingStatistics probe(const Config& config, Iterator& it) {
   spdlog::info(config);
 
@@ -52,7 +48,8 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
   Sender sender{config.interface, config.caracal_id};
 
   // Rate limiter
-  RateLimiter rl{config.probing_rate, batch_size, config.rate_limiting_method};
+  RateLimiter rl{config.probing_rate, config.batch_size,
+                 config.rate_limiting_method};
 
   // Statistics
   Statistics::Prober stats;
@@ -123,7 +120,7 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
         stats.failed++;
       }
       // Rate limit every `batch_size` packets sent.
-      if ((stats.sent + stats.failed) % batch_size == 0) {
+      if ((stats.sent + stats.failed) % config.batch_size == 0) {
         rl.wait();
       }
     }

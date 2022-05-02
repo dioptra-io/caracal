@@ -25,7 +25,7 @@ std::string Config::get_default_interface() {
   return Tins::NetworkInterface::default_interface().name();
 }
 
-void Config::set_caracal_id(int id) {
+void Config::set_caracal_id(const int id) {
   if (id < 0) {
     throw std::domain_error("caracal_id must be > 0");
   }
@@ -37,6 +37,13 @@ void Config::set_n_packets(const int count) {
     throw std::domain_error("n_packets must be > 0");
   }
   n_packets = static_cast<uint64_t>(count);
+}
+
+void Config::set_batch_size(const int size) {
+  if (size <= 0) {
+    throw std::domain_error("batch_size must be > 0");
+  }
+  batch_size = static_cast<uint64_t>(size);
 }
 
 void Config::set_probing_rate(const int rate) {
@@ -53,7 +60,7 @@ void Config::set_sniffer_wait_time(const int seconds) {
   sniffer_wait_time = static_cast<uint64_t>(seconds);
 }
 
-void Config::set_integrity_check(bool check) { integrity_check = check; }
+void Config::set_integrity_check(const bool check) { integrity_check = check; }
 
 void Config::set_interface(const string& s) { interface = s; }
 

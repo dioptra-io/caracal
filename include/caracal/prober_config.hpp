@@ -16,6 +16,7 @@ namespace caracal::Prober {
 struct Config {
   uint16_t caracal_id = get_default_id();
   uint64_t n_packets = 1;
+  uint64_t batch_size = 128;
   uint64_t probing_rate = 100;
   uint64_t sniffer_wait_time = 5;
   bool integrity_check = true;
@@ -37,6 +38,8 @@ struct Config {
   void set_caracal_id(int id);
 
   void set_n_packets(int count);
+
+  void set_batch_size(int size);
 
   void set_probing_rate(int rate);
 

@@ -11,6 +11,9 @@ TEST_CASE("Prober::Config") {
   REQUIRE_NOTHROW(config.set_n_packets(1));
   REQUIRE_THROWS_AS(config.set_n_packets(0), std::domain_error);
 
+  REQUIRE_NOTHROW(config.set_batch_size(1));
+  REQUIRE_THROWS_AS(config.set_batch_size(0), std::domain_error);
+
   REQUIRE_NOTHROW(config.set_probing_rate(1));
   REQUIRE_THROWS_AS(config.set_probing_rate(0), std::domain_error);
 

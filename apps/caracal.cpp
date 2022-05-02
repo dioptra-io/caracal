@@ -31,10 +31,11 @@ int main(int argc, char** argv) {
       ("output-file-pcap", "File to which the captured replies will be written", cxxopts::value<string>())
       ("r,probing-rate", "Probing rate in packets per second", cxxopts::value<int>()->default_value(std::to_string(config.probing_rate)))
       ("z,interface", "Interface from which to send the packets", cxxopts::value<string>()->default_value(config.interface))
-      ("W,sniffer-wait-time", "Time in seconds to wait after sending the probes to stop the sniffer", cxxopts::value<int>()->default_value(std::to_string(config.sniffer_wait_time)))
+      ("B,batch-size", "Number of probes to send before calling the rate limiter", cxxopts::value<int>()->default_value(std::to_string(config.batch_size)))
       ("L,log-level", "Minimum log level (trace, debug, info, warning, error, fatal)", cxxopts::value<string>()->default_value("info"))
-      ("P,max-probes", "Maximum number of probes to send (unlimited by default)", cxxopts::value<int>())
       ("N,n-packets", "Number of packets to send per probe", cxxopts::value<int>()->default_value(std::to_string(config.n_packets)))
+      ("P,max-probes", "Maximum number of probes to send (unlimited by default)", cxxopts::value<int>())
+      ("W,sniffer-wait-time", "Time in seconds to wait after sending the probes to stop the sniffer", cxxopts::value<int>()->default_value(std::to_string(config.sniffer_wait_time)))
       ("rate-limiting-method", "Method to use to limit the packets rate (auto, active, sleep, none)", cxxopts::value<string>()->default_value(config.rate_limiting_method))
       ("filter-from-prefix-file-excl", "Do not send probes to prefixes specified in file (deny list)", cxxopts::value<string>())
       ("filter-from-prefix-file-incl", "Do not send probes to prefixes *not* specified in file (allow list)", cxxopts::value<string>())
@@ -69,6 +70,10 @@ int main(int argc, char** argv) {
 
     if (result.count("interface")) {
       config.set_interface(result["interface"].as<string>());
+    }
+
+    if (result.count("batch-size")) {
+      config.set_batch_size(result["batch-size"].as<int>());
     }
 
     if (result.count("sniffer-wait-time")) {

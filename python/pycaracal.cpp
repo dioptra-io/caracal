@@ -153,6 +153,7 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def(py::init<>())
       .def("set_caracal_id", &Config::set_caracal_id)
       .def("set_n_packets", &Config::set_n_packets)
+      .def("set_batch_size", &Config::set_batch_size)
       .def("set_probing_rate", &Config::set_probing_rate)
       .def("set_sniffer_wait_time", &Config::set_sniffer_wait_time)
       .def("set_integrity_check", &Config::set_integrity_check)
