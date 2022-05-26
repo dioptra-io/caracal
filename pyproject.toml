@@ -4,8 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 build-frontend = "build"
-# To build with musl libc we need https://github.com/rmind/liblpm/pull/18
-skip = ["*-musllinux_*"]
 # `2021-08-01-bce1ff9` is the latest version that uses GCC 9.
 # The current version with GCC 10 has a bug where it references `pthread_cond_clockwait`
 # in the built binary even though it doesn't exists in the bundled libpthread version.
