@@ -36,7 +36,7 @@ Probe Probe::from_csv(const std::string &line) {
         probe.protocol = Protocols::l4_from_string(token);
         break;
       case 5:
-        probe.wait_ms = Checked::stou32(token);
+        probe.wait_us = Checked::stou32(token);
         break;
       default:
         break;
@@ -52,7 +52,7 @@ Probe Probe::from_csv(const std::string &line) {
 std::string Probe::to_csv() const noexcept {
   auto addr = Utilities::format_addr(dst_addr);
   return fmt::format("{},{},{},{},{},{}", addr, src_port, dst_port, ttl,
-                     Protocols::to_string(protocol), wait_ms);
+                     Protocols::to_string(protocol), wait_us);
 }
 
 bool Probe::operator==(const Probe &other) const noexcept {
@@ -98,9 +98,9 @@ uint16_t Probe::checksum(uint32_t caracal_id) const noexcept {
 std::ostream &operator<<(std::ostream &os, Probe const &v) {
   return os << fmt::format(
              "dst_addr={} src_port={} dst_port={} ttl={} protocol={} "
-             "wait_ms={}",
+             "wait_us={}",
              Utilities::format_addr(v.dst_addr), v.src_port, v.dst_port, v.ttl,
-             Protocols::to_string(v.protocol), v.wait_ms);
+             Protocols::to_string(v.protocol), v.wait_us);
 }
 
 }  // namespace caracal

@@ -20,6 +20,7 @@
 namespace caracal::Prober {
 
 namespace io = boost::iostreams;
+using std::chrono::microseconds;
 using std::chrono::milliseconds;
 
 ProbingStatistics probe(const Config& config, Iterator& it) {
@@ -120,8 +121,8 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
         stats.failed++;
       }
       // Wait if requested.
-      if (p.wait_ms > 0) {
-        std::this_thread::sleep_for(milliseconds{p.wait_ms});
+      if (p.wait_us > 0) {
+        std::this_thread::sleep_for(microseconds{p.wait_us});
       }
       // Rate limit every `batch_size` packets sent.
       if ((stats.sent + stats.failed) % config.batch_size == 0) {
