@@ -5,8 +5,8 @@ build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 build-frontend = "build"
-manylinux-aarch64-image = "quay.io/pypa/manylinux_2_28"
-manylinux-x86_64-image = "quay.io/pypa/manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
+manylinux-x86_64-image = "manylinux_2_28"
 test-command = "$([[ -f /usr/bin/sudo ]] && echo 'sudo') pytest --log-cli-level=DEBUG {project}/python/tests"
 test-requires = ["pytest", "pytest-asyncio"]
 # Avoid testing on emulated architectures, some syscalls are not supported:
