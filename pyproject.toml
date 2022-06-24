@@ -1,6 +1,6 @@
 [build-system]
 # scikit-build 0.15.0 breaks CMake's FindPython on macOS builds.
-requires = ["setuptools", "wheel", "pybind11>=2.9.2", "scikit-build<0.15", "cmake", "conan", "ninja"]
+requires = ["setuptools", "wheel", "pybind11", "scikit-build<0.15", "cmake", "conan", "ninja"]
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]

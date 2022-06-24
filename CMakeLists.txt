@@ -65,8 +65,7 @@ if(WITH_PYTHON)
     COMPONENTS Development.Module Interpreter
     REQUIRED
   )
-  # scikit-build does not add your site-packages to the search path
-  # automatically, so we need to add it _or_ the pybind11 specific directory here.
+  # scikit-build does not add site-packages to the search path automatically.
   execute_process(
     COMMAND "${Python_EXECUTABLE}" -c
             "import pybind11; print(pybind11.get_cmake_dir())"
