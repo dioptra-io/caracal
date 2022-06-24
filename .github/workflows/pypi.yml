@@ -63,16 +63,13 @@ jobs:
     runs-on: macos-10.15
     strategy:
       matrix:
-        # arch: [ "x86_64", "arm64" ]
-        # libpcap error on cross-compiled binaries:
-        # RuntimeError: live packet capture not supported on this system
-        arch: [ "x86_64" ]
+        arch: [ "x86_64", "arm64" ]
         build: [ "cp38-*", "cp39-*", "cp310-*" ]
         include:
           - arch: "x86_64"
             conan_arch: "x86_64"
-          # - arch: "arm64"
-          #   conan_arch: "armv8"
+          - arch: "arm64"
+            conan_arch: "armv8"
           # For some reasons there are multiple Python versions installed on macOS:
           # Xcode, GitHub Actions, ... So we have to give a hint to CMake to find
           # the right version.

@@ -5,16 +5,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 build-frontend = "build"
-# To build with musl libc we need https://github.com/rmind/liblpm/pull/18
-skip = ["*-musllinux_*"]
-# `2021-08-01-bce1ff9` is the latest version that uses GCC 9.
-# The current version with GCC 10 has a bug where it references `pthread_cond_clockwait`
-# in the built binary even though it doesn't exists in the bundled libpthread version.
-#   python -c 'import pycaracal'
-#   ImportError: /tmp/tmp.KMYaIL4OLy/lib/python3.8/site-packages/pycaracal/_pycaracal.cpython-38-x86_64-linux-gnu.so: undefined symbol: pthread_cond_clockwait
-manylinux-x86_64-image = "quay.io/pypa/manylinux2014_x86_64:2021-08-01-bce1ff9"
+manylinux-aarch64-image = "manylinux_2_28"
+manylinux-x86_64-image = "manylinux_2_28"
 test-command = "$([[ -f /usr/bin/sudo ]] && echo 'sudo') pytest --log-cli-level=DEBUG {project}/python/tests"
 test-requires = ["pytest", "pytest-asyncio"]
 # Avoid testing on emulated architectures, some syscalls are not supported:
 # `RuntimeError: eth0: SIOCETHTOOL(ETHTOOL_GET_TS_INFO) ioctl failed: Function not implemented`
-test-skip = "*-*linux_{aarch64,ppc64le,s390x}"
+test-skip = "*-*linux_aarch64"
