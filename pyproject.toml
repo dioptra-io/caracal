@@ -11,4 +11,4 @@ test-command = "$([[ -f /usr/bin/sudo ]] && echo 'sudo') pytest --log-cli-level=
 test-requires = ["pytest", "pytest-asyncio"]
 # Avoid testing on emulated architectures, some syscalls are not supported:
 # `RuntimeError: eth0: SIOCETHTOOL(ETHTOOL_GET_TS_INFO) ioctl failed: Function not implemented`
-test-skip = "*-*linux_aarch64"
+# test-skip = "*aarch64"
