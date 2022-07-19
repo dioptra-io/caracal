@@ -1,0 +1,19 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install mkdocs
+        run: pip install --upgrade mkdocs-material
+      - name: Publish documentation
+        run: mkdocs gh-deploy --force --no-history --strict
