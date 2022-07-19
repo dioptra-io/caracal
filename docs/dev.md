@@ -19,15 +19,11 @@ Optionally, Gcovr can be used to compute the test coverage.
 
 ```bash
 # macOS
-brew install cmake conan gcovr graphviz
+brew install cmake conan gcovr
 
 # Ubuntu 20.04+
-apt install build-essential cmake gcovr git graphviz python3-dev python3-pip
-pip3 install conan
-
-# Executables installed by Python are not in the path by default on Ubuntu.
-# If `conan` is not found, run:
-export PATH="${HOME}/.local/bin:${PATH}"
+apt install build-essential cmake gcovr git pipx python3-dev python3-pip
+pipx install conan
 ```
 
 ### External dependencies
