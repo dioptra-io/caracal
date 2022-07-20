@@ -57,14 +57,6 @@ if(WITH_BINARY)
 endif()
 
 if(WITH_PYTHON)
-  # Read an optional hint from the environment, used during CI to select the correct version on macOS.
-  set(Python_ROOT_DIR $ENV{PYTHON_ROOT_DIR})
-  message(STATUS "Python_ROOT_DIR: ${Python_ROOT_DIR}")
-  find_package(
-    Python
-    COMPONENTS Development.Module Interpreter
-    REQUIRED
-  )
   # scikit-build does not add site-packages to the search path automatically.
   execute_process(
     COMMAND "${Python_EXECUTABLE}" -c
