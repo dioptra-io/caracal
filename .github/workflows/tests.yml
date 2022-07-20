@@ -40,7 +40,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install --yes build-essential cmake gcovr git ninja-build python3-dev python3-pip
-          pip3 install conan
+          pip3 install conan pybind11
       - name: Configure project
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined"
       - name: Build tests
@@ -61,7 +61,7 @@ jobs:
           path: ~/.conan/data
           key: ${{ runner.os }}-x86_64
       - name: Install dependencies
-        run: brew install cmake conan gcovr ninja
+        run: brew install cmake conan gcovr ninja pybind11
       - name: Configure project
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined"
       - name: Build tests

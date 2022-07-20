@@ -57,6 +57,11 @@ if(WITH_BINARY)
 endif()
 
 if(WITH_PYTHON)
+  find_package(
+    Python
+    COMPONENTS Development.Module Interpreter
+    REQUIRED
+  )
   # scikit-build does not add site-packages to the search path automatically.
   execute_process(
     COMMAND "${Python_EXECUTABLE}" -c
