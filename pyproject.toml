@@ -1,6 +1,5 @@
 [build-system]
-# scikit-build 0.15.0 breaks CMake's FindPython on macOS builds.
-requires = ["setuptools", "wheel", "pybind11", "scikit-build<0.15", "cmake", "conan", "ninja"]
+requires = ["setuptools", "wheel", "cmake", "conan", "ninja", "scikit-build", "pybind11"]
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
@@ -11,4 +10,4 @@ test-command = "$([[ -f /usr/bin/sudo ]] && echo 'sudo') pytest --log-cli-level=
 test-requires = ["pytest", "pytest-asyncio"]
 # Avoid testing on emulated architectures, some syscalls are not supported:
 # `RuntimeError: eth0: SIOCETHTOOL(ETHTOOL_GET_TS_INFO) ioctl failed: Function not implemented`
-# test-skip = "*aarch64"
+test-skip = "*aarch64"
