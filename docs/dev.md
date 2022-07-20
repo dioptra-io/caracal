@@ -2,9 +2,7 @@
 
 ## Prerequisites
 
-This program compiles on Linux, where it uses [`AF_PACKET`](https://man7.org/linux/man-pages/man7/packet.7.html) to send raw packets,
-and on macOS, where it uses [`AF_NDRV`](http://newosxbook.com/bonus/vol1ch16.html).
-It runs on x86-64 and ARM64 systems.
+Caracal targets x86-64/ARM64 Linux/macOS systems.
 
 In all the sections below, we assume that you have downloaded a copy of the repository:
 ```bash
@@ -22,7 +20,7 @@ Optionally, Gcovr can be used to compute the test coverage.
 brew install cmake conan gcovr
 
 # Ubuntu 20.04+
-apt install build-essential cmake gcovr git pipx python3-dev python3-pip
+apt install build-essential cmake gcovr git pipx
 pipx install conan
 ```
 
@@ -36,7 +34,7 @@ The only exceptions are libc and libstdc++ which are dynamically linked.
 
 ```bash
 mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_PYTHON=OFF ..
 cmake --build .
 ```
 
@@ -72,24 +70,34 @@ docker build -t caracal .
 
 ## Python interface
 
-Caracal provides an experiment Python interface.
+Caracal provides an experimental Python interface.
 It is currently only used for internal projects, and we do not recommend its general use.
 The extension is built using [pybind11](https://github.com/pybind/pybind11), [scikit-build](https://github.com/scikit-build/scikit-build).
 
-To build the shared extension, use the `_pycaracal` target:
-```bash
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-cmake --build . --target _pycaracal
-# This will build _pycaracal*.so, to test it:
-python -c 'import _pycaracal'
-```
+### Isolated build
 
-To build the Python package (this will automatically build the `_pycaracal` target):
+To build the Python package in a dedicated virtual environment, use [`build`](https://github.com/pypa/build):
 ```bash
 python3 -m pip install --upgrade build
 python3 -m build
-# The source distribution and the wheels are in dist/
+# The source distribution and the wheels will be in dist/
+```
+
+### Manual build
+
+While `build` is very convenient to build wheels, we may want to build the extension manually to use a debugger or reduce compilation time. 
+To do so, we need a Python virtual environment with pybind11 installed in it:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip3 install pybind11
+
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=$(which python3) ..
+cmake --build . --target _pycaracal
+
+# This will build _pycaracal*.so, to test it:
+python -c 'import _pycaracal'
 ```
 
 To run the tests:

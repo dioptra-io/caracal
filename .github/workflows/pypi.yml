@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         arch: [ "x86_64", "aarch64" ]
-        build: [ "cp38-*", "cp39-*", "cp310-*" ]
+        build: [ "cp38-manylinux*", "cp39-manylinux*", "cp310-manylinux*" ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -41,7 +41,7 @@ jobs:
         with:
           platforms: all
       - name: Build wheels
-        uses: pypa/cibuildwheel@2.7.0
+        uses: pypa/cibuildwheel@v2.8.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.build }}
@@ -63,25 +63,13 @@ jobs:
     runs-on: macos-10.15
     strategy:
       matrix:
-        # arch: [ "x86_64", "arm64" ]
-        # libpcap error on cross-compiled binaries:
-        # RuntimeError: live packet capture not supported on this system
-        arch: [ "x86_64" ]
-        build: [ "cp38-*", "cp39-*", "cp310-*" ]
+        arch: [ "x86_64", "arm64" ]
+        build: [ "cp38-macosx*", "cp39-macosx*", "cp310-macosx*" ]
         include:
           - arch: "x86_64"
             conan_arch: "x86_64"
-          # - arch: "arm64"
-          #   conan_arch: "armv8"
-          # For some reasons there are multiple Python versions installed on macOS:
-          # Xcode, GitHub Actions, ... So we have to give a hint to CMake to find
-          # the right version.
-          - build: "cp38-*"
-            python_root_dir: "/Library/Frameworks/Python.framework/Versions/3.8/"
-          - build: "cp39-*"
-            python_root_dir: "/Library/Frameworks/Python.framework/Versions/3.9/"
-          - build: "cp310-*"
-            python_root_dir: "/Library/Frameworks/Python.framework/Versions/3.10/"
+          - arch: "arm64"
+            conan_arch: "armv8"
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -92,14 +80,13 @@ jobs:
         with:
           python-version: '3.x'
       - name: Build wheels
-        uses: pypa/cibuildwheel@2.7.0
+        uses: pypa/cibuildwheel@v2.8.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.build }}
           CONAN_ARCH: ${{ matrix.conan_arch }}
           CMAKE_OSX_ARCHITECTURES: ${{ matrix.arch }}
           MACOSX_DEPLOYMENT_TARGET: 10.15
-          PYTHON_ROOT_DIR: ${{ matrix.python_root_dir }}
         with:
           output-dir: dist
       - name: Upload artifacts

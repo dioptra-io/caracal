@@ -23,8 +23,7 @@ The easiest way to run Caracal is through Docker:
 docker run ghcr.io/dioptra-io/caracal --help
 ```
 
-If you're using macOS, we recommend to [build the native executable](#building-from-source) as Docker for Mac
-seems to rewrite the IP header fields where we encode probe information.
+On macOS, please use [colima](https://github.com/abiosoft/colima) instead of Docker for Mac which mangles the IP header.
 
 ### Nix
 

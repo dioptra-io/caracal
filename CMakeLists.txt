@@ -57,14 +57,14 @@ if(WITH_BINARY)
 endif()
 
 if(WITH_PYTHON)
-  # Read an optional hint from the environment, used during CI to select the correct version on macOS.
-  set(Python_ROOT_DIR $ENV{PYTHON_ROOT_DIR})
-  message(STATUS "Python_ROOT_DIR: ${Python_ROOT_DIR}")
-  find_package(
-    Python
-    COMPONENTS Development.Module Interpreter
-    REQUIRED
+  # Add pip-installed pybind11 path to CMake's search path.
+  execute_process(
+    COMMAND "${PYTHON_EXECUTABLE}" -c
+            "import pybind11; print(pybind11.get_cmake_dir())"
+    OUTPUT_VARIABLE _tmp_dir
+    OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ECHO STDOUT
   )
+  list(APPEND CMAKE_PREFIX_PATH "${_tmp_dir}")
   find_package(pybind11 REQUIRED)
 endif()
 
