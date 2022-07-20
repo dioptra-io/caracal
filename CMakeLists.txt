@@ -57,7 +57,7 @@ if(WITH_BINARY)
 endif()
 
 if(WITH_PYTHON)
-  # scikit-build does not add site-packages to the search path automatically.
+  # Add pip-installed pybind11 path to CMake's search path.
   execute_process(
     COMMAND "${PYTHON_EXECUTABLE}" -c
             "import pybind11; print(pybind11.get_cmake_dir())"

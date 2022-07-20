@@ -86,6 +86,7 @@ jobs:
           CIBW_BUILD: ${{ matrix.build }}
           CONAN_ARCH: ${{ matrix.conan_arch }}
           CMAKE_OSX_ARCHITECTURES: ${{ matrix.arch }}
+          MACOSX_DEPLOYMENT_TARGET: 10.15
         with:
           output-dir: dist
       - name: Upload artifacts
