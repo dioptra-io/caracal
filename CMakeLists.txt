@@ -57,14 +57,9 @@ if(WITH_BINARY)
 endif()
 
 if(WITH_PYTHON)
-  find_package(
-    Python
-    COMPONENTS Development.Module Interpreter
-    REQUIRED
-  )
   # scikit-build does not add site-packages to the search path automatically.
   execute_process(
-    COMMAND "${Python_EXECUTABLE}" -c
+    COMMAND "${PYTHON_EXECUTABLE}" -c
             "import pybind11; print(pybind11.get_cmake_dir())"
     OUTPUT_VARIABLE _tmp_dir
     OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ECHO STDOUT
