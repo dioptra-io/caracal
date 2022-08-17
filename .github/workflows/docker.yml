@@ -1,7 +1,10 @@
 name: Docker
+
+# This workflow takes more than 1 hour to run, so we run it only on tags.
 on:
   push:
     tags: [ '*' ]
+
 jobs:
   build:
     runs-on: ubuntu-latest

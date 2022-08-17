@@ -1,10 +1,6 @@
 name: Tests
 
-on:
-  push:
-    branches: [ main ]
-    paths-ignore: [ '**.md' ]
-  pull_request:
+on: [push]
 
 jobs:
   docker:
@@ -52,8 +48,7 @@ jobs:
       - uses: codecov/codecov-action@v3
 
   macos:
-    # bison fails to build on macos-11 on GitHub actions.
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
