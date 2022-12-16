@@ -3,8 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <tins/tins.h>
 
-#include <boost/iostreams/device/file.hpp>
-#include <boost/iostreams/filter/zstd.hpp>
+#include <bxzstr/bxzstr.hpp>
 #include <caracal/parser.hpp>
 #include <caracal/sniffer.hpp>
 #include <caracal/statistics.hpp>
@@ -15,7 +14,6 @@
 #include <optional>
 #include <thread>
 
-namespace io = boost::iostreams;
 namespace fs = std::filesystem;
 
 namespace caracal {
@@ -60,13 +58,14 @@ Sniffer::Sniffer(const std::string &interface_name,
   sniffer_ = Tins::Sniffer(interface_name, config);
 
   if (output_file_csv) {
-    output_csv_ofs_.open(*output_file_csv);
     if (output_file_csv->extension() == ".zst") {
-      output_csv_.push(io::zstd_compressor(1));
+      output_csv_ = std::make_unique<bxz::ofstream>(*output_file_csv,
+                                                    bxz::Compression::zstd, 1);
+    } else {
+      output_csv_ = std::make_unique<std::ofstream>(*output_file_csv);
     }
-    output_csv_.push(output_csv_ofs_);
   } else {
-    output_csv_.push(std::cout);
+    output_csv_ = std::make_unique<std::ostream>(std::cout.rdbuf());
   }
 
   if (output_file_pcap) {
@@ -82,7 +81,7 @@ Sniffer::~Sniffer() {
 }
 
 void Sniffer::start() noexcept {
-  output_csv_ << Reply::csv_header() << "\n";
+  *output_csv_ << Reply::csv_header() << "\n";
   auto handler = [this](Tins::Packet &packet) {
     auto reply = Parser::parse(packet);
 
@@ -92,7 +91,7 @@ void Sniffer::start() noexcept {
       if (reply->is_time_exceeded()) {
         statistics_.icmp_messages_path.insert(reply->reply_src_addr);
       }
-      output_csv_ << reply->to_csv(meta_round_.value_or("1")) << "\n";
+      *output_csv_ << reply->to_csv(meta_round_.value_or("1")) << "\n";
     } else {
       auto data = packet.pdu()->serialize();
       spdlog::trace("invalid_packet_hex={:02x}", fmt::join(data, ""));

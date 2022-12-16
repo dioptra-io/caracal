@@ -1,7 +1,7 @@
 #include <caracal/experimental.hpp>
 #include <caracal/probe.hpp>
 #include <caracal/prober_config.hpp>
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 using caracal::Probe;
 using caracal::Experimental::Prober;

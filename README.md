@@ -2,9 +2,9 @@
 
 [![Coverage](https://img.shields.io/codecov/c/github/dioptra-io/caracal?logo=codecov&logoColor=white)](https://codecov.io/gh/dioptra-io/caracal)
 [![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/caracal/)
-[![Docker Status](https://img.shields.io/github/workflow/status/dioptra-io/caracal/Docker?logo=github&label=docker)](https://github.com/dioptra-io/caracal/actions/workflows/docker.yml)
-[![PyPI Status](https://img.shields.io/github/workflow/status/dioptra-io/caracal/PyPI?logo=github&label=pypi)](https://github.com/dioptra-io/caracal/actions/workflows/pypi.yml)
-[![Tests Status](https://img.shields.io/github/workflow/status/dioptra-io/caracal/Tests?logo=github&label=tests)](https://github.com/dioptra-io/caracal/actions/workflows/tests.yml)
+[![Docker Status](https://img.shields.io/github/actions/workflow/status/dioptra-io/caracal/docker.yml?branch=main&logo=github&label=docker)](https://github.com/dioptra-io/caracal/actions/workflows/docker.yml)
+[![PyPI Status](https://img.shields.io/github/actions/workflow/status/dioptra-io/caracal/pypi.yml?branch=main&logo=github&label=pypi)](https://github.com/dioptra-io/caracal/actions/workflows/pypi.yml)
+[![Tests Status](https://img.shields.io/github/actions/workflow/status/dioptra-io/caracal/tests.yml?branch=main&logo=github&label=tests)](https://github.com/dioptra-io/caracal/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/pycaracal?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/pycaracal/)
 
 Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ with Python bindings.
@@ -47,7 +47,7 @@ This software is released under the [MIT license](/LICENSE), in accordance with 
 
 Name                                             | License                                                               | Usage
 -------------------------------------------------|-----------------------------------------------------------------------|------
-[Boost](https://www.boost.org)                   | [Boost Software License 1.0](https://opensource.org/licenses/BSL-1.0) | Boost::iostreams from compression and decompression
+[bxzstr](https://github.com/tmaklin/bxzstr)                   | [Mozilla Public License 2.0 (MPL-2.0)](https://opensource.org/licenses/MPL-2.0) | Compression and decompression
 [Catch2](https://github.com/catchorg/Catch2)     | [Boost Software License 1.0](https://opensource.org/licenses/BSL-1.0) | Unit tests and benchmarks
 [cxxopts](https://github.com/jarro2783/cxxopts)  | [MIT](https://opensource.org/licenses/MIT)                            | CLI arguments parsing
 [liblpm](https://github.com/rmind/liblpm)        | [2-clause BSD](https://opensource.org/licenses/BSD-2-Clause)          | Longest-prefix matching

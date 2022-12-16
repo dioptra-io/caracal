@@ -51,7 +51,7 @@ Sniffer::Sniffer(const std::string &interface_name, const uint64_t buffer_size,
     : sniffer_{interface_name},
       caracal_id_{caracal_id},
       integrity_check_{integrity_check} {
-  Tins::NetworkInterface interface{interface_name};
+  Tins::NetworkInterface interface { interface_name };
 
   std::vector<std::string> address_filters;
   for (auto address : Utilities::all_ipv4_for(interface)) {
