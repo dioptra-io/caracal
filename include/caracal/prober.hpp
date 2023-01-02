@@ -6,9 +6,9 @@
 #include <istream>
 #include <tuple>
 
-#include "probe.hpp"
-#include "prober_config.hpp"
-#include "statistics.hpp"
+#include "./probe.hpp"
+#include "./prober_config.hpp"
+#include "./statistics.hpp"
 
 /// Build and send probes.
 namespace caracal::Prober {

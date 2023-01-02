@@ -38,16 +38,17 @@ struct Reply {
   /// @name Probe attributes (IP → ICMP → IP)
   /// @{
   in6_addr
-      probe_dst_addr;      ///< The IP that was targeted by the probe,
-                           ///< if we received a reply from this IP,
-                           ///< then \ref reply_src_addr == \ref probe_dst_addr.
-  uint16_t probe_id;       ///< The ID field of the probe packet (0 for IPv6).
-  uint32_t probe_flow_label;  ///< The flow label field of the probe packet (0 for IPv4).
-  uint16_t probe_size;     ///< The size in bytes of the probe packet.
-                           ///< For IPv6 this doesn't include the IP header.
-  uint8_t probe_protocol;  ///< The protocol of the probe packet.
-  uint8_t quoted_ttl;      ///< The TTL as seen by the host that emitted the
-                           ///< ICMP reply.
+      probe_dst_addr;  ///< The IP that was targeted by the probe,
+                       ///< if we received a reply from this IP,
+                       ///< then \ref reply_src_addr == \ref probe_dst_addr.
+  uint16_t probe_id;   ///< The ID field of the probe packet (0 for IPv6).
+  uint32_t probe_flow_label;  ///< The flow label field of the probe packet (0
+                              ///< for IPv4).
+  uint16_t probe_size;        ///< The size in bytes of the probe packet.
+                              ///< For IPv6 this doesn't include the IP header.
+  uint8_t probe_protocol;     ///< The protocol of the probe packet.
+  uint8_t quoted_ttl;         ///< The TTL as seen by the host that emitted the
+                              ///< ICMP reply.
   /// @}
 
   /// @name Probe attributes (IP → ICMP → IP → ICMP/UDP)

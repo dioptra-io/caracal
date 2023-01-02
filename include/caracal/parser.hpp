@@ -3,7 +3,7 @@
 #include <chrono>
 #include <optional>
 
-#include "reply.hpp"
+#include "./reply.hpp"
 
 /// Parse traceroute replies.
 namespace caracal::Parser {

@@ -20,9 +20,9 @@ std::string to_string(T x) {
 TEST_CASE("Probe::from_csv") {
   SECTION("IPv4 dotted") {
     Probe probe = Probe::from_csv("0.0.0.0,1,2,3,udp");
-    REQUIRE(
-        to_string(probe) ==
-        "dst_addr=0.0.0.0 src_port=1 dst_port=2 ttl=3 protocol=udp flow_label=0 wait_us=0");
+    REQUIRE(to_string(probe) ==
+            "dst_addr=0.0.0.0 src_port=1 dst_port=2 ttl=3 protocol=udp "
+            "flow_label=0 wait_us=0");
     REQUIRE(format_addr(probe.dst_addr) == "0.0.0.0");
     REQUIRE(Probe::from_csv(probe.to_csv()) == probe);
     REQUIRE(probe.dst_addr.s6_addr[3] == 0);
@@ -96,9 +96,9 @@ TEST_CASE("Probe::from_csv") {
 
   SECTION("Wait") {
     Probe probe = Probe::from_csv("0.0.0.0,1,2,3,udp,1,42");
-    REQUIRE(
-        to_string(probe) ==
-        "dst_addr=0.0.0.0 src_port=1 dst_port=2 ttl=3 protocol=udp flow_label=1 wait_us=42");
+    REQUIRE(to_string(probe) ==
+            "dst_addr=0.0.0.0 src_port=1 dst_port=2 ttl=3 protocol=udp "
+            "flow_label=1 wait_us=42");
     REQUIRE(probe.wait_us == 42);
   }
 

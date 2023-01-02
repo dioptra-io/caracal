@@ -53,31 +53,33 @@ Sniffer::Sniffer(const std::string &interface_name, const uint64_t buffer_size,
       integrity_check_{integrity_check} {
   Tins::NetworkInterface interface { interface_name };
 
-  std::vector<std::string> address_filters;
-  for (auto address : Utilities::all_ipv4_for(interface)) {
-    address_filters.push_back(fmt::format("dst {}", address.to_string()));
-  }
-  for (auto address : Utilities::all_ipv6_for(interface)) {
-    address_filters.push_back(fmt::format("dst {}", address.to_string()));
-  }
-
-  auto filter_template =
-      "({}) and (icmp or icmp6) and ("
-      "icmp[icmptype] = icmp-echoreply or"
-      " icmp[icmptype] = icmp-timxceed or"
-      " icmp[icmptype] = icmp-unreach or"
-      " icmp6[icmp6type] = icmp6-echoreply or"
-      " icmp6[icmp6type] = icmp6-timeexceeded or"
-      " icmp6[icmp6type] = icmp6-destinationunreach"
-      ")";
-  auto filter = fmt::format(fmt::runtime(filter_template),
-                            fmt::join(address_filters, " or "));
+  auto filter =
+      "(ip and icmp and ("
+      "icmp[icmptype] = icmp-echoreply or "
+      "icmp[icmptype] = icmp-timxceed or "
+      "icmp[icmptype] = icmp-unreach))"
+      " or "
+      "(ip6 and icmp6 and ("
+      "icmp6[icmp6type] = icmp6-echoreply or "
+      "icmp6[icmp6type] = icmp6-timeexceeded or "
+      "icmp6[icmp6type] = icmp6-destinationunreach))";
   spdlog::info("sniffer_filter={}", filter);
 
   Tins::SnifferConfiguration config;
   config.set_buffer_size(buffer_size);
+  // Filter as much as possible at the kernel level.
+  // We're only interested in incoming ICMP packets.
+  config.set_direction(PCAP_D_IN);
   config.set_filter(filter);
-  config.set_immediate_mode(true);
+  // `timeout` has two uses here:
+  // 1. Batch deliveries from pcap to reduce syscall overhead
+  //    See "packet buffer timeout" in PCAP(3PCAP) man page.
+  //    See also section 26.2 "BSD Packet Filter" in "Unix Network Programming
+  //    vol. 1".
+  // 2. Allow us to break the capture loop through the `stopped` variable.
+  // This has no impact of RTT computation as packets are timestamped as soon as
+  // they are captured by pcap.
+  config.set_timeout(100);
   sniffer_ = Tins::Sniffer(interface_name, config);
 }
 

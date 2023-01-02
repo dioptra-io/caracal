@@ -10,7 +10,7 @@ namespace caracal {
 
 /// A traceroute probe specification.
 struct Probe {
-  in6_addr dst_addr;       ///< IPv6 or IPv4-mapped IPv6 address (network order)
+  in6_addr dst_addr;  ///< IPv6 or IPv4-mapped IPv6 address (network order)
 
   // 5-tuple
   uint16_t src_port;       ///< Source port (host order)
@@ -20,7 +20,7 @@ struct Probe {
 
   // Flow label, specific to IPv6, 20 bits
   uint32_t flow_label;
-  
+
   uint32_t wait_us;  ///< Microseconds to wait before the next probe (optional)
 
   [[nodiscard]] static Probe from_csv(const std::string &line);
