@@ -8,12 +8,6 @@
 
 namespace caracal::Utilities {
 
-[[nodiscard]] std::set<Tins::IPv4Address> all_ipv4_for(
-    const Tins::NetworkInterface& interface);
-
-[[nodiscard]] std::set<Tins::IPv6Address> all_ipv6_for(
-    const Tins::NetworkInterface& interface);
-
 [[nodiscard]] Tins::IPv4Address source_ipv4_for(
     const Tins::NetworkInterface& interface);
 

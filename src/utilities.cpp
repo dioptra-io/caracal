@@ -9,40 +9,6 @@
 
 namespace caracal::Utilities {
 
-std::set<Tins::IPv4Address> all_ipv4_for(
-    const Tins::NetworkInterface& interface) {
-  std::set<Tins::IPv4Address> addresses;
-  addresses.emplace(interface.ipv4_address());
-#ifdef __linux__
-  ifaddrs* ifaddr;
-  if (getifaddrs(&ifaddr) == -1) {
-    throw std::system_error(errno, std::generic_category());
-  }
-  for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-    if (ifa->ifa_addr != nullptr && ifa->ifa_addr->sa_family == AF_INET &&
-        ifa->ifa_name == interface.name()) {
-      auto sa = reinterpret_cast<sockaddr_in*>(ifa->ifa_addr);
-      addresses.emplace(sa->sin_addr.s_addr);
-    }
-  }
-  freeifaddrs(ifaddr);
-#endif
-  return addresses;
-}
-
-std::set<Tins::IPv6Address> all_ipv6_for(
-    const Tins::NetworkInterface& interface) {
-  std::set<Tins::IPv6Address> addresses;
-  for (const auto& addr : interface.ipv6_addresses()) {
-    if (addr.address.is_local_unicast() || addr.address.is_loopback() ||
-        addr.address.is_multicast()) {
-      continue;
-    }
-    addresses.emplace(addr.address);
-  }
-  return addresses;
-}
-
 Tins::IPv4Address source_ipv4_for(const Tins::NetworkInterface& interface) {
   return interface.ipv4_address();
 }
