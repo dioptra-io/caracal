@@ -135,7 +135,7 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def_readwrite("reply_mpls_labels", &Reply::reply_mpls_labels)
       .def_readwrite("probe_dst_addr", &Reply::probe_dst_addr)
       .def_readwrite("probe_id", &Reply::probe_id)
-      .def_readwrite("probe_id", &Reply::probe_flow_label)
+      .def_readwrite("probe_flow_label", &Reply::probe_flow_label)
       .def_readwrite("probe_size", &Reply::probe_size)
       .def_readwrite("probe_protocol", &Reply::probe_protocol)
       .def_readwrite("quoted_ttl", &Reply::quoted_ttl)
