@@ -15,33 +15,52 @@ namespace fs = std::filesystem;
 using caracal::Prober::Config;
 using caracal::Prober::probe;
 
+
 TEST_CASE("Prober::probe") {
-  auto protocol = GENERATE("icmp", "udp");
+  auto protocol = GENERATE("icmp", "udp", "icmp6");
+  uint32_t flow_label = 1;
   std::ofstream ofs;
 
   // TODO: IPv6.
 
   ofs.open("zzz_input.csv");
-  ofs << fmt::format("8.8.8.8,24000,33434,1,{}\n", protocol);  // Allowed
-  ofs << fmt::format("8.8.8.8,24000,33434,2,{}\n", protocol);  // Allowed
-  ofs << fmt::format("8.8.8.8,24000,33434,0,{}\n",
-                     protocol);  // Denied (TTL too low)
-  ofs << fmt::format("8.8.8.8,24000,33434,8,{}\n",
-                     protocol);  // Denied (TTL too high)
-  ofs << fmt::format("8.8.9.1,24000,33434,2,{}\n",
-                     protocol);  // Denied (prefix excluded)
-  ofs << fmt::format("8.9.8.8,24000,33434,2,{}\n",
-                     protocol);  // Denied (prefix not included)
-  ofs << "a,b,c,d,e\n";  // Invalid probe (should not crash, and should not be
+  auto dst_addr = "8.8.8.8";
+  if (std::string(protocol) == "icmp6") {
+    dst_addr = "2a00:1450:4007:819::200e"; // google.com
+  }
+
+  ofs << fmt::format("{},24000,33434,1,{},{}\n", dst_addr, protocol, flow_label);  // Allowed
+  ofs << fmt::format("{},24000,33434,2,{},{}\n", dst_addr, protocol, flow_label);  // Allowed
+  ofs << fmt::format("{},24000,33434,0,{},{}\n",
+                     dst_addr, protocol,flow_label);  // Denied (TTL too low)
+  ofs << fmt::format("{},24000,33434,8,{},{}\n",
+                     dst_addr, protocol,flow_label);  // Denied (TTL too high)
+  if (std::string(protocol) == "icmp6") {
+    ofs << fmt::format("2b00:1450:4007:819::200e,24000,33434,2,{},{}\n",
+                       protocol,
+                       flow_label);  // Denied (prefix IPv6 not included)
+    ofs << fmt::format("2a00:1450:4007:818::200e,24000,33434,2,{},{}\n",
+                       protocol,
+                       flow_label);  // Denied (prefix IPv6 excluded)
+  } else {
+    ofs << fmt::format("8.8.9.1,24000,33434,2,{},{}\n",
+                       protocol,flow_label);  // Denied (prefix excluded)
+    ofs << fmt::format("8.3.4.1,24000,33434,2,{},{}\n",
+                       protocol, flow_label);  // Denied (prefix not included)
+  }
+
+  ofs << "a,b,c,d,e,f\n";  // Invalid probe (should not crash, and should not be
                          // included in read stats)
   ofs.close();
 
   ofs.open("zzz_excl.csv");
   ofs << "8.8.9.0/24\n";
+  ofs << "2a00:1450:4007:818::/64\n";
   ofs.close();
 
   ofs.open("zzz_incl.csv");
   ofs << "8.8.0.0/16\n";
+  ofs << "2a00::/12\n";
   ofs.close();
 
   Config config;
@@ -79,7 +98,8 @@ TEST_CASE("Prober::probe") {
   SECTION("Include list with missing new line") {
     // Should not crash and should filter the prefixes not included.
     ofs.open("zzz_incl.csv");
-    ofs << "8.8.0.0/16";
+    ofs << "8.8.0.0/16\n";
+    ofs << "2a00::/12\n";
     ofs.close();
 
     auto [prober_stats, sniffer_stats, pcap_stats] =

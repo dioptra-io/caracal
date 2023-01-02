@@ -36,14 +36,18 @@ Probe Probe::from_csv(const std::string &line) {
         probe.protocol = Protocols::l4_from_string(token);
         break;
       case 5:
+        probe.flow_label = Checked::stou32(token);
+        break;
+      case 6:
         probe.wait_us = Checked::stou32(token);
         break;
+
       default:
         break;
     }
     index++;
   }
-  if (index < 5 || index > 6) {
+  if (index < 5 || index > 7) {
     throw std::runtime_error("Invalid CSV line: " + line);
   }
   return probe;
@@ -51,14 +55,14 @@ Probe Probe::from_csv(const std::string &line) {
 
 std::string Probe::to_csv() const noexcept {
   auto addr = Utilities::format_addr(dst_addr);
-  return fmt::format("{},{},{},{},{},{}", addr, src_port, dst_port, ttl,
-                     Protocols::to_string(protocol), wait_us);
+  return fmt::format("{},{},{},{},{},{},{}", addr, src_port, dst_port, ttl,
+                     Protocols::to_string(protocol), flow_label, wait_us);
 }
 
 bool Probe::operator==(const Probe &other) const noexcept {
   return IN6_ARE_ADDR_EQUAL(&dst_addr, &other.dst_addr) &&
          (src_port == other.src_port) && (dst_port == other.dst_port) &&
-         (ttl == other.ttl) && (protocol == other.protocol);
+         (ttl == other.ttl) && (protocol == other.protocol) && (flow_label == other.flow_label);
 }
 
 Protocols::L3 Probe::l3_protocol() const noexcept {
@@ -98,9 +102,9 @@ uint16_t Probe::checksum(uint32_t caracal_id) const noexcept {
 std::ostream &operator<<(std::ostream &os, Probe const &v) {
   return os << fmt::format(
              "dst_addr={} src_port={} dst_port={} ttl={} protocol={} "
-             "wait_us={}",
+             "flow_label={} wait_us={}",
              Utilities::format_addr(v.dst_addr), v.src_port, v.dst_port, v.ttl,
-             Protocols::to_string(v.protocol), v.wait_us);
+             Protocols::to_string(v.protocol), v.flow_label, v.wait_us);
 }
 
 }  // namespace caracal

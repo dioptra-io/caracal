@@ -104,15 +104,19 @@ PYBIND11_MODULE(_pycaracal, m) {
 
   py::class_<Probe>(m, "Probe")
       .def(py::init<>())
+      .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t, Protocols::L4>(),
+           // flow_label and wait_us are optional
+           "dst_addr"_a, "src_port"_a, "dst_port"_a, "ttl"_a, "protocol"_a)
       .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t, Protocols::L4,
-                    uint32_t>(),
+                    uint32_t, uint32_t>(),
            "dst_addr"_a, "src_port"_a, "dst_port"_a, "ttl"_a, "protocol"_a,
-           "wait_us"_a)
+           "flow_label"_a, "wait_us"_a)
       .def_readwrite("dst_addr", &Probe::dst_addr)
       .def_readwrite("src_port", &Probe::src_port)
       .def_readwrite("dst_port", &Probe::dst_port)
       .def_readwrite("ttl", &Probe::ttl)
       .def_readwrite("protocol", &Probe::protocol)
+      .def_readwrite("flow_label", &Probe::flow_label)
       .def_readwrite("wait_us", &Probe::wait_us)
       .def("__eq__", &Probe::operator==)
       .def("__repr__", repr<Probe>("Probe"));
@@ -131,6 +135,7 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def_readwrite("reply_mpls_labels", &Reply::reply_mpls_labels)
       .def_readwrite("probe_dst_addr", &Reply::probe_dst_addr)
       .def_readwrite("probe_id", &Reply::probe_id)
+      .def_readwrite("probe_flow_label", &Reply::probe_flow_label)
       .def_readwrite("probe_size", &Reply::probe_size)
       .def_readwrite("probe_protocol", &Reply::probe_protocol)
       .def_readwrite("quoted_ttl", &Reply::quoted_ttl)
