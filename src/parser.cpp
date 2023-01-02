@@ -95,6 +95,7 @@ void parse_inner(Reply& reply, const Tins::IPv6* ip) noexcept {
   reply.probe_id = 0;  // Not implemented for IPv6.
   reply.probe_size = ip->payload_length();
   reply.quoted_ttl = ip->hop_limit();
+  reply.probe_flow_label = ip->flow_label();
 }
 
 void parse_inner(Reply& reply, const Tins::ICMP* icmp,

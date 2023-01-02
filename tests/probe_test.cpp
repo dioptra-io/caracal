@@ -19,10 +19,10 @@ std::string to_string(T x) {
 
 TEST_CASE("Probe::from_csv") {
   SECTION("IPv4 dotted") {
-    Probe probe = Probe::from_csv("0.0.0.0,1,2,3,udp");
+    Probe probe = Probe::from_csv("0.0.0.0,1,2,3,udp,0");
     REQUIRE(
         to_string(probe) ==
-        "dst_addr=0.0.0.0 src_port=1 dst_port=2 ttl=3 protocol=udp wait_us=0");
+        "dst_addr=0.0.0.0 src_port=1 dst_port=2 ttl=3 protocol=udp flow_label=0 wait_us=0");
     REQUIRE(format_addr(probe.dst_addr) == "0.0.0.0");
     REQUIRE(Probe::from_csv(probe.to_csv()) == probe);
     REQUIRE(probe.dst_addr.s6_addr[3] == 0);
@@ -31,16 +31,17 @@ TEST_CASE("Probe::from_csv") {
     REQUIRE(probe.ttl == 3);
     REQUIRE(probe.l3_protocol() == Protocols::L3::IPv4);
     REQUIRE(probe.l4_protocol() == Protocols::L4::UDP);
+    REQUIRE(probe.flow_label == 0);
 
-    BENCHMARK("IPv4 dotted") { return Probe::from_csv("0.0.0.0,1,2,3,udp"); };
+    BENCHMARK("IPv4 dotted") { return Probe::from_csv("0.0.0.0,1,2,3,udp,0"); };
   }
 
   SECTION("IPv4 uint32") {
     // Python: int(ip_address("8.8.4.4"))
-    Probe probe = Probe::from_csv("134743044,0010,1000,050,icmp");
+    Probe probe = Probe::from_csv("134743044,0010,1000,050,icmp,0");
     REQUIRE(to_string(probe) ==
             "dst_addr=8.8.4.4 src_port=10 dst_port=1000 ttl=50 protocol=icmp "
-            "wait_us=0");
+            "flow_label=0 wait_us=0");
     REQUIRE(format_addr(probe.dst_addr) == "8.8.4.4");
     REQUIRE(Probe::from_csv(probe.to_csv()) == probe);
     REQUIRE(probe.src_port == 10);
@@ -48,17 +49,18 @@ TEST_CASE("Probe::from_csv") {
     REQUIRE(probe.ttl == 50);
     REQUIRE(probe.l3_protocol() == Protocols::L3::IPv4);
     REQUIRE(probe.l4_protocol() == Protocols::L4::ICMP);
+    REQUIRE(probe.flow_label == 0);
 
     BENCHMARK("IPv4 uint32") {
-      return Probe::from_csv("134743044,0010,1000,050,icmp");
+      return Probe::from_csv("134743044,0010,1000,050,icmp,0");
     };
   }
 
   SECTION("IPv4-mapped IPv6") {
-    Probe probe = Probe::from_csv("::ffff:8.8.4.4,10,1000,50,icmp");
+    Probe probe = Probe::from_csv("::ffff:8.8.4.4,10,1000,50,icmp,0");
     REQUIRE(to_string(probe) ==
             "dst_addr=8.8.4.4 src_port=10 dst_port=1000 ttl=50 protocol=icmp "
-            "wait_us=0");
+            "flow_label=0 wait_us=0");
     REQUIRE(format_addr(probe.dst_addr) == "8.8.4.4");
     REQUIRE(Probe::from_csv(probe.to_csv()) == probe);
     REQUIRE(probe.src_port == 10);
@@ -66,17 +68,18 @@ TEST_CASE("Probe::from_csv") {
     REQUIRE(probe.ttl == 50);
     REQUIRE(probe.l3_protocol() == Protocols::L3::IPv4);
     REQUIRE(probe.l4_protocol() == Protocols::L4::ICMP);
+    REQUIRE(probe.flow_label == 0);
 
     BENCHMARK("IPv4-mapped IPv6") {
-      return Probe::from_csv("::ffff:8.8.4.4,10,1000,50,icmp");
+      return Probe::from_csv("::ffff:8.8.4.4,10,1000,50,icmp,0");
     };
   }
 
   SECTION("IPv6") {
-    Probe probe = Probe::from_csv("2001:4860:4860::8888,10,1000,50,icmp6");
+    Probe probe = Probe::from_csv("2001:4860:4860::8888,10,1000,50,icmp6,1");
     REQUIRE(to_string(probe) ==
             "dst_addr=2001:4860:4860::8888 src_port=10 dst_port=1000 ttl=50 "
-            "protocol=icmp6 wait_us=0");
+            "protocol=icmp6 flow_label=1 wait_us=0");
     REQUIRE(format_addr(probe.dst_addr) == "2001:4860:4860::8888");
     REQUIRE(Probe::from_csv(probe.to_csv()) == probe);
     REQUIRE(probe.src_port == 10);
@@ -84,17 +87,18 @@ TEST_CASE("Probe::from_csv") {
     REQUIRE(probe.ttl == 50);
     REQUIRE(probe.l3_protocol() == Protocols::L3::IPv6);
     REQUIRE(probe.l4_protocol() == Protocols::L4::ICMPv6);
+    REQUIRE(probe.flow_label == 1);
 
     BENCHMARK("IPv6") {
-      return Probe::from_csv("2001:4860:4860::8888,10,1000,50,icmp6");
+      return Probe::from_csv("2001:4860:4860::8888,10,1000,50,icmp6,1");
     };
   }
 
   SECTION("Wait") {
-    Probe probe = Probe::from_csv("0.0.0.0,1,2,3,udp,42");
+    Probe probe = Probe::from_csv("0.0.0.0,1,2,3,udp,1,42");
     REQUIRE(
         to_string(probe) ==
-        "dst_addr=0.0.0.0 src_port=1 dst_port=2 ttl=3 protocol=udp wait_us=42");
+        "dst_addr=0.0.0.0 src_port=1 dst_port=2 ttl=3 protocol=udp flow_label=1 wait_us=42");
     REQUIRE(probe.wait_us == 42);
   }
 
@@ -102,7 +106,7 @@ TEST_CASE("Probe::from_csv") {
     // Missing fields
     REQUIRE_THROWS(Probe::from_csv("8.8.8.8,1,2,3"));
     // Extra fields
-    REQUIRE_THROWS(Probe::from_csv("8.8.8.8,1,2,3,icmp,5,6"));
+    REQUIRE_THROWS(Probe::from_csv("8.8.8.8,1,2,3,icmp,5,6,7"));
     // Invalid values
     REQUIRE_THROWS(Probe::from_csv("a,b,c,d"));
     // Out-of-range values

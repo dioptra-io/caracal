@@ -131,7 +131,7 @@ void Sender::send(const Probe &probe) {
 
     case Protocols::L3::IPv6:
       Builder::IPv6::init(packet, src_ip_v6_.sin6_addr,
-                          probe.sockaddr6().sin6_addr, probe.ttl);
+                          probe.sockaddr6().sin6_addr, probe.ttl, probe.flow_label);
       break;
   }
 

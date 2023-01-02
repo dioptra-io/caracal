@@ -125,6 +125,7 @@ TEST_CASE("Builder::ICMPv6") {
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
   uint16_t timestamp_enc = Timestamp::encode(123456);
+  uint32_t flow_label = 1;
 
   array<byte, 65536> buffer{};
   Packet packet{buffer.data(),           buffer.size(),
@@ -132,7 +133,7 @@ TEST_CASE("Builder::ICMPv6") {
                 Protocols::L4::ICMPv6,   payload_len};
 
   Ethernet::init(packet, {0}, {0});
-  IPv6::init(packet, src_addr, dst_addr, ttl);
+  IPv6::init(packet, src_addr, dst_addr, ttl, flow_label);
   ICMPv6::init(packet, flow_id, timestamp_enc);
 
   REQUIRE(validate_icmp6_checksum(packet));
@@ -145,6 +146,7 @@ TEST_CASE("Builder::ICMPv6") {
   REQUIRE(IN6_ARE_ADDR_EQUAL(&new_src_addr, &src_addr));
   REQUIRE(IN6_ARE_ADDR_EQUAL(&new_dst_addr, &dst_addr));
   REQUIRE(ip6.hop_limit() == ttl);
+  REQUIRE(ip6.flow_label() == flow_label);
 
   auto icmp6 = ip6.rfind_pdu<Tins::ICMPv6>();
   REQUIRE(icmp6.checksum() == flow_id);
@@ -204,6 +206,7 @@ TEST_CASE("Builder::UDP/v6") {
   uint8_t ttl = 8;
   uint16_t payload_len = 10;
   uint16_t timestamp_enc = Timestamp::encode(123456);
+  uint32_t flow_label = 1;
 
   array<byte, 65536> buffer{};
   Packet packet{buffer.data(),           buffer.size(),
@@ -211,7 +214,7 @@ TEST_CASE("Builder::UDP/v6") {
                 Protocols::L4::UDP,      payload_len};
 
   Ethernet::init(packet, {0}, {0});
-  IPv6::init(packet, src_addr, dst_addr, ttl);
+  IPv6::init(packet, src_addr, dst_addr, ttl, flow_label);
   UDP::init(packet, timestamp_enc, src_port, dst_port);
 
   REQUIRE(validate_udp_checksum(packet));
@@ -224,6 +227,7 @@ TEST_CASE("Builder::UDP/v6") {
   REQUIRE(IN6_ARE_ADDR_EQUAL(&new_src_addr, &src_addr));
   REQUIRE(IN6_ARE_ADDR_EQUAL(&new_dst_addr, &dst_addr));
   REQUIRE(ip6.hop_limit() == ttl);
+  REQUIRE(ip6.flow_label() == flow_label);
 
   auto udp = ip6.rfind_pdu<Tins::UDP>();
   REQUIRE(udp.sport() == src_port);

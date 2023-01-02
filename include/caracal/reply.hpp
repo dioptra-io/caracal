@@ -42,6 +42,7 @@ struct Reply {
                            ///< if we received a reply from this IP,
                            ///< then \ref reply_src_addr == \ref probe_dst_addr.
   uint16_t probe_id;       ///< The ID field of the probe packet (0 for IPv6).
+  uint32_t probe_flow_label;  ///< The flow label field of the probe packet (0 for IPv4).
   uint16_t probe_size;     ///< The size in bytes of the probe packet.
                            ///< For IPv6 this doesn't include the IP header.
   uint8_t probe_protocol;  ///< The protocol of the probe packet.

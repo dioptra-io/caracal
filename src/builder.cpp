@@ -101,14 +101,14 @@ void init(Packet packet, const in_addr src_addr, const in_addr dst_addr,
 namespace caracal::Builder::IPv6 {
 
 void init(Packet packet, const in6_addr src_addr, const in6_addr dst_addr,
-          const uint8_t ttl) {
+          const uint8_t ttl, const uint32_t flow_label) {
   auto ip_header = reinterpret_cast<ip6_hdr *>(packet.l3());
   // We cannot store the TTL in the flow-ID field, since it is used for LB,
   // unlike IPv4. We rely on the payload length instead.
   // https://homepages.dcc.ufmg.br/~cunha/papers/almeida17pam-mda6.pdf
   // 4 bits version, 8 bits TC, 20 bits flow-ID.
   // Version = 6, TC = 0, flow-ID = 0.
-  ip_header->ip6_flow = htonl(0x60000000U);
+  ip_header->ip6_flow = htonl(0x60000000U + flow_label);
   ip_header->ip6_nxt = posix_value(packet.l4_protocol());
   ip_header->ip6_src = src_addr;
   ip_header->ip6_dst = dst_addr;
