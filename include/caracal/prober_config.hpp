@@ -18,7 +18,7 @@ struct Config {
   uint64_t n_packets = 1;
   uint64_t batch_size = 128;
   uint64_t probing_rate = 100;
-  uint64_t sniffer_wait_time = 5;
+  uint64_t sniffer_wait_time = 1;
   bool integrity_check = true;
   std::string interface = get_default_interface();
   string rate_limiting_method = "auto";
