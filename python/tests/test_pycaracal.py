@@ -12,7 +12,7 @@ def test_probe():
     p4 = Probe(int(IPv6Address("::ffff:8.8.4.4")), 24000, 33434, 32, "icmp", 0)
     assert (
         str(p1)
-        == "Probe(dst_addr=8.8.4.4 src_port=24000 dst_port=33434 ttl=32 protocol=udp wait_us=0)"
+        == "Probe(dst_addr=8.8.4.4 src_port=24000 dst_port=33434 ttl=32 protocol=udp flow_label=0 wait_us=0)"
     )
     assert p1 == p2
     assert p2 != p3
@@ -52,10 +52,10 @@ def test_prober():
     input_file = Path("zzz_input.csv")
     input_file.write_text(
         """
-8.8.4.4,24000,33434,32,icmp
-8.8.4.4,24000,33434,32,udp
-8.8.8.8,24000,33434,32,icmp
-8.8.8.8,24000,33434,32,udp
+8.8.4.4,24000,33434,32,icmp,0
+8.8.4.4,24000,33434,32,udp,0
+8.8.8.8,24000,33434,32,icmp,0
+8.8.8.8,24000,33434,32,udp,0
     """.strip()
     )
     prober_stats, sniffer_stats, pcap_stats = prober.probe(config, str(input_file))
