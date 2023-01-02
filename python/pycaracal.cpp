@@ -108,6 +108,10 @@ PYBIND11_MODULE(_pycaracal, m) {
            // flow_label and wait_us are optional
            "dst_addr"_a, "src_port"_a, "dst_port"_a, "ttl"_a, "protocol"_a)
       .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t, Protocols::L4,
+                    uint32_t>(),
+           "dst_addr"_a, "src_port"_a, "dst_port"_a, "ttl"_a, "protocol"_a,
+           "flow_label"_a)
+      .def(py::init<in6_addr, uint16_t, uint16_t, uint8_t, Protocols::L4,
                     uint32_t, uint32_t>(),
            "dst_addr"_a, "src_port"_a, "dst_port"_a, "ttl"_a, "protocol"_a,
            "flow_label"_a, "wait_us"_a)
