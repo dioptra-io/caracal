@@ -19,7 +19,7 @@ std::string to_string(T x) {
 
 TEST_CASE("Probe::from_csv") {
   SECTION("IPv4 dotted") {
-    Probe probe = Probe::from_csv("0.0.0.0,1,2,3,udp,0");
+    Probe probe = Probe::from_csv("0.0.0.0,1,2,3,udp");
     REQUIRE(
         to_string(probe) ==
         "dst_addr=0.0.0.0 src_port=1 dst_port=2 ttl=3 protocol=udp flow_label=0 wait_us=0");
@@ -38,7 +38,7 @@ TEST_CASE("Probe::from_csv") {
 
   SECTION("IPv4 uint32") {
     // Python: int(ip_address("8.8.4.4"))
-    Probe probe = Probe::from_csv("134743044,0010,1000,050,icmp,0");
+    Probe probe = Probe::from_csv("134743044,0010,1000,050,icmp");
     REQUIRE(to_string(probe) ==
             "dst_addr=8.8.4.4 src_port=10 dst_port=1000 ttl=50 protocol=icmp "
             "flow_label=0 wait_us=0");
@@ -52,12 +52,12 @@ TEST_CASE("Probe::from_csv") {
     REQUIRE(probe.flow_label == 0);
 
     BENCHMARK("IPv4 uint32") {
-      return Probe::from_csv("134743044,0010,1000,050,icmp,0");
+      return Probe::from_csv("134743044,0010,1000,050,icmp");
     };
   }
 
   SECTION("IPv4-mapped IPv6") {
-    Probe probe = Probe::from_csv("::ffff:8.8.4.4,10,1000,50,icmp,0");
+    Probe probe = Probe::from_csv("::ffff:8.8.4.4,10,1000,50,icmp");
     REQUIRE(to_string(probe) ==
             "dst_addr=8.8.4.4 src_port=10 dst_port=1000 ttl=50 protocol=icmp "
             "flow_label=0 wait_us=0");
@@ -71,7 +71,7 @@ TEST_CASE("Probe::from_csv") {
     REQUIRE(probe.flow_label == 0);
 
     BENCHMARK("IPv4-mapped IPv6") {
-      return Probe::from_csv("::ffff:8.8.4.4,10,1000,50,icmp,0");
+      return Probe::from_csv("::ffff:8.8.4.4,10,1000,50,icmp");
     };
   }
 

@@ -47,7 +47,7 @@ Probe Probe::from_csv(const std::string &line) {
     }
     index++;
   }
-  if (index < 6 || index > 7) {
+  if (index < 5 || index > 7) {
     throw std::runtime_error("Invalid CSV line: " + line);
   }
   return probe;
