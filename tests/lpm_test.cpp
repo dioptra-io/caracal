@@ -1,6 +1,6 @@
 #include <caracal/lpm.hpp>
 #include <caracal/utilities.hpp>
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <fstream>
 
 using caracal::LPM;

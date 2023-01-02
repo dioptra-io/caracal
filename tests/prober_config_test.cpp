@@ -1,5 +1,5 @@
 #include <caracal/prober_config.hpp>
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 using caracal::Prober::Config;
 

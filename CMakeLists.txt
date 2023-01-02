@@ -13,10 +13,10 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 file(GLOB CARACAL_LIBRARY_SOURCES src/*.cpp)
 file(GLOB CARACAL_TESTS_SOURCES tests/*.cpp)
 
-option(WITH_BINARY "Enable binary target" ON)
-option(WITH_CONAN "Run conan install on configure" ON)
-option(WITH_PYTHON "Enable Python target" ON)
-option(WITH_TESTS "Enable tests target" ON)
+option(WITH_BINARY "Enable binary target" OFF)
+option(WITH_CONAN "Run conan install on configure" OFF)
+option(WITH_PYTHON "Enable Python target" OFF)
+option(WITH_TESTS "Enable tests target" OFF)
 configure_file(apps/caracal-config.h.in caracal-config.h)
 
 # Install the dependencies with conan, this is equivalent to `conan install ..`.
@@ -46,11 +46,12 @@ if(WITH_CONAN)
 endif()
 
 # Required packages
-find_package(Boost REQUIRED COMPONENTS iostreams)
+find_package(bxzstr REQUIRED)
 find_package(libtins REQUIRED)
 find_package(LPM REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Threads REQUIRED)
+find_package(zstd REQUIRED)
 
 if(WITH_BINARY)
   find_package(cxxopts REQUIRED)
@@ -81,13 +82,21 @@ if(TARGET tins)
   add_library(libtins::libtins ALIAS tins)
 endif()
 
+# Alias zstd when installed with nix.
+if(TARGET zstd::libzstd_shared)
+  add_library(zstd::zstd ALIAS zstd::libzstd_shared)
+endif()
+
 add_library(caracal ${CARACAL_LIBRARY_SOURCES})
 target_compile_features(caracal PUBLIC cxx_std_20)
 target_compile_options(caracal PRIVATE ${CARACAL_PRIVATE_FLAGS})
 target_include_directories(caracal PUBLIC "${PROJECT_SOURCE_DIR}/include")
-target_link_libraries(caracal PRIVATE spdlog::spdlog LPM::LPM Threads::Threads)
-# TODO: Remove boost and libtins from the public headers of caracal?
-target_link_libraries(caracal PUBLIC Boost::iostreams libtins::libtins)
+target_link_libraries(
+  caracal PRIVATE bxzstr::bxzstr spdlog::spdlog LPM::LPM Threads::Threads
+                  zstd::zstd
+)
+# TODO: Remove libtins from the public headers of caracal?
+target_link_libraries(caracal PUBLIC libtins::libtins)
 
 if(WITH_BINARY)
   add_executable(caracal-bin apps/caracal.cpp)
@@ -113,7 +122,7 @@ if(WITH_TESTS)
   )
   target_compile_options(caracal-test PRIVATE ${CARACAL_PRIVATE_FLAGS})
   target_link_libraries(
-    caracal-test PRIVATE Catch2::Catch2 spdlog::spdlog caracal
+    caracal-test PRIVATE Catch2::Catch2WithMain spdlog::spdlog caracal
   )
   catch_discover_tests(caracal-test)
 endif()

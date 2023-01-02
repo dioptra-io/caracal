@@ -3,21 +3,12 @@
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:NixOS/nixpkgs/f06cec9564a2fc6b85d92398551a0c059fc4db86";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
   };
 
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
-      let
-        overlay = final: prev: {
-          boostWithZstd = prev.boost.overrideAttrs (old: {
-            buildInputs = old.buildInputs ++ [prev.zstd];
-          });
-        };
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ overlay ];
-        };
+      let pkgs = import nixpkgs { inherit system; };
       in {
         packages = {
           caracal = pkgs.stdenv.mkDerivation {
@@ -28,16 +19,14 @@
               pkgs.cmake
             ];
             buildInputs = [
-              pkgs.boostWithZstd
               pkgs.cxxopts
               pkgs.libtins
               pkgs.libpcap
               pkgs.spdlog
+              pkgs.zstd
             ];
             cmakeFlags = [
-              "-DWITH_CONAN=OFF"
-              "-DWITH_PYTHON=OFF"
-              "-DWITH_TESTS=OFF"
+              "-DWITH_BINARY=ON"
             ];
           };
         };

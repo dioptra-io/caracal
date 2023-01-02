@@ -34,7 +34,7 @@ The only exceptions are libc and libstdc++ which are dynamically linked.
 
 ```bash
 mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_PYTHON=OFF ..
+cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_BINARY=ON -DWITH_CONAN=ON ..
 cmake --build .
 ```
 
@@ -43,10 +43,10 @@ cmake --build .
 Option             | Default  | Description
 :------------------|:---------|:------------
 `CMAKE_BUILD_TYPE` | `Debug`  | Set to `Release` for a production build.
-`WITH_CONAN`       | `ON`     | Whether to run `conan install` on configure or not.
-`WITH_BINARY`      | `ON`     | Whether to enable the `caracal-bin` target or not.
-`WITH_PYTHON`      | `ON`     | Whether to enable the `_pycaracal` target or not.
-`WITH_TESTS`       | `ON`     | Whether to enable the `caracal-test` target or not.
+`WITH_CONAN`       | `OFF`     | Whether to run `conan install` on configure or not.
+`WITH_BINARY`      | `OFF`     | Whether to enable the `caracal-bin` target or not.
+`WITH_PYTHON`      | `OFF`     | Whether to enable the `_pycaracal` target or not.
+`WITH_TESTS`       | `OFF`     | Whether to enable the `caracal-test` target or not.
 
 Use `-DOPTION=Value` to set an option.
 For example: `cmake -DCMAKE_BUILD_TYPE=Release ..`
@@ -93,7 +93,7 @@ source venv/bin/activate
 pip3 install pybind11
 
 mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=$(which python3) ..
+cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_CONAN=ON -DWITH_PYTHON=ON -DPYTHON_EXECUTABLE=$(which python3) ..
 cmake --build . --target _pycaracal
 
 # This will build _pycaracal*.so, to test it:

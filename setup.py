@@ -20,8 +20,8 @@ setup(
     package_dir={"": "python"},
     packages=["pycaracal"],
     cmake_args=[
-        "-DWITH_BINARY=OFF",
-        "-DWITH_TESTS=OFF",
+        "-DWITH_CONAN=ON",
+        "-DWITH_PYTHON=ON",
     ],
     cmake_install_dir="python/pycaracal",
 )

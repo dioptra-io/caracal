@@ -1,9 +1,7 @@
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 
-#include <boost/iostreams/device/file.hpp>
-#include <boost/iostreams/filter/zstd.hpp>
-#include <boost/iostreams/filtering_stream.hpp>
+#include <bxzstr/bxzstr.hpp>
 #include <caracal/lpm.hpp>
 #include <caracal/pretty.hpp>
 #include <caracal/probe.hpp>
@@ -19,7 +17,6 @@
 
 namespace caracal::Prober {
 
-namespace io = boost::iostreams;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
 
@@ -172,13 +169,8 @@ ProbingStatistics probe(const Config& config, const fs::path& p) {
   if (!fs::exists(p)) {
     throw std::invalid_argument(p.string() + " does not exists");
   }
-  io::filtering_stream<io::input> inp;
-  if (p.extension() == ".zst") {
-    inp.push(io::zstd_decompressor());
-  }
-  std::ifstream ifs{p};
-  inp.push(ifs);
-  return probe(config, inp);
+  bxz::ifstream ifs{p};
+  return probe(config, ifs);
 }
 
 }  // namespace caracal::Prober
