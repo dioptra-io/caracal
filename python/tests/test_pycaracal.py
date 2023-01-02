@@ -10,7 +10,8 @@ def test_probe():
     p2 = Probe("::ffff:8.8.4.4", 24000, 33434, 32, "udp")
     p3 = Probe("::ffff:8.8.4.4", 24000, 33434, 32, "icmp")
     p4 = Probe(int(IPv6Address("::ffff:8.8.4.4")), 24000, 33434, 32, "icmp")
-    p5 = Probe(int(IPv6Address("::ffff:8.8.4.4")), 24000, 33434, 32, "icmp", 1, 0)
+    p5 = Probe(int(IPv6Address("::ffff:8.8.4.4")), 24000, 33434, 32, "icmp", 10)
+    p6 = Probe(int(IPv6Address("::ffff:8.8.4.4")), 24000, 33434, 32, "icmp", 1, 3)
     assert (
         str(p1)
         == "Probe(dst_addr=8.8.4.4 src_port=24000 dst_port=33434 ttl=32 protocol=udp flow_label=0 wait_us=0)"
@@ -22,7 +23,9 @@ def test_probe():
     assert p1.src_port == 24000
     assert p1.dst_port == 33434
     assert p1.protocol == "udp"
-    assert p5.flow_label == 1
+    assert p5.flow_label == 10
+    assert p6.flow_label == 1
+    assert p6.wait_us == 3
 
 
 def test_prober():
