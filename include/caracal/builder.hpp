@@ -70,7 +70,8 @@ namespace caracal::Builder::IPv6 {
 /// @param dst_addr the destination IPv6 address.
 /// @param ttl the TTL.
 /// @param flow_label the flow_label header field.
-void init(Packet packet, in6_addr src_addr, in6_addr dst_addr, uint8_t ttl, uint32_t flow_label);
+void init(Packet packet, in6_addr src_addr, in6_addr dst_addr, uint8_t ttl,
+          uint32_t flow_label);
 
 }  // namespace caracal::Builder::IPv6
 

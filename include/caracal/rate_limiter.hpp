@@ -3,7 +3,7 @@
 #include <chrono>
 #include <string>
 
-#include "statistics.hpp"
+#include "./statistics.hpp"
 
 using std::chrono::milliseconds;
 using std::chrono::nanoseconds;

@@ -62,7 +62,8 @@ std::string Probe::to_csv() const noexcept {
 bool Probe::operator==(const Probe &other) const noexcept {
   return IN6_ARE_ADDR_EQUAL(&dst_addr, &other.dst_addr) &&
          (src_port == other.src_port) && (dst_port == other.dst_port) &&
-         (ttl == other.ttl) && (protocol == other.protocol) && (flow_label == other.flow_label);
+         (ttl == other.ttl) && (protocol == other.protocol) &&
+         (flow_label == other.flow_label);
 }
 
 Protocols::L3 Probe::l3_protocol() const noexcept {
