@@ -30,38 +30,36 @@ Sender::Sender(const std::string &interface_name, uint16_t caracal_id)
       src_ip_v6_{},
       caracal_id_{caracal_id},
       handle_{nullptr} {
-  Tins::NetworkInterface interface { interface_name };
+  // Open pcap interface.
+  char pcap_err[PCAP_ERRBUF_SIZE] = {};
+  handle_ = pcap_open_live(interface_name.c_str(), 0, 0, 0, pcap_err);
+  if (handle_ == nullptr) {
+    throw std::runtime_error(pcap_err);
+  } else if (strlen(pcap_err) > 0) {
+    spdlog::warn("{}", pcap_err);
+  }
 
-  // Find the interface type:
-  // - Linux Ethernet link [Ethernet header -> IP header]
-  // - Linux Loopback link: same as Ethernet but with 00... MAC addresses
-  // - Linux IP link (e.g. VPN) [IP header]
-  // - macOS Ethernet link [Ethernet header -> IP header]
-  // - macOS Loopback link [BSD loopback header -> IP Header]
-#ifdef __APPLE__
-  if (interface.hw_address().to_string() == "00:00:00:00:00:00") {
-    l2_protocol_ = Protocols::L2::BSDLoopback;
-    spdlog::info("interface_type=bsd_loopback");
+  switch (pcap_datalink(handle_)) {
+    case DLT_EN10MB:
+      l2_protocol_ = Protocols::L2::Ethernet;
+      break;
+    case DLT_NULL:
+      l2_protocol_ = Protocols::L2::BSDLoopback;
+      break;
+    case DLT_RAW:
+      l2_protocol_ = Protocols::L2::None;
+      break;
+    default:
+      throw std::runtime_error("Unsupported link type");
   }
-#elif __linux__
-  if (!interface.is_loopback() &&
-      interface.hw_address().to_string() == "00:00:00:00:00:00") {
-    l2_protocol_ = Protocols::L2::None;
-    spdlog::info("interface_type=l3");
-  }
-#endif
 
   // Find the IPv4/v6 gateway.
+  Tins::NetworkInterface interface { interface_name };
   Tins::HWAddress<6> gateway_mac{"00:00:00:00:00:00"};
-  try {
+  if (l2_protocol_ == Protocols::L2::Ethernet) {
     spdlog::info("Resolving the gateway MAC address...");
     gateway_mac =
         Utilities::gateway_mac_for(interface, Tins::IPv4Address("8.8.8.8"));
-  } catch (const std::runtime_error &e) {
-    spdlog::warn(
-        "Unable to resolve the gateway MAC address (this is expected on a "
-        "loopback or tunnel interface): {}",
-        e.what());
   }
 
   // Set the source/destination MAC addresses.
@@ -82,15 +80,6 @@ Sender::Sender(const std::string &interface_name, uint16_t caracal_id)
   spdlog::info("dst_mac={:02x}", fmt::join(dst_mac_, ":"));
   spdlog::info("src_ip_v4={} src_ip_v6={}", src_ip_v4_.sin_addr,
                src_ip_v6_.sin6_addr);
-
-  // Open pcap interface.
-  char pcap_err[PCAP_ERRBUF_SIZE] = {};
-  handle_ = pcap_open_live(interface_name.c_str(), 0, 0, 0, pcap_err);
-  if (handle_ == nullptr) {
-    throw std::runtime_error(pcap_err);
-  } else if (strlen(pcap_err) > 0) {
-    spdlog::warn("{}", pcap_err);
-  }
 }
 
 Sender::~Sender() { pcap_close(handle_); }
@@ -131,7 +120,8 @@ void Sender::send(const Probe &probe) {
 
     case Protocols::L3::IPv6:
       Builder::IPv6::init(packet, src_ip_v6_.sin6_addr,
-                          probe.sockaddr6().sin6_addr, probe.ttl, probe.flow_label);
+                          probe.sockaddr6().sin6_addr, probe.ttl,
+                          probe.flow_label);
       break;
   }
 
