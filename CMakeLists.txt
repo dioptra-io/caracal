@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(caracal VERSION 0.14.0)
+project(caracal VERSION 0.14.1)
 
 # We have Find* modules in two places:
 # - The build directory, for the libraries fetched by Conan
