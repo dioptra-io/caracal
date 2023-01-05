@@ -55,6 +55,8 @@ uint64_t ipv4_pseudo_header_sum(const ip* ip_header,
 uint64_t ipv6_pseudo_header_sum(const ip6_hdr* ip_header,
                                 const uint32_t transport_length,
                                 const uint8_t transport_protocol) {
+
+  // https://en.wikipedia.org/wiki/User_Datagram_Protocol#IPv6_pseudo_header
   uint64_t sum = 0;
   sum += ip_header->ip6_src.s6_addr32[0];
   sum += ip_header->ip6_src.s6_addr32[1];
@@ -65,7 +67,10 @@ uint64_t ipv6_pseudo_header_sum(const ip6_hdr* ip_header,
   sum += ip_header->ip6_dst.s6_addr32[2];
   sum += ip_header->ip6_dst.s6_addr32[3];
   sum += htonl(transport_length);
-  sum += transport_protocol;
+  // The sum of the pseudo header is the uint16_t sum of the pseudo header
+  // As before the transport_protocol, there is field zeroes, it is OK to htons(transport_protocol)
+  // to change the endianness.
+  sum += htons(transport_protocol);
   return sum;
 }
 
