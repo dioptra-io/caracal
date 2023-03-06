@@ -2,7 +2,7 @@ from skbuild import setup
 
 setup(
     name="pycaracal",
-    version="0.14.3",
+    version="0.14.4",
     author="Maxime Mouchet",
     author_email="max@maxmouchet.com",
     url="https://github.com/dioptra-io/caracal",
