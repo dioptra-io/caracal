@@ -56,7 +56,9 @@ jobs:
           path: ~/.conan/data
           key: ${{ runner.os }}-x86_64
       - name: Install dependencies
-        run: brew install cmake "conan<2.0" gcovr ninja
+        run: brew install cmake gcovr ninja
+      - name: Install Conan
+        run: pip3 install "conan<2.0"
       - name: Configure project (try 1/2)
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON
         continue-on-error: true
