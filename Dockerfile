@@ -4,14 +4,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install --no-install-recommends --quiet --yes \
-        build-essential \
-        cmake \
-        ninja-build \
-        python3-pip && \
+    build-essential \
+    cmake \
+    ninja-build \
+    python3-pip && \
     rm --force --recursive /var/lib/apt/lists/*
 
 # hadolint ignore=DL3059
-RUN python3 -m pip install --no-cache-dir build conan>=1.35
+RUN python3 -m pip install --no-cache-dir build "conan>=1.35,<2.0"
 
 WORKDIR /tmp
 COPY . .
