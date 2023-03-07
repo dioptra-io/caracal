@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
       - uses: dioptra-io/publish-python-action@v1
         with:
           password: ${{ secrets.PYPI_TOKEN }}
@@ -20,8 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [ "x86_64", "aarch64" ]
-        build: [ "cp38-manylinux*", "cp39-manylinux*", "cp310-manylinux*" ]
+        arch: ["x86_64", "aarch64"]
+        build:
+          [
+            "cp38-manylinux*",
+            "cp39-manylinux*",
+            "cp310-manylinux*",
+            "cp311-manylinux*",
+          ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -30,7 +36,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.arch }}-${{ matrix.build }}
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -58,8 +64,9 @@ jobs:
     runs-on: macos-10.15
     strategy:
       matrix:
-        arch: [ "x86_64", "arm64" ]
-        build: [ "cp38-macosx*", "cp39-macosx*", "cp310-macosx*" ]
+        arch: ["x86_64", "arm64"]
+        build:
+          ["cp38-macosx*", "cp39-macosx*", "cp310-macosx*", "cp311-macosx*"]
         include:
           - arch: "x86_64"
             conan_arch: "x86_64"
@@ -73,7 +80,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.arch }}-${{ matrix.build }}
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.9.0
         env:
