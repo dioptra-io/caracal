@@ -31,8 +31,11 @@ class Sniffer {
 
 class Prober {
  public:
-  Prober(const std::string& interface, uint64_t probing_rate,
-         uint64_t buffer_size, uint16_t caracal_id, bool integrity_check);
+  Prober(const caracal::Prober::Config &, uint64_t buffer_size);
+
+//  Prober(const std::string& interface, uint64_t probing_rate,
+//         uint64_t buffer_size, uint16_t caracal_id, bool integrity_check);
+
   std::vector<Reply> probe(const std::vector<Probe>& probes,
                            uint64_t timeout_ms,
                            std::function<void()>& check_exception);

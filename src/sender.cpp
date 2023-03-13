@@ -5,6 +5,9 @@
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 #include <tins/tins.h>
+#include <chrono>
+#include <string>
+
 
 #include <algorithm>
 #include <caracal/builder.hpp>
@@ -14,25 +17,24 @@
 #include <caracal/sender.hpp>
 #include <caracal/timestamp.hpp>
 #include <caracal/utilities.hpp>
-#include <chrono>
-#include <string>
+#include <caracal/prober.hpp>
 
 using std::chrono::system_clock;
 
 namespace caracal {
 
-Sender::Sender(const std::string &interface_name, uint16_t caracal_id)
+Sender::Sender(const Prober::Config& config)
     : buffer_{},
       l2_protocol_{Protocols::L2::Ethernet},
       src_mac_{},
       dst_mac_{},
       src_ip_v4_{},
       src_ip_v6_{},
-      caracal_id_{caracal_id},
+      caracal_id_{config.caracal_id},
       handle_{nullptr} {
   // Open pcap interface.
   char pcap_err[PCAP_ERRBUF_SIZE] = {};
-  handle_ = pcap_open_live(interface_name.c_str(), 0, 0, 0, pcap_err);
+  handle_ = pcap_open_live(config.interface.c_str(), 0, 0, 0, pcap_err);
   if (handle_ == nullptr) {
     throw std::runtime_error(pcap_err);
   } else if (strlen(pcap_err) > 0) {
@@ -54,28 +56,49 @@ Sender::Sender(const std::string &interface_name, uint16_t caracal_id)
   }
 
   // Find the IPv4/v6 gateway.
-  Tins::NetworkInterface interface { interface_name };
+  Tins::NetworkInterface interface { config.interface };
   Tins::HWAddress<6> gateway_mac{"00:00:00:00:00:00"};
   if (l2_protocol_ == Protocols::L2::Ethernet) {
     spdlog::info("Resolving the gateway MAC address...");
-    gateway_mac =
-        Utilities::gateway_mac_for(interface, Tins::IPv4Address("8.8.8.8"));
+    if (config.ip_version == 6) {
+      // TODO Libtins does not provide a simple way to get the HW gateway for IPv6,
+      // so let the user put their own gateway as a future work
+      gateway_mac =
+          Utilities::gateway_mac_for(interface, Tins::IPv4Address("8.8.8.8"));
+    } else {
+      // By default use IPv4
+      gateway_mac =
+          Utilities::gateway_mac_for(interface, Tins::IPv4Address("8.8.8.8"));
+    }
   }
+
+  std::copy(gateway_mac.begin(), gateway_mac.end(), dst_mac_.begin());
+
 
   // Set the source/destination MAC addresses.
   auto if_mac = interface.hw_address();
   std::copy(if_mac.begin(), if_mac.end(), src_mac_.begin());
-  std::copy(gateway_mac.begin(), gateway_mac.end(), dst_mac_.begin());
 
   // Set the source IPv4 address.
   src_ip_v4_.sin_family = AF_INET;
-  inet_pton(AF_INET, Utilities::source_ipv4_for(interface).to_string().c_str(),
-            &src_ip_v4_.sin_addr);
+  if (config.source_IPv4.has_value()) {
+    inet_pton(AF_INET, config.source_IPv4->to_string().c_str(),
+              &src_ip_v4_.sin_addr);
+  } else {
+    inet_pton(AF_INET, Utilities::source_ipv4_for(interface).to_string().c_str(),
+              &src_ip_v4_.sin_addr);
+  }
 
   // Set the source IPv6 address.
   src_ip_v6_.sin6_family = AF_INET6;
-  inet_pton(AF_INET6, Utilities::source_ipv6_for(interface).to_string().c_str(),
-            &src_ip_v6_.sin6_addr);
+  if (config.source_IPv6.has_value()) {
+    inet_pton(AF_INET6, config.source_IPv6->to_string().c_str(),
+              &src_ip_v6_.sin6_addr);
+  } else {
+    inet_pton(AF_INET6, Utilities::source_ipv6_for(interface).to_string().c_str(),
+              &src_ip_v6_.sin6_addr);
+  }
+
 
   spdlog::info("dst_mac={:02x}", fmt::join(dst_mac_, ":"));
   spdlog::info("src_ip_v4={} src_ip_v6={}", src_ip_v4_.sin_addr,

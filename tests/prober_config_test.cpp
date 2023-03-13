@@ -32,6 +32,11 @@ TEST_CASE("Prober::Config") {
   REQUIRE_THROWS_AS(config.set_rate_limiting_method("zzz"),
                     std::invalid_argument);
 
+  REQUIRE_NOTHROW(config.set_ip_version(4));
+  REQUIRE_NOTHROW(config.set_ip_version(6));
+  REQUIRE_THROWS_AS(config.set_ip_version(10),
+                    std::invalid_argument);
+
   REQUIRE_NOTHROW(config.set_max_probes(1));
   REQUIRE_THROWS_AS(config.set_max_probes(0), std::domain_error);
 

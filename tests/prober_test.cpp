@@ -1,7 +1,9 @@
 #include <spdlog/cfg/helpers.h>
+#include <spdlog/spdlog.h>
 
 #include <caracal/prober.hpp>
 #include <caracal/prober_config.hpp>
+#include <caracal/utilities.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <cstdlib>
@@ -21,11 +23,14 @@ using caracal::Prober::probe;
 
 TEST_CASE("Prober::probe/v4") {
   auto protocol = GENERATE("icmp", "udp");
+  // Replace some valid IP address if you need.
+  auto source_addr = GENERATE("132.227.123.30", "", "1.1.1.1");
+
   std::ofstream ofs;
 
   ofs.open("zzz_input.csv");
-  ofs << fmt::format("8.8.8.8,24000,33434,1,{}\n", protocol);  // Allowed
   ofs << fmt::format("8.8.8.8,24000,33434,2,{}\n", protocol);  // Allowed
+  ofs << fmt::format("8.8.8.8,24000,33434,3,{}\n", protocol);  // Allowed
   ofs << fmt::format("8.8.8.8,24000,33434,0,{}\n",
                      protocol);  // Denied (TTL too low)
   ofs << fmt::format("8.8.8.8,24000,33434,8,{}\n",
@@ -59,6 +64,13 @@ TEST_CASE("Prober::probe/v4") {
   config.set_n_packets(3);
   config.set_meta_round("1");
   config.set_integrity_check(true);
+  if (std::string(source_addr) != std::string("")) {
+    config.set_ip_version(4);
+    config.set_source_IPv4(source_addr);
+    spdlog::info("Source address: " + std::string(source_addr));
+  }
+
+  auto true_addr = caracal::Utilities::source_ipv4_for(Config::get_default_interface()).to_string();
 
   spdlog::cfg::helpers::load_levels("trace");
 
@@ -72,10 +84,16 @@ TEST_CASE("Prober::probe/v4") {
     REQUIRE(prober_stats.filtered_prefix_excl == 1);
     REQUIRE(prober_stats.filtered_prefix_not_incl == 1);
     if (!is_github) {
-      REQUIRE(sniffer_stats.received_count >= 2);
+
+      if (true_addr == std::string(source_addr) || std::string(source_addr) == std::string("")) {
+        REQUIRE(sniffer_stats.received_count >= 2);
+        REQUIRE(!sniffer_stats.icmp_messages_all.empty());
+        REQUIRE(!sniffer_stats.icmp_messages_path.empty());
+      } else {
+        // Invalid source address
+        REQUIRE(sniffer_stats.received_count == 0);
+      }
       REQUIRE(sniffer_stats.received_invalid_count == 0);
-      REQUIRE(!sniffer_stats.icmp_messages_all.empty());
-      REQUIRE(!sniffer_stats.icmp_messages_path.empty());
     }
   }
 
@@ -89,7 +107,11 @@ TEST_CASE("Prober::probe/v4") {
         probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.sent == 6);
     if (!is_github) {
-      REQUIRE(sniffer_stats.received_count == 6);
+      if (true_addr == std::string(source_addr) || std::string(source_addr) == std::string("")) {
+        REQUIRE(sniffer_stats.received_count == 6);
+      } else {
+        REQUIRE(sniffer_stats.received_count == 0);
+      }
     }
     REQUIRE(sniffer_stats.received_invalid_count == 0);
   }
@@ -104,7 +126,12 @@ TEST_CASE("Prober::probe/v4") {
         probe(config, "zzz_input.csv");
     REQUIRE(prober_stats.sent == 9);
     if (!is_github) {
-      REQUIRE(sniffer_stats.received_count == 9);
+      if (true_addr == std::string(source_addr) || std::string(source_addr) == std::string("")) {
+        REQUIRE(sniffer_stats.received_count == 9);
+      } else {
+        REQUIRE(sniffer_stats.received_count == 0);
+      }
+
     }
     REQUIRE(sniffer_stats.received_invalid_count == 0);
   }
@@ -132,13 +159,15 @@ TEST_CASE("Prober::probe/v4") {
 TEST_CASE("Prober::probe/v6") {
   auto dst_addr = "2a00:1450:4007:819::200e";  // google.com
   auto protocol = "icmp6";
+  // Replace some valid IP address if you need.
+  auto source_addr = GENERATE("", "2606:4700:4700::1111", "2001:660:3302:287b:225:90ff:fec0:15b2");
   uint32_t flow_label = 1;
   std::ofstream ofs;
 
   ofs.open("zzz_input.csv");
-  ofs << fmt::format("{},24000,33434,1,{},{}\n", dst_addr, protocol,
-                     flow_label);  // Allowed
   ofs << fmt::format("{},24000,33434,2,{},{}\n", dst_addr, protocol,
+                     flow_label);  // Allowed
+  ofs << fmt::format("{},24000,33434,3,{},{}\n", dst_addr, protocol,
                      flow_label);  // Allowed
   ofs << fmt::format("{},24000,33434,0,{},{}\n", dst_addr, protocol,
                      flow_label);  // Denied (TTL too low)
@@ -172,6 +201,14 @@ TEST_CASE("Prober::probe/v6") {
   config.set_meta_round("1");
   config.set_integrity_check(true);
 
+  if (std::string(source_addr) != std::string("")) {
+    config.set_ip_version(6);
+    config.set_source_IPv6(source_addr);
+    spdlog::info("Source address: " + std::string(source_addr));
+  }
+
+  auto true_addr = caracal::Utilities::source_ipv6_for(Config::get_default_interface()).to_string();
+
   spdlog::cfg::helpers::load_levels("trace");
 
   if (has_ipv6) {
@@ -183,10 +220,16 @@ TEST_CASE("Prober::probe/v6") {
     REQUIRE(prober_stats.filtered_hi_ttl == 1);
     REQUIRE(prober_stats.filtered_prefix_excl == 1);
     REQUIRE(prober_stats.filtered_prefix_not_incl == 1);
-    REQUIRE(sniffer_stats.received_count >= 2);
+
+    if (true_addr == std::string(source_addr) || std::string(source_addr) == std::string("")) {
+      REQUIRE(sniffer_stats.received_count >= 2);
+      REQUIRE(!sniffer_stats.icmp_messages_all.empty());
+      REQUIRE(!sniffer_stats.icmp_messages_path.empty());
+    } else {
+      // Invalid source address
+      REQUIRE(sniffer_stats.received_count == 0);
+    }
     REQUIRE(sniffer_stats.received_invalid_count == 0);
-    REQUIRE(!sniffer_stats.icmp_messages_all.empty());
-    REQUIRE(!sniffer_stats.icmp_messages_path.empty());
   }
 
   fs::remove("zzz_excl.csv");

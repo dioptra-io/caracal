@@ -35,6 +35,9 @@ int main(int argc, char** argv) {
       ("L,log-level", "Minimum log level (trace, debug, info, warning, error, fatal)", cxxopts::value<string>()->default_value("info"))
       ("N,n-packets", "Number of packets to send per probe", cxxopts::value<int>()->default_value(std::to_string(config.n_packets)))
       ("P,max-probes", "Maximum number of probes to send (unlimited by default)", cxxopts::value<int>())
+      ("6,v6", "Specify that the IP version will be IPv6 (must use it when setting the source_ip)")
+      ("4,v4", "Specify that the IP version will be IPv4 (must use it when setting the source_ip)")
+      ("S,source-address", "Specify the source address to use in the packets (-4 or -6 must be specified when using this option)", cxxopts::value<string>())
       ("W,sniffer-wait-time", "Time in seconds to wait after sending the probes to stop the sniffer", cxxopts::value<int>()->default_value(std::to_string(config.sniffer_wait_time)))
       ("rate-limiting-method", "Method to use to limit the packets rate (auto, active, sleep, none)", cxxopts::value<string>()->default_value(config.rate_limiting_method))
       ("filter-from-prefix-file-excl", "Do not send probes to prefixes specified in file (deny list)", cxxopts::value<string>())
@@ -79,6 +82,26 @@ int main(int argc, char** argv) {
     if (result.count("sniffer-wait-time")) {
       config.set_sniffer_wait_time(result["sniffer-wait-time"].as<int>());
     }
+
+    if (result.count("v4")) {
+      config.set_ip_version(4);
+    }
+
+    if (result.count("v6")) {
+     config.set_ip_version(6);
+    }
+
+    if (result.count("source-address")) {
+        if (config.ip_version == 4) {
+          config.set_source_IPv4(result["source-address"].as<std::string>());
+        } else if (config.ip_version == 6) {
+          config.set_source_IPv6(result["source-address"].as<std::string>());
+        } else {
+          std::cout << options.help() << std::endl;
+          return 0;
+        }
+    }
+
 
     if (result.count("max-probes")) {
       config.set_max_probes(result["max-probes"].as<int>());

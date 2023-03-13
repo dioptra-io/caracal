@@ -7,13 +7,15 @@
 #include <array>
 #include <string>
 
+#include <caracal/prober.hpp>
+
 #include "./probe.hpp"
 
 namespace caracal {
 
 class Sender {
  public:
-  explicit Sender(const std::string &interface_name, uint16_t caracal_id);
+  explicit Sender(const Prober::Config &);
 
   ~Sender();
 
