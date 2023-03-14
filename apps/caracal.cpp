@@ -35,6 +35,8 @@ int main(int argc, char** argv) {
       ("L,log-level", "Minimum log level (trace, debug, info, warning, error, fatal)", cxxopts::value<string>()->default_value("info"))
       ("N,n-packets", "Number of packets to send per probe", cxxopts::value<int>()->default_value(std::to_string(config.n_packets)))
       ("P,max-probes", "Maximum number of probes to send (unlimited by default)", cxxopts::value<int>())
+      ("source-address-v4", "Specify the IPv4 source address to use in the packets (if probing in v4)", cxxopts::value<string>())
+      ("source-address-v6", "Specify the IPv6 source address to use in the packets (if probing in v6)", cxxopts::value<string>())
       ("W,sniffer-wait-time", "Time in seconds to wait after sending the probes to stop the sniffer", cxxopts::value<int>()->default_value(std::to_string(config.sniffer_wait_time)))
       ("rate-limiting-method", "Method to use to limit the packets rate (auto, active, sleep, none)", cxxopts::value<string>()->default_value(config.rate_limiting_method))
       ("filter-from-prefix-file-excl", "Do not send probes to prefixes specified in file (deny list)", cxxopts::value<string>())
@@ -79,6 +81,17 @@ int main(int argc, char** argv) {
     if (result.count("sniffer-wait-time")) {
       config.set_sniffer_wait_time(result["sniffer-wait-time"].as<int>());
     }
+
+    if (result.count("source-address-v4")) {
+      config.set_ip_version(4);
+      config.set_source_ipv4(result["source-address"].as<std::string>());
+    }
+
+    if (result.count("source-address-v6")) {
+      config.set_ip_version(6);
+      config.set_source_ipv6(result["source-address"].as<std::string>());
+    }
+
 
     if (result.count("max-probes")) {
       config.set_max_probes(result["max-probes"].as<int>());

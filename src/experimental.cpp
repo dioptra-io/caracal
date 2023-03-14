@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 
 #include <caracal/experimental.hpp>
+#include <caracal/prober.hpp>
 #include <string>
 
 #include "caracal/parser.hpp"
@@ -15,12 +16,10 @@ using std::chrono::steady_clock;
 
 namespace caracal::Experimental {
 
-Prober::Prober(const std::string &interface, const uint64_t probing_rate,
-               const uint64_t buffer_size, const uint16_t caracal_id,
-               const bool integrity_check)
-    : sender_{interface, caracal_id},
-      sniffer_{Sniffer{interface, buffer_size, caracal_id, integrity_check}},
-      rate_limiter_{probing_rate, 1, "auto"} {
+Prober::Prober(const caracal::Prober::Config & config, uint64_t buffer_size)
+    : sender_(config),
+      sniffer_{Sniffer{config.interface, buffer_size, config.caracal_id, config.integrity_check}},
+      rate_limiter_{config.probing_rate, 1, "auto"} {
   sniffer_.start();
 }
 

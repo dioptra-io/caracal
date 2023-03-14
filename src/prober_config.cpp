@@ -1,5 +1,3 @@
-#include <tins/tins.h>
-
 #include <caracal/prober_config.hpp>
 #include <filesystem>
 #include <optional>
@@ -22,7 +20,8 @@ uint16_t Config::get_default_id() {
 }
 
 std::string Config::get_default_interface() {
-  return Tins::NetworkInterface::default_interface().name();
+  auto default_interface = Tins::NetworkInterface::default_interface().name();
+  return default_interface;
 }
 
 void Config::set_caracal_id(const int id) {
@@ -70,6 +69,21 @@ void Config::set_rate_limiting_method(const string& s) {
   } else {
     throw std::invalid_argument(s + " is not a valid rate limiting method");
   }
+}
+
+void Config::set_ip_version(uint8_t version) {
+  if (version != 4 && version != 6) {
+      throw std::invalid_argument(std::to_string(version) + " should be either 4 or 6");
+    }
+  ip_version = version;
+}
+
+void Config::set_source_ipv4(const std::string & source_addr) {
+  source_ipv4 = Tins::IPv4Address(source_addr);
+}
+
+void Config::set_source_ipv6(const std::string & source_addr) {
+  source_ipv6 = Tins::IPv6Address(source_addr);
 }
 
 void Config::set_max_probes(const uint64_t count) {

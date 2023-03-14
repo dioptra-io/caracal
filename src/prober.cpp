@@ -43,7 +43,7 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
   sniffer.start();
 
   // Sender
-  Sender sender{config.interface, config.caracal_id};
+  Sender sender{config};
 
   // Rate limiter
   RateLimiter rl{config.probing_rate, config.batch_size,

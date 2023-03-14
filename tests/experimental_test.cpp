@@ -8,7 +8,12 @@ using caracal::Experimental::Prober;
 using caracal::Prober::Config;
 
 TEST_CASE("Experimental::Prober") {
-  Prober prober{Config::get_default_interface(), 100, 1024 * 1024, 1, true};
+  Config config;
+  config.interface = Config::get_default_interface();
+  config.probing_rate = 100;
+  config.caracal_id = 1;
+  config.integrity_check = true;
+  Prober prober{config, 1024 * 1024};
   std::vector<Probe> probes{{Probe::from_csv("8.8.8.8,24000,33434,32,icmp,1")}};
   std::function<void()> check_exception = []() {};
   prober.probe(probes, 100, check_exception);
