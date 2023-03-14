@@ -63,6 +63,8 @@ Sender::Sender(const Prober::Config& config)
     if (config.ip_version == 6) {
       // TODO Libtins does not provide a simple way to get the HW gateway for IPv6,
       // so let the user put their own gateway as a future work
+      // TODO In the future it might be best to resolve both gateway automatically
+      // and use them depending on the probe protocol. E.g. set gateway_mac_v4 and gateway_mac_v6
       gateway_mac =
           Utilities::gateway_mac_for(interface, Tins::IPv4Address("8.8.8.8"));
     } else {
@@ -81,8 +83,8 @@ Sender::Sender(const Prober::Config& config)
 
   // Set the source IPv4 address.
   src_ip_v4_.sin_family = AF_INET;
-  if (config.source_IPv4.has_value()) {
-    inet_pton(AF_INET, config.source_IPv4->to_string().c_str(),
+  if (config.source_ipv4.has_value()) {
+    inet_pton(AF_INET, config.source_ipv4->to_string().c_str(),
               &src_ip_v4_.sin_addr);
   } else {
     inet_pton(AF_INET, Utilities::source_ipv4_for(interface).to_string().c_str(),
@@ -91,8 +93,8 @@ Sender::Sender(const Prober::Config& config)
 
   // Set the source IPv6 address.
   src_ip_v6_.sin6_family = AF_INET6;
-  if (config.source_IPv6.has_value()) {
-    inet_pton(AF_INET6, config.source_IPv6->to_string().c_str(),
+  if (config.source_ipv6.has_value()) {
+    inet_pton(AF_INET6, config.source_ipv6->to_string().c_str(),
               &src_ip_v6_.sin6_addr);
   } else {
     inet_pton(AF_INET6, Utilities::source_ipv6_for(interface).to_string().c_str(),

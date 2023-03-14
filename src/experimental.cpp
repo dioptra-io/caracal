@@ -22,15 +22,6 @@ Prober::Prober(const caracal::Prober::Config & config, uint64_t buffer_size)
       rate_limiter_{config.probing_rate, 1, "auto"} {
   sniffer_.start();
 }
-//Prober::Prober(const std::string &interface, const uint64_t probing_rate,
-//               const uint64_t buffer_size, const uint16_t caracal_id,
-//               const bool integrity_check)
-//    : sniffer_{Sniffer{interface, buffer_size, caracal_id, integrity_check}},
-//      rate_limiter_{probing_rate, 1, "auto"} {
-//  sniffer_.start();
-//  config = caracal::Prober::Config();
-//  sender_ = caracal::Sender(config);
-//}
 
 std::vector<Reply> Prober::probe(const std::vector<Probe> &probes,
                                  const uint64_t timeout_ms,

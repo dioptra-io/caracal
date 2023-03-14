@@ -51,11 +51,6 @@ class ProberWrapper {
   ProberWrapper(const caracal::Prober::Config & config, uint64_t buffer_size)
       : prober_{config, buffer_size} {};
 
-//  ProberWrapper(const std::string& interface, uint64_t probing_rate,
-//                uint64_t buffer_size, uint16_t caracal_id, bool integrity_check)
-//      : prober_{interface, probing_rate, buffer_size, caracal_id,
-//                integrity_check} {};
-
   std::vector<Reply> probe(const std::vector<Probe>& probes,
                            uint64_t timeout_ms) {
     std::function<void()> check_exception = [&]() {
@@ -175,8 +170,8 @@ PYBIND11_MODULE(_pycaracal, m) {
       .def("set_interface", &Config::set_interface)
       .def("set_rate_limiting_method", &Config::set_rate_limiting_method)
       .def("set_ip_version", &Config::set_ip_version)
-      .def("set_source_IPv4", &Config::set_source_IPv4)
-      .def("set_source_IPv6", &Config::set_source_IPv6)
+      .def("set_source_ipv4", &Config::set_source_ipv4)
+      .def("set_source_ipv6", &Config::set_source_ipv6)
       .def("set_max_probes", &Config::set_max_probes)
       .def("set_output_file_csv", &Config::set_output_file_csv)
       .def("set_output_file_pcap", &Config::set_output_file_pcap)

@@ -78,12 +78,12 @@ void Config::set_ip_version(uint8_t version) {
   ip_version = version;
 }
 
-void Config::set_source_IPv4(const std::string & source_addr) {
-  source_IPv4 = Tins::IPv4Address(source_addr);
+void Config::set_source_ipv4(const std::string & source_addr) {
+  source_ipv4 = Tins::IPv4Address(source_addr);
 }
 
-void Config::set_source_IPv6(const std::string & source_addr) {
-  source_IPv6 = Tins::IPv6Address(source_addr);
+void Config::set_source_ipv6(const std::string & source_addr) {
+  source_ipv6 = Tins::IPv6Address(source_addr);
 }
 
 void Config::set_max_probes(const uint64_t count) {

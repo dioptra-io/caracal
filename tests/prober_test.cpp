@@ -66,7 +66,7 @@ TEST_CASE("Prober::probe/v4") {
   config.set_integrity_check(true);
   if (std::string(source_addr) != std::string("")) {
     config.set_ip_version(4);
-    config.set_source_IPv4(source_addr);
+    config.set_source_ipv4(source_addr);
     spdlog::info("Source address: " + std::string(source_addr));
   }
 
@@ -203,7 +203,7 @@ TEST_CASE("Prober::probe/v6") {
 
   if (std::string(source_addr) != std::string("")) {
     config.set_ip_version(6);
-    config.set_source_IPv6(source_addr);
+    config.set_source_ipv6(source_addr);
     spdlog::info("Source address: " + std::string(source_addr));
   }
 

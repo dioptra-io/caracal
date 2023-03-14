@@ -26,8 +26,8 @@ struct Config {
   std::string interface = get_default_interface();
   string rate_limiting_method = "auto";
   optional<uint8_t> ip_version;
-  optional<Tins::IPv4Address> source_IPv4;
-  optional<Tins::IPv6Address> source_IPv6;
+  optional<Tins::IPv4Address> source_ipv4;
+  optional<Tins::IPv6Address> source_ipv6;
   optional<uint64_t> max_probes;
   optional<fs::path> output_file_csv;
   optional<fs::path> output_file_pcap;
@@ -59,9 +59,9 @@ struct Config {
 
   void set_ip_version(uint8_t version);
 
-  void set_source_IPv4(const std::string & source_addr);
+  void set_source_ipv4(const std::string & source_addr);
 
-  void set_source_IPv6(const std::string & source_addr);
+  void set_source_ipv6(const std::string & source_addr);
 
   void set_max_probes(uint64_t count);
 
