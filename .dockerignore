@@ -4,7 +4,6 @@
 !data/
 !extern/
 !include/
-!python/
 !src/
 !tests/
 !CMakeLists.txt

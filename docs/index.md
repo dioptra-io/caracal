@@ -1,6 +1,6 @@
 # Introduction
 
-Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++ with Python bindings.
+Caracal is a stateless ICMP/UDP IPv4/v6 Paris traceroute and ping engine written in modern C++.
 It runs on BSD, Linux and macOS, on x86-64 and ARM64 systems.
 
 Caracal reads probe specifications, sends the corresponding probe packets at the specified rate, parse the eventual replies and outputs them in CSV format.

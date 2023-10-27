@@ -7,7 +7,7 @@ project(caracal VERSION 0.14.7)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
-set(CARACAL_PRIVATE_FLAGS -Wall -Wextra -pedantic -fPIC)
+set(CARACAL_PRIVATE_FLAGS -Wall -Wextra -pedantic)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 file(GLOB CARACAL_LIBRARY_SOURCES src/*.cpp)
@@ -15,7 +15,6 @@ file(GLOB CARACAL_TESTS_SOURCES tests/*.cpp)
 
 option(WITH_BINARY "Enable binary target" OFF)
 option(WITH_CONAN "Run conan install on configure" OFF)
-option(WITH_PYTHON "Enable Python target" OFF)
 option(WITH_TESTS "Enable tests target" OFF)
 configure_file(apps/caracal-config.h.in caracal-config.h)
 
@@ -26,17 +25,10 @@ configure_file(apps/caracal-config.h.in caracal-config.h)
 if(WITH_CONAN)
   include(conan)
   conan_cmake_autodetect(settings)
-  # Set `arch=...` setting if the `CONAN_ARCH` env. variable is set.
-  # This is useful to cross-compile on macOS, e.g. to compile for arm64:
-  # CMAKE_OSX_ARCHITECTURES=arm64 CONAN_ARCH=armv8
-  if(DEFINED ENV{CONAN_ARCH})
-    set(settings ${settings} arch=$ENV{CONAN_ARCH})
-  endif()
   conan_cmake_install(
     PATH_OR_REFERENCE
     ${CMAKE_CURRENT_SOURCE_DIR}
     BUILD
-    b2
     missing
     SETTINGS
     ${settings}
@@ -55,18 +47,6 @@ find_package(zstd REQUIRED)
 
 if(WITH_BINARY)
   find_package(cxxopts REQUIRED)
-endif()
-
-if(WITH_PYTHON)
-  # Add pip-installed pybind11 path to CMake's search path.
-  execute_process(
-    COMMAND "${PYTHON_EXECUTABLE}" -c
-            "import pybind11; print(pybind11.get_cmake_dir())"
-    OUTPUT_VARIABLE _tmp_dir
-    OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ECHO STDOUT
-  )
-  list(APPEND CMAKE_PREFIX_PATH "${_tmp_dir}")
-  find_package(pybind11 REQUIRED)
 endif()
 
 if(WITH_TESTS)
@@ -107,12 +87,6 @@ if(WITH_BINARY)
   )
   set_target_properties(caracal-bin PROPERTIES OUTPUT_NAME caracal)
   install(TARGETS caracal-bin RUNTIME DESTINATION bin)
-endif()
-
-if(WITH_PYTHON)
-  pybind11_add_module(_pycaracal MODULE python/pycaracal.cpp)
-  target_link_libraries(_pycaracal PRIVATE caracal spdlog::spdlog)
-  install(TARGETS _pycaracal LIBRARY DESTINATION .)
 endif()
 
 if(WITH_TESTS)

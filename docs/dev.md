@@ -45,7 +45,6 @@ Option             | Default  | Description
 `CMAKE_BUILD_TYPE` | `Debug`  | Set to `Release` for a production build.
 `WITH_CONAN`       | `OFF`     | Whether to run `conan install` on configure or not.
 `WITH_BINARY`      | `OFF`     | Whether to enable the `caracal-bin` target or not.
-`WITH_PYTHON`      | `OFF`     | Whether to enable the `_pycaracal` target or not.
 `WITH_TESTS`       | `OFF`     | Whether to enable the `caracal-test` target or not.
 
 Use `-DOPTION=Value` to set an option.
@@ -57,7 +56,6 @@ Target          | Output                    | Description
 :---------------|:--------------------------|:-----------
 `caracal-bin`   | `caracal`                 | Prober
 `caracal-test`  | `caracal-test`            | Unit and performance tests
-`_pycaracal`    | ` _pycaracal*.so`         | Python interface
 
 To build a specific target, use `cmake --build . --target TARGET`.
 
@@ -67,50 +65,6 @@ To build the Docker image, simply run:
 ```bash
 docker build -t caracal .
 ```
-
-## Python interface
-
-Caracal provides an experimental Python interface.
-It is currently only used for internal projects, and we do not recommend its general use.
-The extension is built using [pybind11](https://github.com/pybind/pybind11), [scikit-build](https://github.com/scikit-build/scikit-build).
-
-### Isolated build
-
-To build the Python package in a dedicated virtual environment, use [`build`](https://github.com/pypa/build):
-```bash
-python3 -m pip install --upgrade build
-python3 -m build
-# The source distribution and the wheels will be in dist/
-```
-
-### Manual build
-
-While `build` is very convenient to build wheels, we may want to build the extension manually to use a debugger or reduce compilation time. 
-To do so, we need a Python virtual environment with pybind11 installed in it:
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip3 install pybind11
-
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_CONAN=ON -DWITH_PYTHON=ON -DPYTHON_EXECUTABLE=$(which python3) ..
-cmake --build . --target _pycaracal
-
-# This will build _pycaracal*.so, to test it:
-python -c 'import _pycaracal'
-```
-
-To run the tests:
-```bash
-# Assuming the CMake build directory is build/
-# In the repository root:
-ln -s $(pwd)/build/_pycaracal*.so python/pycaracal/
-# In python/ (must be run with python3 -m):
-python3 -m pytest
-```
-
-The CI pipeline is managed by [cibuildwheel](https://github.com/joerick/cibuildwheel) in the [pypi.yml](https://github.com/dioptra-io/caracal/tree/main/.github/workflows/pypi.yml) workflow.
-We build x86_64 Linux wheels for Python 3.8+, as well as universal (ARM64 + x86_64) macOS wheels for Python 3.9+.
 
 ## Profiling
 
