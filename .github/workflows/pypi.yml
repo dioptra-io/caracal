@@ -60,44 +60,44 @@ jobs:
           sdist: false
           wheel: false
 
-  macos:
-    runs-on: macos-10.15
-    strategy:
-      matrix:
-        arch: ["x86_64", "arm64"]
-        build:
-          ["cp38-macosx*", "cp39-macosx*", "cp310-macosx*", "cp311-macosx*"]
-        include:
-          - arch: "x86_64"
-            conan_arch: "x86_64"
-          - arch: "arm64"
-            conan_arch: "armv8"
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: ~/.conan/data
-          key: ${{ runner.os }}-${{ matrix.arch }}-${{ matrix.build }}
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.9.0
-        env:
-          CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_BUILD: ${{ matrix.build }}
-          CONAN_ARCH: ${{ matrix.conan_arch }}
-          CMAKE_OSX_ARCHITECTURES: ${{ matrix.arch }}
-          MACOSX_DEPLOYMENT_TARGET: 10.15
-        with:
-          output-dir: dist
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          path: dist/*.whl
-      - uses: dioptra-io/publish-python-action@v1
-        with:
-          password: ${{ secrets.PYPI_TOKEN }}
-          upload: ${{ startsWith(github.ref, 'refs/tags/v') }}
-          sdist: false
-          wheel: false
+#   macos:
+#     runs-on: macos-10.15
+#     strategy:
+#       matrix:
+#         arch: ["x86_64", "arm64"]
+#         build:
+#           ["cp38-macosx*", "cp39-macosx*", "cp310-macosx*", "cp311-macosx*"]
+#         include:
+#           - arch: "x86_64"
+#             conan_arch: "x86_64"
+#           - arch: "arm64"
+#             conan_arch: "armv8"
+#     steps:
+#       - uses: actions/checkout@v3
+#       - uses: actions/cache@v3
+#         with:
+#           path: ~/.conan/data
+#           key: ${{ runner.os }}-${{ matrix.arch }}-${{ matrix.build }}
+#       - uses: actions/setup-python@v4
+#         with:
+#           python-version: "3.x"
+#       - name: Build wheels
+#         uses: pypa/cibuildwheel@v2.9.0
+#         env:
+#           CIBW_ARCHS: ${{ matrix.arch }}
+#           CIBW_BUILD: ${{ matrix.build }}
+#           CONAN_ARCH: ${{ matrix.conan_arch }}
+#           CMAKE_OSX_ARCHITECTURES: ${{ matrix.arch }}
+#           MACOSX_DEPLOYMENT_TARGET: 10.15
+#         with:
+#           output-dir: dist
+#       - name: Upload artifacts
+#         uses: actions/upload-artifact@v3
+#         with:
+#           path: dist/*.whl
+#       - uses: dioptra-io/publish-python-action@v1
+#         with:
+#           password: ${{ secrets.PYPI_TOKEN }}
+#           upload: ${{ startsWith(github.ref, 'refs/tags/v') }}
+#           sdist: false
+#           wheel: false
