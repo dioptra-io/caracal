@@ -29,8 +29,6 @@ struct Config {
   optional<Tins::IPv4Address> source_ipv4;
   optional<Tins::IPv6Address> source_ipv6;
   optional<uint64_t> max_probes;
-  optional<fs::path> output_file_csv;
-  optional<fs::path> output_file_pcap;
   optional<fs::path> prefix_excl_file;
   optional<fs::path> prefix_incl_file;
   optional<int> filter_min_ttl;
@@ -64,10 +62,6 @@ struct Config {
   void set_source_ipv6(const std::string & source_addr);
 
   void set_max_probes(uint64_t count);
-
-  void set_output_file_csv(const fs::path& p);
-
-  void set_output_file_pcap(const fs::path& p);
 
   void set_prefix_excl_file(const fs::path& p);
 

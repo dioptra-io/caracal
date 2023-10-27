@@ -1,7 +1,6 @@
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 
-#include <bxzstr/bxzstr.hpp>
 #include <caracal/lpm.hpp>
 #include <caracal/pretty.hpp>
 #include <caracal/probe.hpp>
@@ -37,9 +36,8 @@ ProbingStatistics probe(const Config& config, Iterator& it) {
   }
 
   // Sniffer
-  Sniffer sniffer{config.interface,        config.output_file_csv,
-                  config.output_file_pcap, config.meta_round,
-                  config.caracal_id,       config.integrity_check};
+  Sniffer sniffer{config.interface, config.meta_round, config.caracal_id,
+                  config.integrity_check};
   sniffer.start();
 
   // Sender
@@ -163,14 +161,6 @@ ProbingStatistics probe(const Config& config, std::istream& is) {
     return valid;
   };
   return probe(config, iterator);
-}
-
-ProbingStatistics probe(const Config& config, const fs::path& p) {
-  if (!fs::exists(p)) {
-    throw std::invalid_argument(p.string() + " does not exists");
-  }
-  bxz::ifstream ifs{p};
-  return probe(config, ifs);
 }
 
 }  // namespace caracal::Prober

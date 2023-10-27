@@ -45,7 +45,6 @@ This software is released under the [MIT license](/LICENSE), in accordance with 
 
 Name                                             | License                                                               | Usage
 -------------------------------------------------|-----------------------------------------------------------------------|------
-[bxzstr](https://github.com/tmaklin/bxzstr)                   | [Mozilla Public License 2.0 (MPL-2.0)](https://opensource.org/licenses/MPL-2.0) | Compression and decompression
 [Catch2](https://github.com/catchorg/Catch2)     | [Boost Software License 1.0](https://opensource.org/licenses/BSL-1.0) | Unit tests and benchmarks
 [cxxopts](https://github.com/jarro2783/cxxopts)  | [MIT](https://opensource.org/licenses/MIT)                            | CLI arguments parsing
 [liblpm](https://github.com/rmind/liblpm)        | [2-clause BSD](https://opensource.org/licenses/BSD-2-Clause)          | Longest-prefix matching

@@ -93,10 +93,6 @@ void Config::set_max_probes(const uint64_t count) {
   max_probes = count;
 }
 
-void Config::set_output_file_csv(const fs::path& p) { output_file_csv = p; }
-
-void Config::set_output_file_pcap(const fs::path& p) { output_file_pcap = p; }
-
 void Config::set_prefix_excl_file(const fs::path& p) {
   if (!fs::exists(p)) {
     throw std::invalid_argument(p.string() + " does not exists");
@@ -141,8 +137,6 @@ std::ostream& operator<<(std::ostream& os, Config const& v) {
   os << " integrity_check=" << v.integrity_check;
   os << " interface=" << v.interface;
   os << " rate_limiting_method=" << v.rate_limiting_method;
-  print_if_value("output_file_csv", v.output_file_csv);
-  print_if_value("output_file_pcap", v.output_file_pcap);
   print_if_value("max_probes", v.max_probes);
   print_if_value("prefix_excl_file", v.prefix_excl_file);
   print_if_value("prefix_incl_file", v.prefix_incl_file);

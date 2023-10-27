@@ -23,7 +23,6 @@
               pkgs.libtins
               pkgs.libpcap
               pkgs.spdlog
-              pkgs.zstd
             ];
             cmakeFlags = [
               "-DWITH_BINARY=ON"

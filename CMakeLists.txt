@@ -38,12 +38,10 @@ if(WITH_CONAN)
 endif()
 
 # Required packages
-find_package(bxzstr REQUIRED)
 find_package(libtins REQUIRED)
 find_package(LPM REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Threads REQUIRED)
-find_package(zstd REQUIRED)
 
 if(WITH_BINARY)
   find_package(cxxopts REQUIRED)
@@ -62,18 +60,12 @@ if(TARGET tins)
   add_library(libtins::libtins ALIAS tins)
 endif()
 
-# Alias zstd when installed with nix.
-if(TARGET zstd::libzstd_shared)
-  add_library(zstd::zstd ALIAS zstd::libzstd_shared)
-endif()
-
 add_library(caracal ${CARACAL_LIBRARY_SOURCES})
 target_compile_features(caracal PUBLIC cxx_std_20)
 target_compile_options(caracal PRIVATE ${CARACAL_PRIVATE_FLAGS})
 target_include_directories(caracal PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
-  caracal PRIVATE bxzstr::bxzstr spdlog::spdlog LPM::LPM Threads::Threads
-                  zstd::zstd
+  caracal PRIVATE spdlog::spdlog LPM::LPM Threads::Threads
 )
 # TODO: Remove libtins from the public headers of caracal?
 target_link_libraries(caracal PUBLIC libtins::libtins)

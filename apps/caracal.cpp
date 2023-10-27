@@ -26,9 +26,6 @@ int main(int argc, char** argv) {
   // clang-format off
   options.add_options()
       ("h,help", "Show this message")
-      ("i,input-file", "File containing the probes to send", cxxopts::value<string>())
-      ("o,output-file-csv",  "File to which the captured replies will be written", cxxopts::value<string>())
-      ("output-file-pcap", "File to which the captured replies will be written", cxxopts::value<string>())
       ("r,probing-rate", "Probing rate in packets per second", cxxopts::value<int>()->default_value(std::to_string(config.probing_rate)))
       ("z,interface", "Interface from which to send the packets", cxxopts::value<string>()->default_value(config.interface))
       ("B,batch-size", "Number of probes to send before calling the rate limiter", cxxopts::value<int>()->default_value(std::to_string(config.batch_size)))
@@ -56,16 +53,6 @@ int main(int argc, char** argv) {
   }
 
   try {
-    if (result.count("output-file-csv")) {
-      fs::path path{result["output-file-csv"].as<string>()};
-      config.set_output_file_csv(path);
-    }
-
-    if (result.count("output-file-pcap")) {
-      fs::path path{result["output-file-pcap"].as<string>()};
-      config.set_output_file_pcap(path);
-    }
-
     if (result.count("probing-rate")) {
       config.set_probing_rate(result["probing-rate"].as<int>());
     }
@@ -143,14 +130,9 @@ int main(int argc, char** argv) {
     spdlog::set_default_logger(spdlog::stderr_color_st("dummy"));
     spdlog::set_default_logger(spdlog::stderr_color_st(""));
 
-    if (result.count("input-file")) {
-      fs::path path{result["input-file"].as<string>()};
-      caracal::Prober::probe(config, path);
-    } else {
-      spdlog::info("Reading from stdin, press CTRL+D to stop...");
-      std::ios::sync_with_stdio(false);
-      caracal::Prober::probe(config, std::cin);
-    }
+    spdlog::info("Reading from stdin, press CTRL+D to stop...");
+    std::ios::sync_with_stdio(false);
+    caracal::Prober::probe(config, std::cin);
   } catch (const std::exception& e) {
     auto type = caracal::Utilities::demangle(typeid(e).name());
     std::cerr << "Exception of type " << type << ": " << e.what() << std::endl;

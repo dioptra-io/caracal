@@ -3,7 +3,6 @@ catch2/3.2.1
 cxxopts/3.0.0
 libtins/4.4
 spdlog/1.10.0
-zstd/1.5.2
 
 [generators]
 cmake_find_package

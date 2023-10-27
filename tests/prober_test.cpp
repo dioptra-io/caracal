@@ -52,8 +52,6 @@ TEST_CASE("Prober::probe/v4") {
   ofs.close();
 
   Config config;
-  config.set_output_file_csv("zzz_output.csv");
-  config.set_output_file_pcap("zzz_output.pcap");
   config.set_prefix_excl_file("zzz_excl.csv");
   config.set_prefix_incl_file("zzz_incl.csv");
   config.set_filter_min_ttl(1);
@@ -70,13 +68,15 @@ TEST_CASE("Prober::probe/v4") {
     spdlog::info("Source address: " + std::string(source_addr));
   }
 
-  auto true_addr = caracal::Utilities::source_ipv4_for(Config::get_default_interface()).to_string();
+  auto true_addr =
+      caracal::Utilities::source_ipv4_for(Config::get_default_interface())
+          .to_string();
 
   spdlog::cfg::helpers::load_levels("trace");
 
   SECTION("Base case") {
-    auto [prober_stats, sniffer_stats, pcap_stats] =
-        probe(config, "zzz_input.csv");
+    auto is = std::ifstream{"zzz_input.csv"};
+    auto [prober_stats, sniffer_stats, pcap_stats] = probe(config, is);
     REQUIRE(prober_stats.read == 6);
     REQUIRE(prober_stats.sent == 6);
     REQUIRE(prober_stats.filtered_lo_ttl == 1);
@@ -84,8 +84,8 @@ TEST_CASE("Prober::probe/v4") {
     REQUIRE(prober_stats.filtered_prefix_excl == 1);
     REQUIRE(prober_stats.filtered_prefix_not_incl == 1);
     if (!is_github) {
-
-      if (true_addr == std::string(source_addr) || std::string(source_addr) == std::string("")) {
+      if (true_addr == std::string(source_addr) ||
+          std::string(source_addr) == std::string("")) {
         REQUIRE(sniffer_stats.received_count >= 2);
         REQUIRE(!sniffer_stats.icmp_messages_all.empty());
         REQUIRE(!sniffer_stats.icmp_messages_path.empty());
@@ -103,11 +103,12 @@ TEST_CASE("Prober::probe/v4") {
     ofs << "8.8.0.0/16";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats, pcap_stats] =
-        probe(config, "zzz_input.csv");
+    auto is = std::ifstream{"zzz_input.csv"};
+    auto [prober_stats, sniffer_stats, pcap_stats] = probe(config, is);
     REQUIRE(prober_stats.sent == 6);
     if (!is_github) {
-      if (true_addr == std::string(source_addr) || std::string(source_addr) == std::string("")) {
+      if (true_addr == std::string(source_addr) ||
+          std::string(source_addr) == std::string("")) {
         REQUIRE(sniffer_stats.received_count == 6);
       } else {
         REQUIRE(sniffer_stats.received_count == 0);
@@ -122,16 +123,16 @@ TEST_CASE("Prober::probe/v4") {
     ofs << "";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats, pcap_stats] =
-        probe(config, "zzz_input.csv");
+    auto is = std::ifstream{"zzz_input.csv"};
+    auto [prober_stats, sniffer_stats, pcap_stats] = probe(config, is);
     REQUIRE(prober_stats.sent == 9);
     if (!is_github) {
-      if (true_addr == std::string(source_addr) || std::string(source_addr) == std::string("")) {
+      if (true_addr == std::string(source_addr) ||
+          std::string(source_addr) == std::string("")) {
         REQUIRE(sniffer_stats.received_count == 9);
       } else {
         REQUIRE(sniffer_stats.received_count == 0);
       }
-
     }
     REQUIRE(sniffer_stats.received_invalid_count == 0);
   }
@@ -142,8 +143,8 @@ TEST_CASE("Prober::probe/v4") {
     ofs << "";
     ofs.close();
 
-    auto [prober_stats, sniffer_stats, pcap_stats] =
-        probe(config, "zzz_input.csv");
+    auto is = std::ifstream{"zzz_input.csv"};
+    auto [prober_stats, sniffer_stats, pcap_stats] = probe(config, is);
     REQUIRE(prober_stats.sent == 0);
     REQUIRE(sniffer_stats.received_count == 0);
     REQUIRE(sniffer_stats.received_invalid_count == 0);
@@ -160,7 +161,8 @@ TEST_CASE("Prober::probe/v6") {
   auto dst_addr = "2a00:1450:4007:819::200e";  // google.com
   auto protocol = "icmp6";
   // Replace some valid IP address if you need.
-  auto source_addr = GENERATE("", "2606:4700:4700::1111", "2001:660:3302:287b:225:90ff:fec0:15b2");
+  auto source_addr = GENERATE("", "2606:4700:4700::1111",
+                              "2001:660:3302:287b:225:90ff:fec0:15b2");
   uint32_t flow_label = 1;
   std::ofstream ofs;
 
@@ -188,8 +190,6 @@ TEST_CASE("Prober::probe/v6") {
   ofs.close();
 
   Config config;
-  config.set_output_file_csv("zzz_output.csv");
-  config.set_output_file_pcap("zzz_output.pcap");
   config.set_prefix_excl_file("zzz_excl.csv");
   config.set_prefix_incl_file("zzz_incl.csv");
   config.set_filter_min_ttl(1);
@@ -207,13 +207,15 @@ TEST_CASE("Prober::probe/v6") {
     spdlog::info("Source address: " + std::string(source_addr));
   }
 
-  auto true_addr = caracal::Utilities::source_ipv6_for(Config::get_default_interface()).to_string();
+  auto true_addr =
+      caracal::Utilities::source_ipv6_for(Config::get_default_interface())
+          .to_string();
 
   spdlog::cfg::helpers::load_levels("trace");
 
   if (has_ipv6) {
-    auto [prober_stats, sniffer_stats, pcap_stats] =
-        probe(config, "zzz_input.csv");
+    auto is = std::ifstream{"zzz_input.csv"};
+    auto [prober_stats, sniffer_stats, pcap_stats] = probe(config, is);
     REQUIRE(prober_stats.read == 6);
     REQUIRE(prober_stats.sent == 6);
     REQUIRE(prober_stats.filtered_lo_ttl == 1);
@@ -221,7 +223,8 @@ TEST_CASE("Prober::probe/v6") {
     REQUIRE(prober_stats.filtered_prefix_excl == 1);
     REQUIRE(prober_stats.filtered_prefix_not_incl == 1);
 
-    if (true_addr == std::string(source_addr) || std::string(source_addr) == std::string("")) {
+    if (true_addr == std::string(source_addr) ||
+        std::string(source_addr) == std::string("")) {
       REQUIRE(sniffer_stats.received_count >= 2);
       REQUIRE(!sniffer_stats.icmp_messages_all.empty());
       REQUIRE(!sniffer_stats.icmp_messages_path.empty());
