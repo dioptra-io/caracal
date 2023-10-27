@@ -10,16 +10,12 @@ Probe Google DNS servers at TTL 32:
 2001:4860:4860::8844,24000,33434,32,icmp
 ```
 ```bash
-# Standard input/output
 cat probes.txt | caracal > replies.csv
-# File input/output
-caracal -i probes.txt -o replies.csv
 ```
 
 ## Input format
 
-Caracal reads probe specifications from the standard input or, if specified with `-i/--input-file`, from a file with one probe per line.
-If the input file is compressed with with [zstd](https://facebook.github.io/zstd/) and ends with `.zst` it will be decompressed on-the-fly.
+Caracal reads probe specifications from the standard input or.
 
 The input format is:
 ```csv
@@ -33,10 +29,7 @@ dst_addr,src_port,dst_port,ttl,protocol
 
 ## Output format
 
-Caracal outputs the replies in CSV format on the standard output or, if specified with `-o/--output-file-csv`, to a file with one reply per line.
-If the file name ends with `.zst` the output will be compressed on-the-fly with zstd.
-
-In addition, if `--output-file-pcap` is specified, the raw captured frames will be written to the specified file in PCAP format.  
+Caracal outputs the replies in CSV format on the standard output.
 Log messages are printed on the standard error stream.
 
 The output format is:

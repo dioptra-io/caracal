@@ -40,9 +40,6 @@ TEST_CASE("Prober::Config") {
   REQUIRE_NOTHROW(config.set_max_probes(1));
   REQUIRE_THROWS_AS(config.set_max_probes(0), std::domain_error);
 
-  REQUIRE_NOTHROW(config.set_output_file_csv("zzz"));
-  REQUIRE_NOTHROW(config.set_output_file_pcap("zzz"));
-
   REQUIRE_THROWS_AS(config.set_prefix_excl_file("zzz"), std::invalid_argument);
   REQUIRE_THROWS_AS(config.set_prefix_incl_file("zzz"), std::invalid_argument);
 

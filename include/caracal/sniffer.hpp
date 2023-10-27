@@ -18,8 +18,6 @@ namespace caracal {
 class Sniffer {
  public:
   Sniffer(const std::string &interface_name,
-          const std::optional<fs::path> &output_file_csv,
-          const std::optional<fs::path> &output_file_pcap,
           const std::optional<std::string> &meta_round, uint16_t caracal_id,
           bool integrity_check);
 

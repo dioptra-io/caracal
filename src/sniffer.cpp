@@ -3,7 +3,6 @@
 #include <spdlog/spdlog.h>
 #include <tins/tins.h>
 
-#include <bxzstr/bxzstr.hpp>
 #include <caracal/parser.hpp>
 #include <caracal/sniffer.hpp>
 #include <caracal/statistics.hpp>
@@ -19,8 +18,6 @@ namespace fs = std::filesystem;
 namespace caracal {
 
 Sniffer::Sniffer(const std::string &interface_name,
-                 const std::optional<fs::path> &output_file_csv,
-                 const std::optional<fs::path> &output_file_pcap,
                  const std::optional<std::string> &meta_round,
                  const uint16_t caracal_id, const bool integrity_check)
     : sniffer_{interface_name},
@@ -61,22 +58,7 @@ Sniffer::Sniffer(const std::string &interface_name,
   // they are captured by pcap.
   config.set_timeout(100);
   sniffer_ = Tins::Sniffer(interface_name, config);
-
-  if (output_file_csv) {
-    if (output_file_csv->extension() == ".zst") {
-      output_csv_ = std::make_unique<bxz::ofstream>(*output_file_csv,
-                                                    bxz::Compression::zstd, 1);
-    } else {
-      output_csv_ = std::make_unique<std::ofstream>(*output_file_csv);
-    }
-  } else {
-    output_csv_ = std::make_unique<std::ostream>(std::cout.rdbuf());
-  }
-
-  if (output_file_pcap) {
-    output_pcap_ = Tins::PacketWriter{*output_file_pcap,
-                                      Tins::DataLinkType<Tins::EthernetII>()};
-  }
+  output_csv_ = std::make_unique<std::ostream>(std::cout.rdbuf());
 }
 
 Sniffer::~Sniffer() {
