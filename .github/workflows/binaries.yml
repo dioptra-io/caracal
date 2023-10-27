@@ -1,0 +1,63 @@
+name: Binaries
+
+on: [ push ]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: ~/.conan/data
+          key: binaries-${{ runner.os }}-x86_64
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install --yes build-essential cmake ninja-build python3-pip
+          pip3 install "conan<2.0"
+      - name: Configure project
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_BINARY=ON -DWITH_CONAN=ON
+      - name: Build executable
+        run: |
+          cmake --build build --target caracal-bin
+          mv build/caracal build/caracal-linux-amd64
+      - uses: actions/upload-artifact@v3
+        with:
+          path: build/caracal-linux-amd64
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: ~/.conan/data
+          key: binaries-${{ runner.os }}-x86_64
+      - name: Install dependencies
+        run: brew install cmake ninja
+      - name: Install Conan
+        run: pip3 install "conan<2.0"
+      # For some unknown reasons bison fails to build on GitHub macOS 12 runners.
+      # However, if we call conan twice, it seems to work...¯\(◉‿◉)/¯
+      - name: Configure project
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_BINARY=ON -DWITH_CONAN=ON || true
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_BINARY=ON -DWITH_CONAN=ON
+      - name: Build executable
+        run: |
+          cmake --build build --target caracal-bin
+          mv build/caracal build/caracal-macos-amd64
+      - uses: actions/upload-artifact@v3
+        with:
+          path: build/caracal-macos-amd64
+
+  release:
+    needs: [ linux, macos ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+      - uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: artifact/*
