@@ -13,7 +13,7 @@
         packages = {
           caracal = pkgs.stdenv.mkDerivation {
             pname = "caracal";
-            version = "0.15.0";
+            version = "0.15.1";
             src = self;
             nativeBuildInputs = [
               pkgs.cmake
