@@ -10,5 +10,6 @@ cmake_find_package
 
 [options]
 libtins:with_ack_tracker=False
+libtins:with_tcp_stream_custom_data=False
 libtins:with_dot11=False
 libtins:with_wpa2=False
