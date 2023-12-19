@@ -33,7 +33,6 @@ class Sniffer {
 
  private:
   Tins::Sniffer sniffer_;
-  std::unique_ptr<std::ostream> output_csv_;
   std::optional<Tins::PacketWriter> output_pcap_;
   std::optional<std::string> meta_round_;
   std::thread thread_;
