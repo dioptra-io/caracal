@@ -58,7 +58,6 @@ Sniffer::Sniffer(const std::string &interface_name,
   // they are captured by pcap.
   config.set_timeout(100);
   sniffer_ = Tins::Sniffer(interface_name, config);
-  output_csv_ = std::make_unique<std::ostream>(std::cout.rdbuf());
 }
 
 Sniffer::~Sniffer() {
@@ -68,7 +67,7 @@ Sniffer::~Sniffer() {
 }
 
 void Sniffer::start() noexcept {
-  *output_csv_ << Reply::csv_header() << "\n";
+  std::cout << (Reply::csv_header() + "\n");
   auto handler = [this](Tins::Packet &packet) {
     auto reply = Parser::parse(packet);
 
@@ -78,7 +77,7 @@ void Sniffer::start() noexcept {
       if (reply->is_time_exceeded()) {
         statistics_.icmp_messages_path.insert(reply->reply_src_addr);
       }
-      *output_csv_ << reply->to_csv(meta_round_.value_or("1")) << "\n";
+      std::cout << (reply->to_csv(meta_round_.value_or("1")) + "\n");
     } else {
       auto data = packet.pdu()->serialize();
       spdlog::trace("invalid_packet_hex={:02x}", fmt::join(data, ""));
