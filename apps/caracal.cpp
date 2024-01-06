@@ -131,7 +131,6 @@ int main(int argc, char** argv) {
     spdlog::set_default_logger(spdlog::stderr_color_st(""));
 
     spdlog::info("Reading from stdin, press CTRL+D to stop...");
-    std::ios::sync_with_stdio(false);
     caracal::Prober::probe(config, std::cin);
   } catch (const std::exception& e) {
     auto type = caracal::Utilities::demangle(typeid(e).name());
