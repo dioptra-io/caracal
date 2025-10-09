@@ -17,7 +17,7 @@ jobs:
       - name: Install Conan dependencies
         run: conan install . --build=missing
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        run: cmake -S . -B build -G Ninja -DWITH_BINARY=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
       - name: Build executable
         run: |
           cmake --build build --target caracal-bin
@@ -40,7 +40,7 @@ jobs:
       - name: Install Conan dependencies
         run: conan install . --build=missing
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        run: cmake -S . -B build -G Ninja -DWITH_BINARY=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
       - name: Build executable
         run: |
           cmake --build build --target caracal-bin
