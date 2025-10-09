@@ -6,16 +6,16 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v4
+      - name: Setup Conan Client
+        uses: conan-io/setup-conan@v1
         with:
-          path: ~/.conan/data
-          key: binaries-${{ runner.os }}-x86_64
+          version: '2.21.0'  # specify Conan 2.x version or omit for latest
+          cache_packages: true  # automatically cache Conan packages
       - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install --yes build-essential cmake ninja-build python3-pip
-          pip3 install "conan<2.0"
+        run: sudo apt update && sudo apt install --yes build-essential cmake ninja-build
+      - name: Install Conan dependencies
+        run: conan install . --build=missing
       - name: Configure project
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_BINARY=ON -DWITH_CONAN=ON
       - name: Build executable
@@ -29,21 +29,18 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v4
+      - name: Setup Conan Client
+        uses: conan-io/setup-conan@v1
         with:
-          path: ~/.conan/data
-          key: binaries-${{ runner.os }}-x86_64
+          version: '2.21.0'
+          cache_packages: true
       - name: Install dependencies
         run: brew install cmake ninja
-      - name: Install Conan
-        run: pip3 install "conan<2.0"
-      # For some unknown reasons bison fails to build on GitHub macOS 12 runners.
-      # However, if we call conan twice, it seems to work...¯\(◉‿◉)/¯
+      - name: Install Conan dependencies
+        run: conan install . --build=missing
       - name: Configure project
-        run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_BINARY=ON -DWITH_CONAN=ON || true
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_BINARY=ON -DWITH_CONAN=ON
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_BINARY=ON -DWITH_CONAN=ON
       - name: Build executable
         run: |
           cmake --build build --target caracal-bin
