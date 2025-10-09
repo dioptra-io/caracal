@@ -5,7 +5,8 @@ libtins/4.4
 spdlog/1.10.0
 
 [generators]
-cmake_find_package
+CMakeDeps
+CMakeToolchain
 
 [options]
 libtins/*:with_ack_tracker=False
