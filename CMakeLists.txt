@@ -4,7 +4,7 @@ project(caracal VERSION 0.15.3)
 # We have Find* modules in two places:
 # - The build directory, for the libraries fetched by Conan
 # - The cmake/ directory, for the libraries not available with Conan
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+# list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
 set(CARACAL_PRIVATE_FLAGS -Wall -Wextra -pedantic)
