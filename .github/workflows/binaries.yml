@@ -48,7 +48,7 @@ jobs:
         run: |
           cmake --build build --target caracal-bin
           mv build/caracal build/caracal-macos-amd64
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4.6.2
         with:
           path: build/caracal-macos-amd64
 
