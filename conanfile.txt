@@ -1,7 +1,7 @@
 [requires]
 catch2/3.3.2
 cxxopts/3.0.0
-libtins/4.4
+libtins/4.5
 spdlog/1.10.0
 
 [generators]
