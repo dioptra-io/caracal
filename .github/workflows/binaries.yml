@@ -24,6 +24,7 @@ jobs:
           mv build/caracal build/caracal-linux-amd64
       - uses: actions/upload-artifact@v4.6.2
         with:
+          name: caracal-linux-amd64-${{ runner.os }}
           path: build/caracal-linux-amd64
 
   macos:
@@ -47,6 +48,7 @@ jobs:
           mv build/caracal build/caracal-macos-amd64
       - uses: actions/upload-artifact@v4.6.2
         with:
+          name: caracal-macos-amd64-${{ runner.os }}
           path: build/caracal-macos-amd64
 
   release:
