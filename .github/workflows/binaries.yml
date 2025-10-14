@@ -17,7 +17,7 @@ jobs:
       - name: Install Conan dependencies
         run: conan install . --build=missing -s compiler=gcc -s compiler.version=10 -s compiler.cppstd=20 -s build_type=Release
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DWITH_BINARY=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        run: cmake -S . -B build -G Ninja -DWITH_BINARY=ON -DWITH_CONAN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
       - name: Build executable
         run: |
           cmake --build build --target caracal-bin
@@ -41,7 +41,7 @@ jobs:
       - name: Install Conan dependencies
         run: conan install . --build=missing -s compiler=apple-clang -s compiler.version=17 -s compiler.cppstd=20 -s build_type=Release
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DWITH_BINARY=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        run: cmake -S . -B build -G Ninja -DWITH_BINARY=ON -DWITH_CONAN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
       - name: Build executable
         run: |
           cmake --build build --target caracal-bin
