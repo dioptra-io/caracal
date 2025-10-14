@@ -38,7 +38,7 @@ jobs:
       - name: Install Conan dependencies
         run: conan install . --build=missing -s compiler=gcc -s compiler.version=10 -s compiler.cppstd=20 -s build_type=Release
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DWITH_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON
       - name: Build tests
         run: cmake --build build --target caracal-test
       - name: Run tests
@@ -61,7 +61,7 @@ jobs:
       - name: Install Conan dependencies
         run: conan install . --build=missing -s compiler=apple-clang -s compiler.version=17 -s compiler.cppstd=20 -s build_type=Release
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DWITH_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON
       - name: Build tests
         run: cmake --build build --target caracal-test
       - name: Run tests
