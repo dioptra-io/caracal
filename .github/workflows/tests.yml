@@ -36,9 +36,9 @@ jobs:
       - name: Install dependencies
         run: sudo apt update && sudo apt install --yes build-essential cmake gcovr ninja-build python3-pip
       - name: Install Conan dependencies
-        run: conan install . --build=missing -s compiler=gcc -s compiler.version=10 -s compiler.cppstd=20 -s build_type=Release
+        run: conan install . --output-folder=build --build=missing -s compiler=gcc -s compiler.version=10 -s compiler.cppstd=20 -s build_type=Debug
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
       - name: Build tests
         run: cmake --build build --target caracal-test
       - name: Run tests
@@ -59,9 +59,9 @@ jobs:
       - name: Install dependencies
         run: brew install cmake gcovr ninja python3
       - name: Install Conan dependencies
-        run: conan install . --build=missing -s compiler=apple-clang -s compiler.version=17 -s compiler.cppstd=20 -s build_type=Release
+        run: conan install . --output-folder=build --build=missing -s compiler=gcc -s compiler.version=10 -s compiler.cppstd=20 -s build_type=Debug
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
       - name: Build tests
         run: cmake --build build --target caracal-test
       - name: Run tests
