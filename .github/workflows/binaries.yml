@@ -6,57 +6,56 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v4
+      - name: Setup Conan Client
+        uses: conan-io/setup-conan@v1
         with:
-          path: ~/.conan/data
-          key: binaries-${{ runner.os }}-x86_64
+          version: '2.21.0'
+          cache_packages: true  # automatically cache Conan packages
       - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install --yes build-essential cmake ninja-build python3-pip
-          pip3 install "conan<2.0"
+        run: sudo apt update && sudo apt install --yes build-essential cmake ninja-build
+      - name: Install Conan dependencies
+        run: conan install . --build=missing -s compiler=gcc -s compiler.version=10 -s compiler.cppstd=20 -s build_type=Release
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_BINARY=ON -DWITH_CONAN=ON
+        run: cmake -S . -B build -G Ninja -DWITH_BINARY=ON -DWITH_CONAN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
       - name: Build executable
         run: |
           cmake --build build --target caracal-bin
           mv build/caracal build/caracal-linux-amd64
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4.6.2
         with:
+          name: caracal-linux-amd64-${{ runner.os }}
           path: build/caracal-linux-amd64
 
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v4
+      - name: Setup Conan Client
+        uses: conan-io/setup-conan@v1
         with:
-          path: ~/.conan/data
-          key: binaries-${{ runner.os }}-x86_64
+          version: '2.21.0'
+          cache_packages: true
       - name: Install dependencies
         run: brew install cmake ninja
-      - name: Install Conan
-        run: pip3 install "conan<2.0"
-      # For some unknown reasons bison fails to build on GitHub macOS 12 runners.
-      # However, if we call conan twice, it seems to work...¯\(◉‿◉)/¯
+      - name: Install Conan dependencies
+        run: conan install . --build=missing -s compiler=apple-clang -s compiler.version=17 -s compiler.cppstd=20 -s build_type=Release
       - name: Configure project
-        run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_BINARY=ON -DWITH_CONAN=ON || true
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_BINARY=ON -DWITH_CONAN=ON
+        run: cmake -S . -B build -G Ninja -DWITH_BINARY=ON -DWITH_CONAN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
       - name: Build executable
         run: |
           cmake --build build --target caracal-bin
           mv build/caracal build/caracal-macos-amd64
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4.6.2
         with:
+          name: caracal-macos-amd64-${{ runner.os }}
           path: build/caracal-macos-amd64
 
   release:
     needs: [ linux, macos ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4.1.7
       - uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:

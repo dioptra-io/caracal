@@ -1,6 +1,7 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
 
+#include <algorithm>
 #include <caracal/checksum.hpp>
 #include <caracal/constants.hpp>
 #include <caracal/pretty.hpp>

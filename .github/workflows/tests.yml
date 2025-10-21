@@ -6,7 +6,7 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build Docker image
         run: docker build --tag caracal .
       - name: Test Docker image
@@ -15,7 +15,7 @@ jobs:
   nix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v20
       - uses: cachix/cachix-action@v12
         with:
@@ -27,48 +27,45 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v4
+      - name: Setup Conan Client
+        uses: conan-io/setup-conan@v1
         with:
-          path: ~/.conan/data
-          key: tests-${{ runner.os }}-x86_64
+          version: '2.21.0'
+          cache_packages: true  # automatically cache Conan packages
       - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install --yes build-essential cmake gcovr ninja-build python3-pip
-          pip3 install "conan<2.0"
+        run: sudo apt update && sudo apt install --yes build-essential cmake gcovr ninja-build python3-pip
+      - name: Install Conan dependencies
+        run: conan install . --output-folder=build --build=missing -s compiler=gcc -s compiler.version=10 -s compiler.cppstd=20 -s build_type=Debug
       - name: Configure project
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
       - name: Build tests
         run: cmake --build build --target caracal-test
       - name: Run tests
         run: sudo --preserve-env=CI build/caracal-test --benchmark-warmup-time 0 --benchmark-samples 1
       - name: Compute coverage
         run: gcovr --exclude-unreachable-branches --exclude-throw-branches --exclude apps --exclude extern --exclude tests --output coverage.xml --xml
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v5
 
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v4
+      - name: Setup Conan Client
+        uses: conan-io/setup-conan@v1
         with:
-          path: ~/.conan/data
-          key: tests-${{ runner.os }}-x86_64
+          version: '2.21.0'
+          cache_packages: true
       - name: Install dependencies
-        run: brew install cmake gcovr ninja
-      - name: Install Conan
-        run: pip3 install "conan<2.0"
-      # For some unknown reasons bison fails to build on GitHub macOS 12 runners.
-      # However, if we call conan twice, it seems to work...¯\(◉‿◉)/¯
+        run: brew install cmake gcovr ninja python3
+      - name: Install Conan dependencies
+        run: conan install . --output-folder=build --build=missing -s compiler=apple-clang -s compiler.version=17 -s compiler.cppstd=20 -s build_type=Debug
       - name: Configure project
-        run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON || true
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fsanitize=address -fsanitize=undefined" -DWITH_CONAN=ON -DWITH_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
       - name: Build tests
         run: cmake --build build --target caracal-test
       - name: Run tests
         run: sudo --preserve-env=CI build/caracal-test --benchmark-warmup-time 0 --benchmark-samples 1
       - name: Compute coverage
         run: gcovr --exclude-unreachable-branches --exclude-throw-branches --exclude apps --exclude extern --exclude tests --output coverage.xml --xml
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v5
