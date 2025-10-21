@@ -10,8 +10,6 @@ RUN apt-get update && \
     python3-pip && \
     rm --force --recursive /var/lib/apt/lists/*
 
-
-# Install Conan (version <2.0 as per your usage)
 # hadolint ignore=DL3059
 RUN python3 -m pip install --no-cache-dir "conan>=1.35,<2.0"
 

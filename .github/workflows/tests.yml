@@ -31,7 +31,7 @@ jobs:
       - name: Setup Conan Client
         uses: conan-io/setup-conan@v1
         with:
-          version: '2.21.0'  # specify Conan 2.x version or omit for latest
+          version: '2.21.0'
           cache_packages: true  # automatically cache Conan packages
       - name: Install dependencies
         run: sudo apt update && sudo apt install --yes build-essential cmake gcovr ninja-build python3-pip
