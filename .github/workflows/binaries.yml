@@ -4,7 +4,9 @@ on: [ push ]
 
 jobs:
   linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    outputs:
+      artifact_name: ${{ steps.set-output-linux.outputs.artifact_name }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Conan Client
@@ -23,12 +25,18 @@ jobs:
           cmake --build build --target caracal-bin
           mv build/caracal build/caracal-linux-amd64
       - uses: actions/upload-artifact@v4.6.2
+        id: upload-artifact
         with:
           name: caracal-linux-amd64-${{ runner.os }}
           path: build/caracal-linux-amd64
+      - name: Set artifact name output
+        id: set-output-linux
+        run: echo "artifact_name=caracal-linux-amd64-${{ runner.os }}" >> $GITHUB_OUTPUT
 
   macos:
     runs-on: macos-latest
+    outputs:
+      artifact_name: ${{ steps.set-output-macos.outputs.artifact_name }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Conan Client
@@ -47,15 +55,29 @@ jobs:
           cmake --build build --target caracal-bin
           mv build/caracal build/caracal-macos-amd64
       - uses: actions/upload-artifact@v4.6.2
+        id: upload-artifact
         with:
           name: caracal-macos-amd64-${{ runner.os }}
           path: build/caracal-macos-amd64
+      - name: Set artifact name output
+        id: set-output-macos
+        run: echo "artifact_name=caracal-macos-amd64-${{ runner.os }}" >> $GITHUB_OUTPUT
 
   release:
     needs: [ linux, macos ]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4.1.7
+        with:
+          name: ${{ needs.linux.outputs.artifact_name }}
+          path: artifact
+      - uses: actions/download-artifact@v4.1.7
+        with:
+          name: ${{ needs.macos.outputs.artifact_name }}
+          path: artifact
+      - run: ls -l artifact  # to verify all files are together
       - uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
